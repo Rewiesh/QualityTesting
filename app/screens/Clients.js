@@ -135,7 +135,7 @@ const Clients = ({navigation}) => {
         ListEmptyComponent={<RenderEmpty />}
         contentContainerStyle={{
           flexGrow: 1,
-          paddingBottom: useColorModeValue(100, 150),
+          paddingBottom: 120,
         }}
       />
       <RenderModal

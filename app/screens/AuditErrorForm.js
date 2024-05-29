@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import {TouchableOpacity, SafeAreaView, Alert, FlatList} from 'react-native';
+import {TouchableOpacity, SafeAreaView, Alert} from 'react-native';
 import {
   Button,
   Box,
@@ -15,6 +15,7 @@ import {
   TextArea,
   useColorModeValue,
   useTheme,
+  SectionList,
 } from 'native-base';
 import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -214,6 +215,7 @@ const AuditErrorForm = ({navigation, route}) => {
             error={error}
             onLogBookChange={onLogBookChange}
             setModalLogBookVisible={setModalLogBookVisible}
+            onDeleteLogBookImage={onDeleteLogBookImage}
           />
         )}
         {item.type === 'TechnicalAspects' && (
@@ -222,6 +224,7 @@ const AuditErrorForm = ({navigation, route}) => {
             error={error}
             onTechnicalAspectsChange={onTechnicalAspectsChange}
             setModalTechVisible={setModalTechVisible}
+            onDeleteTechnicalAspectImage={onDeleteTechnicalAspectImage}
           />
         )}
       </Box>
@@ -237,20 +240,29 @@ const AuditErrorForm = ({navigation, route}) => {
   ];
 
   return (
-    <Box
-      flex={1}
-      _contentContainerStyle={{
-        p: '2',
-        mb: '50',
-        pb: '75',
-      }}>
-      <FlatList
-        data={formItems}
+    <Box flex={1} _contentContainerStyle={{p: '2', mb: '50', pb: '75'}}>
+      <SectionList
+        sections={[{title: 'Form', data: formItems}]}
         renderItem={renderItem}
         keyExtractor={item => item.id}
-        contentContainerStyle={{
-          padding: 8,
-        }}
+        contentContainerStyle={{padding: 8}}
+        ListFooterComponent={
+          countError > 0 && (
+            <Button
+              // mt="2"
+              mb="120"
+              // mr="2"
+              // ml="2"
+              bg={useColorModeValue(
+                theme.colors.fdis[400],
+                theme.colors.fdis[600],
+              )}
+              _text={{color: 'white'}}
+              onPress={saveError}>
+              Opslaan
+            </Button>
+          )
+        }
       />
       <RenderModalLogBook
         modalLogBookVisible={modalLogBookVisible}
@@ -266,18 +278,6 @@ const AuditErrorForm = ({navigation, route}) => {
         onSaveTechnicalAspectImage={onSaveTechnicalAspectImage}
         onDeleteTechnicalAspectImage={onDeleteTechnicalAspectImage}
       />
-      {countError > 0 && (
-        <Button
-          mt="2"
-          mb="75"
-          mr="2"
-          ml="2"
-          bg={useColorModeValue(theme.colors.fdis[400], theme.colors.fdis[600])}
-          _text={{color: 'white'}}
-          onPress={saveError}>
-          Opslaan
-        </Button>
-      )}
     </Box>
   );
 };
@@ -293,10 +293,7 @@ const ElementPicker = ({selectedElement, elements, onElementChange}) => {
         minWidth="200"
         accessibilityLabel="Kies Element"
         placeholder="Kies Element"
-        _selectedItem={{
-          bg: 'teal.600',
-          endIcon: <CheckIcon size="5" />,
-        }}
+        _selectedItem={{bg: 'teal.600', endIcon: <CheckIcon size="5" />}}
         mt={1}
         onValueChange={onElementChange}>
         {elements.map((element, index) => (
@@ -319,17 +316,14 @@ const ErrorTypePicker = ({
   return (
     <Box>
       <Text fontSize="md" mb="1" bold>
-        Fout Soort
+        Soort fout
       </Text>
       <Select
         selectedValue={selectedErrorType}
         minWidth="200"
-        accessibilityLabel="Kies Fout Soort"
-        placeholder="Kies Fout Soort"
-        _selectedItem={{
-          bg: 'teal.600',
-          endIcon: <CheckIcon size="5" />,
-        }}
+        accessibilityLabel="Kies Soort fout"
+        placeholder="Kies Soort fout"
+        _selectedItem={{bg: 'teal.600', endIcon: <CheckIcon size="5" />}}
         mt={1}
         onValueChange={onErrorTypeChange}>
         {errorTypes.map((errorType, index) => (
@@ -345,34 +339,26 @@ const ErrorTypePicker = ({
 };
 
 const ErrorCounter = ({count, setCount}) => {
-  const decreaseCount = () => {
-    if (count > 0) {
-      setCount(prevCount => Number(prevCount) - 1);
-    }
-  };
-
-  const increaseCount = () => {
-    setCount(prevCount => Number(prevCount) + 1);
-  };
-
   return (
-    <Box width="100%">
-      <Text fontSize="md" mb={1} bold>
-        Aantal fout(en)
+    <Box>
+      <Text fontSize="md" mb="1" bold>
+        Aantal fouten
       </Text>
-      <HStack justifyContent="space-between" alignItems="center">
+      <HStack space={2} justifyContent="space-between" alignItems="center">
         <IconButton
-          onPress={decreaseCount}
-          variant="solid"
+          variant="outline"
+          _icon={{as: MaterialIcons, name: 'remove', size: 'md'}}
           colorScheme="danger"
-          icon={<Icon as={<MaterialIcons name="remove" />} size={5} />}
+          onPress={() =>
+            setCount(prevCount => (prevCount > 0 ? prevCount - 1 : 0))
+          }
         />
-        <Text fontSize="md">{count}</Text>
+        <Text>{count}</Text>
         <IconButton
-          onPress={increaseCount}
-          variant="solid"
+          variant="outline"
           colorScheme="success"
-          icon={<Icon as={<MaterialIcons name="add" />} size={5} />}
+          _icon={{as: MaterialIcons, name: 'add', size: 'md'}}
+          onPress={() => setCount(prevCount => prevCount + 1)}
         />
       </HStack>
     </Box>
@@ -384,9 +370,10 @@ const LogBook = ({
   error,
   onLogBookChange,
   setModalLogBookVisible,
+  onDeleteLogBookImage,
 }) => {
   return countError > 0 ? (
-    <Box mt={4}>
+    <Box>
       <HStack justifyContent="space-between" alignItems="center">
         <Text fontSize="md" bold>
           Logboek
@@ -396,18 +383,30 @@ const LogBook = ({
         </TouchableOpacity>
       </HStack>
       <TextArea
-        mt={2}
-        borderRadius={8}
-        borderWidth={1}
-        borderColor="gray.300"
-        px={4}
-        py={3}
-        value={error.LogBook || ''}
+        placeholder="Voer hier uw logboekgegevens in"
+        value={error.LogBook}
         onChangeText={onLogBookChange}
-        placeholder="Voer logboek in..."
-        height={100}
-        numberOfLines={4}
       />
+      {error.LogBookImg && (
+        <Center mt={2}>
+          <Image
+            source={{uri: error.LogBookImg}}
+            alt="Logboek afbeelding"
+            size="xl"
+            resizeMode="contain"
+          />
+          <IconButton
+            mt={2}
+            _icon={{
+              as: MaterialIcons,
+              name: 'delete',
+              size: 'md',
+              color: 'red.500',
+            }}
+            onPress={() => onDeleteLogBookImage()}
+          />
+        </Center>
+      )}
     </Box>
   ) : null;
 };
@@ -417,9 +416,10 @@ const TechnicalAspects = ({
   error,
   onTechnicalAspectsChange,
   setModalTechVisible,
+  onDeleteTechnicalAspectImage,
 }) => {
   return countError > 0 ? (
-    <Box mt={4}>
+    <Box>
       <HStack justifyContent="space-between" alignItems="center">
         <Text fontSize="md" bold>
           Technische Aspecten
@@ -429,18 +429,30 @@ const TechnicalAspects = ({
         </TouchableOpacity>
       </HStack>
       <TextArea
-        mt={2}
-        borderRadius={8}
-        borderWidth={1}
-        borderColor="gray.300"
-        px={4}
-        py={3}
-        value={error.TechnicalAspects || ''}
+        placeholder="Voer hier uw technische aspecten in"
+        value={error.TechnicalAspects}
         onChangeText={onTechnicalAspectsChange}
-        placeholder="Voer technische aspecten in...."
-        height={100}
-        numberOfLines={4}
       />
+      {error.TechnicalAspectsImg && (
+        <Center mt={2}>
+          <Image
+            source={{uri: error.TechnicalAspectsImg}}
+            alt="Technische aspecten afbeelding"
+            size="xl"
+            resizeMode="contain"
+          />
+          <IconButton
+            mt={2}
+            _icon={{
+              as: MaterialIcons,
+              name: 'delete',
+              size: 'md',
+              color: 'red.500',
+            }}
+            onPress={() => onDeleteTechnicalAspectImage()}
+          />
+        </Center>
+      )}
     </Box>
   ) : null;
 };
@@ -452,66 +464,70 @@ const RenderModalLogBook = ({
   onSaveLogBookImage,
   onDeleteLogBookImage,
 }) => {
-  const [selectedImage, setSelectedImage] = useState('');
-
-  const handleSaveImage = () => {
-    onSaveLogBookImage(selectedImage);
-    setModalLogBookVisible(false);
+  const handleTakePhoto = async () => {
+    const result = await launchCamera({
+      mediaType: 'photo',
+      includeBase64: false,
+    });
+    if (result.assets?.length > 0) {
+      const imageUri = result.assets[0].uri;
+      onSaveLogBookImage(imageUri);
+    }
   };
 
-  const handleDeleteImage = () => {
-    onDeleteLogBookImage();
-    setModalLogBookVisible(false);
+  const handleSelectFromGallery = async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      includeBase64: false,
+    });
+    if (result.assets?.length > 0) {
+      const imageUri = result.assets[0].uri;
+      onSaveLogBookImage(imageUri);
+    }
   };
 
   return (
-    <Center>
-      <Modal
-        isOpen={modalLogBookVisible}
-        onClose={() => setModalLogBookVisible(false)}
-        size="xl">
-        <Modal.Content>
-          <Modal.CloseButton />
-          <Modal.Header>Foto</Modal.Header>
-          <Modal.Body>
-            <PicturePicker
-              onSelectImage={setSelectedImage}
-              error={error}
-              modalType="logBook"
-            />
-          </Modal.Body>
-          <Modal.Footer>
-            <Button.Group space={1} justifyContent="center">
-              <Button
-                size="sm"
-                variant="ghost"
-                colorScheme="blueGray"
-                onPress={() => setModalLogBookVisible(false)}
-                leftIcon={<Icon as={MaterialIcons} name="cancel" size="xs" />}>
-                Annuleren
-              </Button>
-              {error.LogBookImg && (
-                <Button
-                  size="sm"
-                  colorScheme="red"
-                  onPress={handleDeleteImage}
-                  leftIcon={
-                    <Icon as={MaterialIcons} name="delete" size="xs" />
-                  }>
-                  Verwijderen
-                </Button>
-              )}
-              <Button
-                size="sm"
-                onPress={handleSaveImage}
-                leftIcon={<Icon as={MaterialIcons} name="save" size="xs" />}>
-                Opslaan
-              </Button>
-            </Button.Group>
-          </Modal.Footer>
-        </Modal.Content>
-      </Modal>
-    </Center>
+    <Modal
+      isOpen={modalLogBookVisible}
+      onClose={() => setModalLogBookVisible(false)}>
+      <Modal.Content maxWidth="400px">
+        <Modal.CloseButton />
+        <Modal.Header>Voeg afbeelding toe</Modal.Header>
+        <Modal.Body>
+          <Button
+            onPress={handleTakePhoto}
+            leftIcon={<Icon as={MaterialIcons} name="camera" />}>
+            Maak een foto
+          </Button>
+          <Button
+            mt="2"
+            onPress={handleSelectFromGallery}
+            leftIcon={<Icon as={MaterialIcons} name="photo-library" />}>
+            Kies uit galerij
+          </Button>
+          {error.LogBookImg && (
+            <Center mt={2}>
+              <Image
+                source={{uri: error.LogBookImg}}
+                alt="Logboek afbeelding"
+                size="xl"
+                resizeMode="contain"
+              />
+              <IconButton
+                mt={2}
+                _icon={{
+                  as: MaterialIcons,
+                  name: 'delete',
+                  size: 'md',
+                  color: 'red.500',
+                }}
+                onPress={() => onDeleteLogBookImage()}
+              />
+            </Center>
+          )}
+        </Modal.Body>
+      </Modal.Content>
+    </Modal>
   );
 };
 
@@ -522,154 +538,68 @@ const RenderModalTechnicalAspects = ({
   onSaveTechnicalAspectImage,
   onDeleteTechnicalAspectImage,
 }) => {
-  const [selectedImage, setSelectedImage] = useState('');
-
-  const handleSaveImage = () => {
-    onSaveTechnicalAspectImage(selectedImage);
-    setModalTechVisible(false);
-  };
-
-  const handleDeleteImage = () => {
-    onDeleteTechnicalAspectImage();
-    setModalTechVisible(false);
-  };
-
-  return (
-    <Center>
-      <Modal
-        isOpen={modalTechVisible}
-        onClose={() => setModalTechVisible(false)}
-        size="xl" // Set to a larger size for better space management
-      >
-        <Modal.Content>
-          <Modal.CloseButton />
-          <Modal.Header>Foto</Modal.Header>
-          <Modal.Body>
-            <PicturePicker
-              onSelectImage={setSelectedImage}
-              error={error}
-              modalType="techAspects"
-            />
-          </Modal.Body>
-          <Modal.Footer>
-            <Button.Group space={1} justifyContent="center">
-              <Button
-                size="sm" // Smaller button size for compact layout
-                variant="ghost"
-                colorScheme="blueGray"
-                onPress={() => setModalTechVisible(false)}
-                leftIcon={<Icon as={MaterialIcons} name="cancel" size="xs" />}>
-                Annuleren
-              </Button>
-              {error.TechnicalAspectsImg && (
-                <Button
-                  size="sm" // Smaller button size to fit within the modal
-                  colorScheme="red"
-                  onPress={handleDeleteImage}
-                  leftIcon={
-                    <Icon as={MaterialIcons} name="delete" size="xs" />
-                  }>
-                  Verwijderen
-                </Button>
-              )}
-              <Button
-                size="sm" // Consistent button size across all actions
-                onPress={handleSaveImage}
-                leftIcon={<Icon as={MaterialIcons} name="save" size="xs" />}>
-                Opslaan
-              </Button>
-            </Button.Group>
-          </Modal.Footer>
-        </Modal.Content>
-      </Modal>
-    </Center>
-  );
-};
-
-const PicturePicker = ({onSelectImage, error, modalType}) => {
-  const [filePath, setFilePath] = useState('');
-
-  useEffect(() => {
-    if (error.LogBookImg && modalType === 'logBook') {
-      setFilePath(error.LogBookImg);
-    } else if (error.TechnicalAspectsImg && modalType === 'techAspects') {
-      setFilePath(error.TechnicalAspectsImg);
-    } else if (error.RemarksImg && modalType === 'remarks') {
-      setFilePath(error.RemarksImg);
-    }
-  }, [error.LogBookImage, error.TechnicalAspectsImg, error.RemarksImg]);
-
-  const chooseFile = () => {
-    Alert.alert(
-      'Add Photo',
-      'Choose from',
-      [
-        {
-          text: 'Annuleren',
-          onPress: () => console.log('Cancel Pressed'),
-          style: 'cancel',
-        },
-        {
-          text: 'Gallery',
-          onPress: () => launchImagePicker('gallery'),
-        },
-        {
-          text: 'Camera',
-          onPress: () => launchImagePicker('camera'),
-        },
-      ],
-      {cancelable: true},
-    );
-  };
-
-  const launchImagePicker = type => {
-    let options = {
+  const handleTakePhoto = async () => {
+    const result = await launchCamera({
       mediaType: 'photo',
-      saveToPhotos: true,
-    };
-    if (type === 'gallery') {
-      launchImageLibrary(options, response => {
-        handleImageResponse(response);
-      });
-    } else if (type === 'camera') {
-      launchCamera(options, response => {
-        handleImageResponse(response);
-      });
+      includeBase64: false,
+    });
+    if (result.assets?.length > 0) {
+      const imageUri = result.assets[0].uri;
+      onSaveTechnicalAspectImage(imageUri);
     }
   };
 
-  const handleImageResponse = response => {
-    console.log('Response = ', response);
-
-    if (response.didCancel) {
-      console.log('User cancelled image picker');
-    } else if (response.error) {
-      console.log('ImagePicker Error: ', response.error);
-    } else if (response.assets && response.assets.length > 0) {
-      const selectedImage = response.assets[0];
-      setFilePath(selectedImage.uri);
-      onSelectImage(selectedImage.uri);
-    } else {
-      console.log('No image selected');
+  const handleSelectFromGallery = async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      includeBase64: false,
+    });
+    if (result.assets?.length > 0) {
+      const imageUri = result.assets[0].uri;
+      onSaveTechnicalAspectImage(imageUri);
     }
   };
 
   return (
-    <SafeAreaView style={{flex: 1}}>
-      <Box flex={1} alignItems="center">
-        <TouchableOpacity activeOpacity={0.5} onPress={chooseFile}>
-          {filePath !== '' ? (
-            <Image
-              source={{uri: filePath}}
-              style={{width: 200, height: 200, my: 1}}
-              alt="Selected Image"
-            />
-          ) : (
-            <Text style={{padding: 10, color: 'black'}}>Toevoegen</Text>
+    <Modal isOpen={modalTechVisible} onClose={() => setModalTechVisible(false)}>
+      <Modal.Content maxWidth="400px">
+        <Modal.CloseButton />
+        <Modal.Header>Voeg afbeelding toe</Modal.Header>
+        <Modal.Body>
+          <Button
+            onPress={handleTakePhoto}
+            leftIcon={<Icon as={MaterialIcons} name="camera" />}>
+            Maak een foto
+          </Button>
+          <Button
+            mt="2"
+            onPress={handleSelectFromGallery}
+            leftIcon={<Icon as={MaterialIcons} name="photo-library" />}>
+            Kies uit galerij
+          </Button>
+          {error.TechnicalAspectsImg && (
+            <Center mt={2}>
+              <Image
+                source={{uri: error.TechnicalAspectsImg}}
+                alt="Technische aspecten afbeelding"
+                size="xl"
+                resizeMode="contain"
+              />
+              <IconButton
+                mt={2}
+                _icon={{
+                  as: MaterialIcons,
+                  name: 'delete',
+                  size: 'md',
+                  color: 'red.500',
+                }}
+                onPress={() => onDeleteTechnicalAspectImage()}
+              />
+            </Center>
           )}
-        </TouchableOpacity>
-      </Box>
-    </SafeAreaView>
+        </Modal.Body>
+      </Modal.Content>
+    </Modal>
   );
 };
 

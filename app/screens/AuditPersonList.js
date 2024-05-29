@@ -192,7 +192,7 @@ const AuditPersonList = ({route, navigation}) => {
         data={clients}
         renderItem={renderPresentClientRow}
         keyExtractor={item => item.id.toString()}
-        contentContainerStyle={{paddingBottom: 70}}
+        contentContainerStyle={{paddingBottom: 120}}
       />
       <RenderClientModal
         isOpen={modalVisible}

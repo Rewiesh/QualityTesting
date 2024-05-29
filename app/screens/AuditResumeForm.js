@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import {KeyboardAvoidingView, Keyboard} from 'react-native';
 import {
   Button,
-  FlatList,
   Box,
   VStack,
   Text,
@@ -11,6 +10,7 @@ import {
   Input,
   useColorModeValue,
   useTheme,
+  SectionList,
 } from 'native-base';
 import * as database from '../services/database/database1';
 import {useIsFocused} from '@react-navigation/native';
@@ -39,6 +39,9 @@ const AuditResumeForm = ({route, navigation}) => {
   const fetchFormData = async () => {
     try {
       const lastCompletedForm = await database.getLastCompletedForm(audit.Id);
+      console.log(
+        'lastCompletedForm.formId' + JSON.stringify(lastCompletedForm, null, 2),
+      );
       if (lastCompletedForm != null) {
         const updatedForm = {
           ...form,
@@ -46,6 +49,7 @@ const AuditResumeForm = ({route, navigation}) => {
           CategoryId: lastCompletedForm.CategoryId,
           FloorId: lastCompletedForm.FloorId,
         };
+        console.log('updatedForm' + JSON.stringify(updatedForm, null, 2));
         setForm(updatedForm);
         invalidateAreas(lastCompletedForm.CategoryId);
       }
@@ -68,7 +72,7 @@ const AuditResumeForm = ({route, navigation}) => {
 
   const onCategoryChanged = async value => {
     const updatedForm = {...form, CategoryId: value};
-    setForm(updatedForm);
+    setForm(updatedForm); // Update the form state
 
     try {
       const fetchedAreas = await database.getAreasbyCategories2(value);
@@ -80,11 +84,13 @@ const AuditResumeForm = ({route, navigation}) => {
 
   const onFloorChange = async value => {
     const updatedForm = {...form, FloorId: value};
+    console.log('Selected FloorId ID:', value);
     setForm(updatedForm);
   };
 
   const onAreaChange = async value => {
     const updatedForm = {...form, AreaCode: value};
+    console.log('Selected AreaCode ID:', value);
     setForm(updatedForm);
   };
 
@@ -138,9 +144,19 @@ const AuditResumeForm = ({route, navigation}) => {
     }
   };
 
-  const renderFormItem = ({item}) => {
-    switch (item.type) {
-      case 'ClientInfo':
+  const sections = [
+    {title: 'ClientInfo', data: [{key: 'client'}]},
+    {title: 'AuditCodeInfo', data: [{key: 'auditCode'}]},
+    {title: 'CategoryPicker', data: [{key: 'categoryPicker'}]},
+    {title: 'FloorPicker', data: [{key: 'floorPicker'}]},
+    {title: 'AreaDescriptionPicker', data: [{key: 'areaDescriptionPicker'}]},
+    {title: 'AreaNumber', data: [{key: 'areaNumber'}]},
+    {title: 'CounterElements', data: [{key: 'counterElements'}]},
+  ];
+
+  const renderItem = ({item}) => {
+    switch (item.key) {
+      case 'client':
         return (
           <ClientInfo
             clientName={audit.NameClient}
@@ -148,7 +164,7 @@ const AuditResumeForm = ({route, navigation}) => {
             borderColor={borderColor}
           />
         );
-      case 'AuditCodeInfo':
+      case 'auditCode':
         return (
           <AuditCodeInfo
             auditCode={audit.AuditCode}
@@ -156,7 +172,7 @@ const AuditResumeForm = ({route, navigation}) => {
             borderColor={borderColor}
           />
         );
-      case 'CategoryPicker':
+      case 'categoryPicker':
         return (
           <CategoryPicker
             categories={categories}
@@ -165,7 +181,7 @@ const AuditResumeForm = ({route, navigation}) => {
             textColor={textColor}
           />
         );
-      case 'FloorPicker':
+      case 'floorPicker':
         return (
           <FloorPicker
             floors={floors}
@@ -174,7 +190,7 @@ const AuditResumeForm = ({route, navigation}) => {
             textColor={textColor}
           />
         );
-      case 'AreaDescriptionPicker':
+      case 'areaDescriptionPicker':
         return (
           <AreaDescriptionPicker
             areas={areas}
@@ -183,11 +199,11 @@ const AuditResumeForm = ({route, navigation}) => {
             textColor={textColor}
           />
         );
-      case 'AreaNumber':
+      case 'areaNumber':
         return (
           <AreaNumber form={form} setForm={setForm} textColor={textColor} />
         );
-      case 'CounterElements':
+      case 'counterElements':
         return (
           <CounterElements
             form={form}
@@ -200,38 +216,33 @@ const AuditResumeForm = ({route, navigation}) => {
     }
   };
 
-  const formItems = [
-    {type: 'ClientInfo'},
-    {type: 'AuditCodeInfo'},
-    {type: 'CategoryPicker'},
-    {type: 'FloorPicker'},
-    {type: 'AreaDescriptionPicker'},
-    {type: 'AreaNumber'},
-    {type: 'CounterElements'},
-  ];
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{flex: 1}}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 20}>
-      <FlatList
-        data={formItems}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={renderFormItem}
-        contentContainerStyle={{padding: 16}}
-        style={{flex: 1, backgroundColor: bgColor}}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
+      <SectionList
+        sections={sections}
+        keyExtractor={(item, index) => item.key + index}
+        renderItem={renderItem}
+        contentContainerStyle={{
+          padding: 10,
+          paddingBottom: 75, // Adjust as needed
+        }}
+        ListFooterComponent={
+          <Button
+            isDisabled={!isFormCompleted()}
+            mt="2"
+            bg={useColorModeValue(
+              theme.colors.fdis[400],
+              theme.colors.fdis[600],
+            )}
+            _text={{color: 'white'}}
+            onPress={onSaveForm}>
+            Audit Formulieren
+          </Button>
+        }
       />
-      <Box padding={4} backgroundColor={bgColor}>
-        <Button
-          isDisabled={!isFormCompleted()}
-          mt="2"
-          bg={useColorModeValue(theme.colors.fdis[400], theme.colors.fdis[600])}
-          _text={{color: 'white'}}
-          onPress={onSaveForm}>
-          Audit Formulieren
-        </Button>
-      </Box>
     </KeyboardAvoidingView>
   );
 };
@@ -373,6 +384,7 @@ const AreaNumber = ({form, setForm, textColor}) => {
 
 const CounterElements = ({form, setForm, textColor}) => {
   const handleTextChange = text => {
+    // This regex will allow only numbers
     const filteredText = text.replace(/[^0-9]/g, '');
     setForm({...form, CounterElements: filteredText});
   };
@@ -383,7 +395,7 @@ const CounterElements = ({form, setForm, textColor}) => {
         Tel-Elementen
       </Text>
       <Input
-        keyboardType="numeric"
+        keyboardType="numeric" // Brings up numeric keypad
         style={{height: 40, backgroundColor: '#fff', color: textColor}}
         onChangeText={handleTextChange}
         value={form.CounterElements}

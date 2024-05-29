@@ -291,7 +291,7 @@ const AuditDetails = ({route, navigation}) => {
       _contentContainerStyle={{
         p: '2',
         mb: '4',
-        pb: '75', // Adjust this value to the height of your footer
+        pb: '120', // Adjust this value to the height of your footer
       }}>
       <AuditSection
         audit={audit}

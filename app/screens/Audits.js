@@ -110,6 +110,7 @@ const Audits = ({route, navigation}) => {
         data={auditsList}
         renderItem={renderAuditRow}
         keyExtractor={item => item.Id.toString()}
+        contentContainerStyle={{ paddingBottom: 120 }}
       />
     </Box>
   );

@@ -159,6 +159,11 @@ const AuditErrorList = ({route, navigation}) => {
       data={errors}
       renderItem={renderErrorRow}
       keyExtractor={item => item.ErrorId.toString()}
+      contentContainerStyle={{
+        flexGrow: 1,
+        // paddingBottom: useColorModeValue(100, 150),
+        paddingBottom: 120,
+      }}
     />
   );
 };
