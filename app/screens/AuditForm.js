@@ -101,7 +101,7 @@ const AuditForm = ({navigation, route}) => {
         _contentContainerStyle={{
           p: '2',
           mb: '4',
-          pb: '75',
+          pb: '120',
         }}>
         <RenderInfo
           infoLabel="Categorie"

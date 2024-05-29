@@ -112,11 +112,11 @@ const Settings = ({navigation}) => {
   return (
     <ScrollView bg={useColorModeValue('white', theme.colors.fdis[800])}>
       <VStack space={5} alignItems="center" mt="4" mb="6">
-        <PicturePicker
+        {/* <PicturePicker
           userName={userName}
           onSelectPicture={onSelectPicture}
           selectedPicture={selectedPicture}
-        />
+        /> */}
         {/* <ThemeToggle
           colorMode={colorMode}
           toggleColorMode={toggleColorMode}
