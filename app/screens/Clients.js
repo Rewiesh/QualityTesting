@@ -18,8 +18,7 @@ import {
 } from 'native-base';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {ShowToast} from '../services/Util';
-import api from '../services/api/Api';
-import fetchData from '../services/api/Api1';
+import {fetchData} from '../services/api/Api1';
 import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
 

@@ -21,7 +21,7 @@ const AppFooter = ({navigation}) => {
   const iconMap = {
     Audits: 'format-list-bulleted',
     Instellingen: 'settings',
-    Hulp: 'help-outline',
+    // Hulp: 'help-outline',
   };
 
   const footerBackground = useColorModeValue(

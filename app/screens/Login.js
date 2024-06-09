@@ -18,7 +18,7 @@ import {
 import {ShowToast} from '../services/Util';
 import {StyleSheet} from 'react-native';
 import userManager from '../services/UserManager';
-import fetchData from '../services/api/Api1';
+import {fetchData} from '../services/api/Api1';
 import * as database from '../services/database/database1';
 
 const Login = ({navigation}) => {

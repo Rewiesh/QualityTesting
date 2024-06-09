@@ -19,6 +19,7 @@ import {
 } from 'native-base';
 import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
 import api from '../services/api/Api';
+import {fetchUserActivity} from '../services/api/Api1';
 import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -39,11 +40,11 @@ const Settings = ({navigation}) => {
       try {
         const user = await userManager.getCurrentUser();
         setUserName(user.username);
-        const activity = await api.fetchActivity(user.username, user.password);
+        const activity = await fetchUserActivity(user.username, user.password);
         await database.insertSettings(
-          activity.data.PerformedAuditsCount,
-          activity.data.LastClientName,
-          activity.data.LastLocationName,
+          activity.data.performedAuditsCount,
+          activity.data.lastClientName,
+          activity.data.lastClientLocationName,
         );
         const settings = await database.getSettings();
         setPerformedAuditsCount(settings.auditExecuted);

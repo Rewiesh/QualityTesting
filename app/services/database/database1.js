@@ -1,3 +1,5 @@
+/* eslint-disable no-trailing-spaces */
+/* eslint-disable prettier/prettier */
 import SQLite from 'react-native-sqlite-storage';
 
 const databaseConfig = {
@@ -460,6 +462,19 @@ const getAuditsOfClient = async NameClient => {
   }
 };
 
+const getAuditDate = async AuditId => {
+  const query = 'SELECT * FROM tb_audits WHERE Id = ?';
+  const params = [AuditId];
+  try {
+    const result = await executeSelect(query, params);
+    console.log('Retrieved audit date successfully:', result);
+    return result.length > 0 ? result[0].DateTime : null;
+  } catch (error) {
+    console.error('Failed to retrieve audit date:', error);
+    throw error; // Rethrow to ensure that calling code can handle the failure
+  }
+};
+
 //Categories
 const getCategoryById = async (categoryId) => {
   try {
@@ -716,6 +731,59 @@ const getLastCompletedForm = async (auditId) => {
   return forms[forms.length - 1]; // Returns the last item or undefined if no forms
 };
 
+// getAllForms 
+const formForServer = form => {
+  let AreaNumber = '';
+
+  if (form.AreaNumber != null && form.AreaNumber != 0) {
+    AreaNumber = '.' + form.AreaNumber;
+  }
+
+  return {
+    Id: form.FormId,
+    FloorId: form.FloorId,
+    CategoryId: form.CategoryId,
+    Date: new Date(form.Date),
+    AreaCode: form.AreaCode + AreaNumber,
+    CounterElements: form.CounterElements,
+    Remarks: form.Remarks,
+  };
+};
+
+const getAllForms = async AuditId => {
+  try {
+    const results = await executeSelect(
+      `SELECT * FROM tb_form WHERE AuditId = "${AuditId}"`,
+    );
+    const forms = results.map(formForServer);
+
+    const formsWithErrors = await Promise.all(
+      forms.map(async form => {
+        const errors = await executeSelect(
+          `SELECT * FROM tb_error WHERE FormId = "${form.Id}"`,
+        );
+        form.Errors = errors.map(error => ({
+          ElementTypeId: error.ElementTypeId,
+          ErrorTypeId: error.ErrorTypeId,
+          LogBook: error.LogBook === 'undefined' ? '' : error.LogBook,
+          TechnicalAspects:
+            error.TechnicalAspects === 'undefined'
+              ? ''
+              : error.TechnicalAspects,
+          Remark: error.Remarks === 'undefined' ? '' : error.Remarks,
+          Count: error.CountError,
+        }));
+        return form;
+      }),
+    );
+
+    return formsWithErrors;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+ 
 // Errors
 async function getAllErrorByFormId(FormId) {
   const query = 'SELECT * FROM tb_error WHERE FormId = ?';
@@ -728,6 +796,60 @@ async function getAllErrorByFormId(FormId) {
   } catch (error) {
     console.error('Error fetching errors for FormId:', FormId, error);
     throw error;
+  }
+}
+
+const getErrorsImages = async(auditId) =>  {
+  const formQuery = 'SELECT * FROM tb_form WHERE AuditId = ?';
+  const errorQuery = 'SELECT * FROM tb_error WHERE FormId = ?';
+  const params = [auditId];
+
+  try {
+    const forms = await executeSelect(formQuery, params);
+    const images = [];
+
+    for (const form of forms) {
+      const errors = await executeSelect(errorQuery, [form.FormId]);
+
+      for (const error of errors) {
+        if (error.LogBookImg && error.LogBookImg !== 'undefined') {
+          images.push({
+            imageError: {
+              MimeType: 'image/png',
+              Image: error.LogBookImg
+            },
+            traceImageData: {
+              AuditId: auditId,
+              ElementTypeId: error.ElementTypeId,
+              ErrorTypeId: error.ErrorTypeId,
+              FormId: form.FormId,
+              Field: 'logbook'
+            }
+          });
+        }
+        if (error.TechnicalAspectsImg && error.TechnicalAspectsImg !== 'undefined') {
+          images.push({
+            imageError: {
+              MimeType: 'image/png',
+              Image: error.TechnicalAspectsImg
+            },
+            traceImageData: {
+              AuditId: auditId,
+              ElementTypeId: error.ElementTypeId,
+              ErrorTypeId: error.ErrorTypeId,
+              FormId: form.FormId,
+              Field: 'technicalaspects'
+            }
+          });
+        }
+      }
+    }
+    
+    console.log('Retrieved error images successfully:', images);
+    return images;
+  } catch (error) {
+    console.error('Failed to retrieve error images:', error);
+    throw error; // Rethrow to ensure that calling code can handle the failure
   }
 }
 
@@ -764,10 +886,36 @@ async function getAllPresentClient(AuditId) {
   }
 }
 
+// Remarks
+const getRemarks = async auditId => {
+  const query = 'SELECT * FROM tb_remarks WHERE auditId = ?';
+  const params = [auditId];
+
+  try {
+    const remarks = await executeSelect(query, params);
+
+    return remarks.map(remark => ({
+      remarkAndImage: {
+        RemarkId: remark.id,
+        AuditId: remark.auditId,
+        RemarkText: remark.remarkText,
+        RemarkImage: {
+          MimeType: 'image/png',
+          Image: remark.remarkImg,
+        },
+      },
+    }));
+  } catch (error) {
+    console.error('Failed to retrieve remarks:', error);
+    throw error; // Rethrow to ensure that calling code can handle the failure
+  }
+};
+
 // Inserts
 
 function generateUniqueId() {
-  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  // return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  return guid();
 }
 
 const insertSettings = async (
@@ -991,9 +1139,11 @@ const saveCategories = (tx, categories) => {
 
   // Insert new category data
   categories.forEach(category => {
+    const [min1, min2, min3] = category.minimalElements.map(min => String(min));    
+    
     tx.executeSql(
       'INSERT INTO tb_category (Id, CategoryValue, Min1, Min2, Min3) VALUES (?, ?, ?, ?, ?)',
-      [category.id, category.value, ...String(category.minimalElements)],
+      [category.id, category.value, ...category.minimalElements],
       () => {
         console.log('Insert successful for category value:', category.value);
       },
@@ -1689,6 +1839,11 @@ export {
   getLastUncompletedForm,
   getLastCompletedForm,
   getAllPresentClient,
+  getAllForms,
+  getAuditSignature,
+  getAuditDate,
+  getErrorsImages,
+  getRemarks,
   //inserts
   savePresentClient,
   insertSettings,

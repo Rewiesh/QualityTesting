@@ -1,4 +1,7 @@
-import {URLTokenTest, URLAuditsTEST} from '../api/Endpoints';
+/* eslint-disable eslint-comments/no-unused-disable */
+/* eslint-disable eol-last */
+/* eslint-disable prettier/prettier */
+import {URLTokenTest, URLAuditsTEST, URLAuditsActivity} from '../api/Endpoints';
 
 const fetchToken = async (username, password) => {
   try {
@@ -57,4 +60,33 @@ const fetchData = async (uname, password) => {
   }
 };
 
-export default fetchData;
+const fetchUserActivity = async (uname, password) => {
+  const {accessToken, error: tokenError} = await fetchToken(uname, password);
+
+  if (tokenError) {
+    return {error: tokenError}; // Return early if there was an error fetching the token
+  }
+
+  try {
+    const response = await fetch(URLAuditsActivity, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return {error: result.error || 'Failed to fetch data'};
+    }
+    return {data: result}; // Return the data wrapped in an object
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return {error: 'Network error or invalid server response'};
+  }
+};
+
+export {fetchData, fetchUserActivity};
+
+

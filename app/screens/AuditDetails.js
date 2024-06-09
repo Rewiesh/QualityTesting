@@ -1,3 +1,6 @@
+/* eslint-disable no-alert */
+/* eslint-disable no-trailing-spaces */
+/* eslint-disable prettier/prettier */
 import React, {useState, useEffect, useRef} from 'react';
 import {
   Box,
@@ -39,6 +42,7 @@ const AuditDetails = ({route, navigation}) => {
   const {AuditId, clientName, user} = route.params;
   //
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Gegegevens worden geladen");
   const [audit, setAudit] = useState({});
   const [categories, setCategories] = useState([]);
   const [signature, setSignature] = useState(null);
@@ -61,6 +65,15 @@ const AuditDetails = ({route, navigation}) => {
   const headingTextColor = useColorModeValue('coolGray.800', 'black');
   const textColor = useColorModeValue('coolGray.800', 'black');
   const btnColor = useColorModeValue(theme.colors.fdis[400],theme.colors.fdis[600]);
+  const listBackgroundColor = useColorModeValue(
+    'white',
+    theme.colors.fdis[800],
+  );
+  const refreshingIndicatorColor = useColorModeValue(
+    theme.colors.fdis[400],
+    'white',
+  );
+
 
   useEffect(() => {
     if (isFocused) {
@@ -226,12 +239,130 @@ const AuditDetails = ({route, navigation}) => {
         return;
       }
     }
-    // getFormsToSubmit(); // Continue with form submission if all checks pass
+    getFormsToSubmit(); // Continue with form submission if all checks pass
   };
-// const uncomplete = () => {
-//   console.log('Upload button pressed');
-//   setUploadModalVisible(true);
-// };  
+
+  const getFormsToSubmit = async () => {
+    try {
+      if (uploadModalVisible) {
+        setUploadModalVisible(false);
+      }
+      setLoading(true);
+      setLoadingText('Voorbereiden op uploaden ...');
+
+      console.log('Getting data for uploading auditId: ' + audit.Id);
+
+      const [user, forms, auditElements, auditSignature, date, clients, images] =
+        await Promise.all([
+          userManager.getCurrentUser(),
+          database.getAllForms(audit.Id),
+          database.getAllElements(audit.Id),
+          database.getAuditSignature(audit.AuditCode),
+          new Date(database.getAuditDate(audit.Id)),
+          database.getAllPresentClient(audit.Id),
+          database.getErrorsImages(audit.Id),
+        ]);
+
+      if (!date) {
+        throw new Error('Audit date is undefined');
+      }
+
+      const auditDate = Date(
+        Date.UTC(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+          date.getHours(),
+          date.getMinutes(),
+          date.getSeconds(),
+          date.getMilliseconds(),
+        ),
+      );
+
+      const request = {
+        login: {
+          Username: user.username,
+          Password: user.password,
+        },
+        audit: {
+          Id: audit.Id,
+          PresentClients: clients.map(client => client.name),
+          Elements: auditElements,
+          DateTime: auditDate,
+        },
+        forms: forms,
+        clientSignature: {
+          MimeType: 'image/png',
+          Image: auditSignature.replace('data:image/png;base64,', ''),
+        },
+        missingImages: images.length !== 0,
+      };
+      console.log('Upload JSON: ' + JSON.stringify(request, null, 2));
+      setLoadingText('Formulieren uploaden...');
+      
+      uploadImages();
+
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+      alert(error.message);
+    }
+  };
+
+  const uploadImages = async () => {
+    setLoadingText('Uploading images...');
+    setLoading(true);
+
+    try {
+      const user = await userManager.getCurrentUser();
+      const [errorImages, remarks] = await Promise.all([
+        database.getErrorsImages(audit.Id),
+        database.getRemarks(audit.Id),
+      ]);
+
+      const list = errorImages.concat(remarks);
+
+      for (let i = 0; i < list.length; i++) {
+        const item = list[i];
+        const request = {
+          login: {
+            Username: user.username,
+            Password: user.password,
+          },
+          isLatest: i + 1 === list.length,
+          ...item,
+        };
+
+        console.log('UploadImage JSON: ' + JSON.stringify(request, null, 2));
+
+
+        setLoadingText(
+          item.remarkAndImage == null
+            ? `Uploaden van foto’s ${i + 1}/${list.length}`
+            : `Uploaden van remark’s ${i + 1}/${list.length}`,
+        );
+
+        // if (item.remarkAndImage == null) {
+        //   await apiFetch.uploadImageErrorForm(request);
+        // } else {
+        //   await apiFetch.uploadRemark(request);
+        // }
+      }
+
+      // await database.removeAllFromAudit(audit.AuditCode);
+      // await database.deleteAudit(audit.Id);
+
+      // setLoadingText('Audit is succesvol geupload');
+      // setLoading(false);
+
+      // setTimeout(goToClients, 250);
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+      setLoading(false);
+    }
+  };
+
 
   const signatureStyle = `
     .m-signature-pad {
@@ -282,6 +413,23 @@ const AuditDetails = ({route, navigation}) => {
       ),
     });
   };
+
+  if (loading) {
+    return (
+      <Center flex={1} bg={listBackgroundColor}>
+        <HStack space={2} justifyContent="center" alignItems="center">
+          <Spinner
+            size="lg"
+            color={refreshingIndicatorColor}
+            accessibilityLabel="Haal actieve klanten op"
+          />
+          <Heading color={textColor} fontSize="md">
+            {loadingText}
+          </Heading>
+        </HStack>
+      </Center>
+    );
+  }  
 
   return (
     <ScrollView
@@ -414,7 +562,7 @@ const AuditDetails = ({route, navigation}) => {
         <UploadModal
           isOpen={uploadModalVisible}
           onClose={() => setUploadModalVisible(false)}
-          onConfirm={() => console.log('Confirm upload')}
+          onConfirm={() => {console.log('Confirm upload'); getFormsToSubmit();}}
         />
         <Button
           mt="2"
