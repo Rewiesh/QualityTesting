@@ -376,7 +376,7 @@ const LogBook = ({
     <Box>
       <HStack justifyContent="space-between" alignItems="center">
         <Text fontSize="md" bold>
-          Logboek
+          Opmerking Element
         </Text>
         <TouchableOpacity onPress={() => setModalLogBookVisible(true)}>
           <MaterialIcons name="image" size={32} color="#000" />

@@ -23,8 +23,8 @@ import * as database from '../services/database/database1';
 
 const Login = ({navigation}) => {
   const theme = useTheme();
-  const [username, setUsername] = useState('test01');
-  const [password, setPassword] = useState('test01');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const bgColor = useColorModeValue('coolGray.100', 'gray.700');
   const textColor = useColorModeValue('darkText', 'lightText');

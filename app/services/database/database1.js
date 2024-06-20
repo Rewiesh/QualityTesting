@@ -537,19 +537,19 @@ const getAllFloorsSorted = async () => {
     const floorB = b.FloorValue.toLowerCase();
 
     // Parse the numbers, assuming 'Bg' as 0 for comparison purposes
-    const numA = floorA === 'Bg' ? 0 : parseInt(floorA.replace('e', ''), 10);
-    const numB = floorB === 'Bg' ? 0 : parseInt(floorB.replace('e', ''), 10);
+    const numA = floorA === "bg" ? 0 : parseInt(floorA.replace("e", ""), 10);
+    const numB = floorB === "bg" ? 0 : parseInt(floorB.replace("e", ""), 10);
 
-    // Sort negatives below "Bg" and positives above "Bg"
-    if (numA < 0 && numB >= 0) return 1; // All negatives go below positives and "Bg"
-    if (numB < 0 && numA >= 0) return -1; // All positives and "Bg" stay above negatives
+    // Sort negatives below positives and "Bg"
+    if (numA < 0 && numB >= 0) return -1; // All negatives go below positives and "Bg"
+    if (numB < 0 && numA >= 0) return 1; // All positives and "Bg" stay above negatives
 
     // Keep "Bg" between negatives and positives
-    if (floorA === 'bg' && numB !== 0) return numB > 0 ? 1 : -1;
-    if (floorB === 'bg' && numA !== 0) return numA > 0 ? -1 : 1;
+    if (floorA === "bg" && numB !== 0) return numB > 0 ? -1 : 1;
+    if (floorB === "bg" && numA !== 0) return numA > 0 ? 1 : -1;
 
     // Standard numeric comparison for non-negatives and non-"Bg" values
-    return numB - numA; // Reverse order for descending
+    return numA - numB; // Standard ascending order
   };
 
   try {
@@ -1795,6 +1795,47 @@ async function deletePresentClient(clientId) {
   }
 }
 
+const removeAllFromAudit = async AuditId => {
+  try {
+    await executeTransaction(tx => {
+      tx.executeSql(`DELETE FROM tb_presentclients WHERE AuditId = ?`, [
+        AuditId,
+      ]);
+      tx.executeSql(`DELETE FROM tb_remarks WHERE auditId = ?`, [AuditId]);
+    });
+
+    const forms = await executeSelect(
+      `SELECT * FROM tb_form WHERE AuditId = ?`,
+      [AuditId],
+    );
+
+    await executeTransaction(tx => {
+      forms.forEach(form => {
+        tx.executeSql(`DELETE FROM tb_error WHERE FormId = ?`, [form.FormId]);
+      });
+    });
+
+    await executeTransaction(tx => {
+      tx.executeSql(`DELETE FROM tb_form WHERE AuditId = ?`, [AuditId]);
+      tx.executeSql(`DELETE FROM tb_audits WHERE AuditCode = ?`, [AuditId]);
+    });
+
+    console.log("All data removed from audit.");
+  } catch (error) {
+    console.error("Error removing all data from audit:", error);
+  }
+};
+
+const deleteAudit = async auditId => {
+  try {
+    await executeTransaction(tx => {
+      tx.executeSql("DELETE FROM tb_audits WHERE Id = ?", [auditId]);
+    });
+  } catch (error) {
+    console.error("Error deleting audit:", error);
+  }
+};
+
 // Export your database functions to use in other files
 export {
   openDatabase,
@@ -1855,6 +1896,8 @@ export {
   deleteError,
   deletePresentClient,
   deleteAuditSignature,
+  removeAllFromAudit,
+  deleteAudit,
   // Upserts
   upsertSignature,
 };

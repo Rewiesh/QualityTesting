@@ -22,21 +22,30 @@ import {fetchData} from '../services/api/Api1';
 import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
 
-const Clients = ({navigation}) => {
+const Clients = ({route, navigation}) => {
   const theme = useTheme();
   const [unsavedData, setUnsavedData] = useState(false);
   const [loaded, setLoaded] = useState(true);
   const [clients, setClients] = useState([]);
-  const [refreshing, setRefreshing] = useState(false); 
-  const listBackgroundColor = useColorModeValue('white',theme.colors.fdis[800]);
-  const textColor = useColorModeValue('coolGray.800', 'warmGray.50');
-  const borderColor = useColorModeValue('coolGray.300', 'coolGray.600');
-  const refreshingIndicatorColor = useColorModeValue(theme.colors.fdis[400],'white');
-  const emptyTextColor = useColorModeValue('coolGray.800', 'warmGray.200');
-  const bgColor = useColorModeValue('coolGray.100', 'gray.700');
-  
+  const [refreshing, setRefreshing] = useState(false);
+  const listBackgroundColor = useColorModeValue(
+    "white",
+    theme.colors.fdis[800],
+  );
+  const textColor = useColorModeValue("coolGray.800", "warmGray.50");
+  const borderColor = useColorModeValue("coolGray.300", "coolGray.600");
+  const refreshingIndicatorColor = useColorModeValue(
+    theme.colors.fdis[400],
+    "white",
+  );
+  const emptyTextColor = useColorModeValue("coolGray.800", "warmGray.200");
+  const bgColor = useColorModeValue("coolGray.100", "gray.700");
+
   useEffect(() => {
     loadClients();
+    // if(reload) {
+    //   onReload();
+    // }
   }, []);
 
   const loadClients = async () => {
@@ -54,7 +63,7 @@ const Clients = ({navigation}) => {
   };
 
   const onListItemClick = client => {
-    navigation.navigate('Audits', {clientName: client.NameClient});
+    navigation.navigate("Audits", {clientName: client.NameClient});
   };
 
   const onReload = () => {
@@ -63,15 +72,15 @@ const Clients = ({navigation}) => {
       .then(exist => {
         console.log(exist);
         if (exist) {
-          setUnsavedData(true); 
+          setUnsavedData(true);
         } else {
-          reloadData(); 
+          reloadData();
         }
       })
       .catch(error => {
-        console.error('Error checking unsaved data:', error);
+        console.error("Error checking unsaved data:", error);
       });
-  };  
+  };
 
   const reloadData = async () => {
     setLoaded(false);
@@ -83,8 +92,8 @@ const Clients = ({navigation}) => {
 
       if (error) {
         ShowToast({
-          status: 'error',
-          message: 'Ongeldige inloggegevens.',
+          status: "error",
+          message: "Ongeldige inloggegevens.",
           bgColor: bgColor,
           textColor: textColor,
         });
@@ -96,7 +105,7 @@ const Clients = ({navigation}) => {
       setLoaded(true);
     } catch (error) {
       console.log(error);
-      alert('Check your internet connection');
+      alert("Check your internet connection");
     } finally {
       setRefreshing(false); // Reset the refreshing state
     }
@@ -122,7 +131,7 @@ const Clients = ({navigation}) => {
   const renderItem = ({item}) => (
     <RenderClientRow item={item} onListItemClick={onListItemClick} />
   );
-  
+
   return (
     <Box flex={1} bg={listBackgroundColor}>
       <FlatList
@@ -144,8 +153,6 @@ const Clients = ({navigation}) => {
       />
     </Box>
   );
-
-
 };
 
 const RenderEmpty = () => {

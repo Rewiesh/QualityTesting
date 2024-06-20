@@ -1,3 +1,5 @@
+/* eslint-disable react/self-closing-comp */
+/* eslint-disable react/no-unstable-nested-components */
 /* eslint-disable no-alert */
 /* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
@@ -27,8 +29,10 @@ import {
 import {View, StyleSheet} from 'react-native';
 import {useIsFocused} from '@react-navigation/native';
 import Signature from 'react-native-signature-canvas';
+import RNFS from "react-native-fs";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import api from '../services/api/Api';
+import {uploadImage, uploadAudit} from "../services/api/Api1";
 import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
 
@@ -74,7 +78,6 @@ const AuditDetails = ({route, navigation}) => {
     'white',
   );
 
-
   useEffect(() => {
     if (isFocused) {
       renderAddPersonButton();
@@ -109,8 +112,6 @@ const AuditDetails = ({route, navigation}) => {
           ) || {CounterElements: 0};
           return {...cat, CounterElements: counter.CounterElements};
         });
-        // console.log('all ' + all[0].Min);
-        // console.log('Categories and Counters: ', JSON.stringify(all)); 
         setCategories(all);
         setLoading(false);
       })
@@ -169,15 +170,27 @@ const AuditDetails = ({route, navigation}) => {
     setRemarkModalVisible(false);
   };
 
-  const handleSignature = async (signature) => {
+  const handleSignature = async signature => {
     setSignature(signature);
     try {
-      await database.upsertSignature(audit.AuditCode, signature); // Make sure to await the promise
+      // Check if the signature includes the base64 prefix and remove it if necessary
+      const base64Signature = signature.replace(/^data:image\/png;base64,/, "");
+
+      // Generate a unique filename
+      const filename = `signature_${audit.AuditCode}.png`;
+      const path = 'file://' + `${RNFS.DocumentDirectoryPath}/${filename}`;
+
+      // Convert the base64 signature to a file
+      await RNFS.writeFile(path, base64Signature, "base64");
+      console.log("Signature saved to:", path);
+
+      // Update the database with the path to the signature image
+      await database.upsertSignature(audit.AuditCode, path); // Make sure to await the promise
       setSignatureSaved(true);
       setReady(true);
-      console.log('Audit signature operation completed successfully.');
+      console.log("Audit signature operation completed successfully.");
     } catch (error) {
-      console.error('Error performing audit signature operation:', error);
+      console.error("Error performing audit signature operation:", error);
     }
   };
 
@@ -248,60 +261,97 @@ const AuditDetails = ({route, navigation}) => {
         setUploadModalVisible(false);
       }
       setLoading(true);
-      setLoadingText('Voorbereiden op uploaden ...');
+      setLoadingText("Voorbereiden op uploaden ...");
+      const uploadResults = await uploadImages();
+      setLoadingText("Formulieren uploaden...");
+      setLoading(true);
 
-      console.log('Getting data for uploading auditId: ' + audit.Id);
+      console.log("Upload results: " + JSON.stringify(uploadResults, null, 2));
+      console.log("Getting data for uploading auditId: " + audit.Id);
+      const [
+        user,
+        forms,
+        auditElements,
+        auditSignature,
+        dateString,
+        clients,
+        images,
+      ] = await Promise.all([
+        userManager.getCurrentUser(),
+        database.getAllForms(audit.Id),
+        database.getAllElements(audit.Id),
+        database.getAuditSignature(audit.AuditCode),
+        database.getAuditDate(audit.Id),
+        database.getAllPresentClient(audit.Id),
+        database.getErrorsImages(audit.Id),
+      ]);
 
-      const [user, forms, auditElements, auditSignature, date, clients, images] =
-        await Promise.all([
-          userManager.getCurrentUser(),
-          database.getAllForms(audit.Id),
-          database.getAllElements(audit.Id),
-          database.getAuditSignature(audit.AuditCode),
-          new Date(database.getAuditDate(audit.Id)),
-          database.getAllPresentClient(audit.Id),
-          database.getErrorsImages(audit.Id),
-        ]);
+      console.log("auditSignature: ", auditSignature);
+      const responseSign = await uploadImage(
+        user.username,
+        user.password,
+        "file://" + auditSignature,
+        "image/png",
+      );
+      const SignatureImageId = responseSign;
+      console.log();
 
-      if (!date) {
-        throw new Error('Audit date is undefined');
+      if (!dateString) {
+        throw new Error("Audit date is undefined");
       }
 
-      const auditDate = Date(
-        Date.UTC(
-          date.getFullYear(),
-          date.getMonth(),
-          date.getDate(),
-          date.getHours(),
-          date.getMinutes(),
-          date.getSeconds(),
-          date.getMilliseconds(),
-        ),
-      );
+      const date = new Date(dateString);
+      if (isNaN(date)) {
+        throw new Error("Invalid audit date format");
+      }
+      const auditDate = date.toISOString();
 
       const request = {
-        login: {
-          Username: user.username,
-          Password: user.password,
-        },
         audit: {
           Id: audit.Id,
+          Code: audit.AuditCode,
+          DateTime: auditDate,
+          SignatureImageId: SignatureImageId,
           PresentClients: clients.map(client => client.name),
           Elements: auditElements,
-          DateTime: auditDate,
         },
         forms: forms,
-        clientSignature: {
-          MimeType: 'image/png',
-          Image: auditSignature.replace('data:image/png;base64,', ''),
-        },
-        missingImages: images.length !== 0,
       };
-      console.log('Upload JSON: ' + JSON.stringify(request, null, 2));
-      setLoadingText('Formulieren uploaden...');
-      
-      uploadImages();
 
+      // Add the logbookImageId and technicalAspectsImageId to forms.errors
+      forms.forEach(form => {
+        if (form.Errors) {
+          form.Errors.forEach(error => {
+            uploadResults.forEach(uploadResult => {
+              if (
+                form.Id === uploadResult.FormId && // Ensure form ID matches
+                error.ElementTypeId === uploadResult.ElementTypeId &&
+                error.ErrorTypeId === uploadResult.ErrorTypeId
+              ) {
+                if (uploadResult.logbookImageId) {
+                  error.LogbookImageId = uploadResult.logbookImageId;
+                }
+                if (uploadResult.technicalAspectsImageId) {
+                  error.TechnicalAspectsImageId =
+                    uploadResult.technicalAspectsImageId;
+                }
+              }
+            });
+          });
+        }
+      });
+
+      console.log("Upload JSON: " + JSON.stringify(request, null, 2));
+      const response = await uploadAudit(user.username, user.password, request);
+      setLoadingText("Audit is succesvol geupload");
+      setLoadingText("Lokale data worden opgeschoond.");
+      await database.removeAllFromAudit(audit.Id);
+      await database.deleteAudit(audit.Id);
+      setLoadingText("Lokale data opgeschoond.");
+      // Navigate to Clients screen and trigger onReload
+      setTimeout(() => {
+        navigation.navigate("Opdrachtgever");
+      }, 1000);
     } catch (error) {
       setLoading(false);
       console.error(error);
@@ -310,31 +360,28 @@ const AuditDetails = ({route, navigation}) => {
   };
 
   const uploadImages = async () => {
-    setLoadingText('Uploading images...');
+    setLoadingText("Uploaden van foto...");
     setLoading(true);
+
+    let logbookImageId = null;
+    let technicalAspectsImageId = null;    
 
     try {
       const user = await userManager.getCurrentUser();
       const [errorImages, remarks] = await Promise.all([
-        database.getErrorsImages(audit.Id),
-        database.getRemarks(audit.Id),
+        database.getErrorsImages(audit.Id)
       ]);
 
-      const list = errorImages.concat(remarks);
+      const list = errorImages;
+      const results = [];
 
       for (let i = 0; i < list.length; i++) {
         const item = list[i];
         const request = {
-          login: {
-            Username: user.username,
-            Password: user.password,
-          },
-          isLatest: i + 1 === list.length,
           ...item,
         };
 
         console.log('UploadImage JSON: ' + JSON.stringify(request, null, 2));
-
 
         setLoadingText(
           item.remarkAndImage == null
@@ -342,27 +389,39 @@ const AuditDetails = ({route, navigation}) => {
             : `Uploaden van remark’s ${i + 1}/${list.length}`,
         );
 
-        // if (item.remarkAndImage == null) {
-        //   await apiFetch.uploadImageErrorForm(request);
-        // } else {
-        //   await apiFetch.uploadRemark(request);
-        // }
+        const response = await uploadImage(
+          user.username,
+          user.password,
+          request.imageError.Image,
+          request.imageError.MimeType,
+        );
+        
+        if (item.traceImageData.Field === "logbook") {
+          logbookImageId = response;
+        }
+        if (item.traceImageData.Field === "technicalaspects") {
+          technicalAspectsImageId = response;
+        }
+
+        results.push({
+          FormId: item.traceImageData.FormId,
+          ElementTypeId: item.traceImageData.ElementTypeId,
+          ErrorTypeId: item.traceImageData.ErrorTypeId,
+          logbookImageId,
+          technicalAspectsImageId,
+        });
       }
 
-      // await database.removeAllFromAudit(audit.AuditCode);
-      // await database.deleteAudit(audit.Id);
+      setLoadingText(`Foto's zijn succesvol geupload.`);
+      setLoading(false);
 
-      // setLoadingText('Audit is succesvol geupload');
-      // setLoading(false);
-
-      // setTimeout(goToClients, 250);
+      return results; 
     } catch (error) {
       console.error(error);
       alert(error.message);
       setLoading(false);
     }
   };
-
 
   const signatureStyle = `
     .m-signature-pad {
@@ -674,7 +733,6 @@ const KpiRow = ({kpi, onChange, openRemarkModal, cardBackgroundColor}) => {
             accessibilityLabel="Kies waarde"
             placeholder="Kies waarde"
             _selectedItem={{
-              // bg: useColorModeValue('teal.600', 'teal.300'), // Adjust select item background for themes
               endIcon: <CheckIcon size="5" />,
             }}
             onValueChange={value => onChange(kpi, kpi.elements_auditId, value)}
