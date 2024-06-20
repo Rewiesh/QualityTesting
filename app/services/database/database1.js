@@ -987,10 +987,10 @@ const saveAllData = async response => {
       const elementsStatusData = response.elementStatuses;
       const clientsData = response.clients;
       const errorsData = response.errorTypes;
-      console.log('auditsData : ' + JSON.stringify(auditsData, null, 2));
+      // console.log('auditsData : ' + JSON.stringify(auditsData, null, 2));
       // console.log('floorData : ' + JSON.stringify(floorData, null, 2));
       // console.log('areaData : ' + JSON.stringify(areaData, null, 2));
-      // console.log('categoriesData : ' + JSON.stringify(categoriesData, null, 2));
+      console.log('categoriesData : ' + JSON.stringify(categoriesData, null, 2));
       // console.log('elementsData : ' + JSON.stringify(elementsData, null, 2));
       // console.log('elementsStatusData : ' +JSON.stringify(elementsStatusData, null, 2));
       // console.log('clientsData : '  + JSON.stringify(clientsData, null, 2));
@@ -1143,7 +1143,7 @@ const saveCategories = (tx, categories) => {
     
     tx.executeSql(
       'INSERT INTO tb_category (Id, CategoryValue, Min1, Min2, Min3) VALUES (?, ?, ?, ?, ?)',
-      [category.id, category.value, ...category.minimalElements],
+      [category.id, category.value, ...String(category.minimalElements)],
       () => {
         console.log('Insert successful for category value:', category.value);
       },
