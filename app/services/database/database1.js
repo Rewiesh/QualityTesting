@@ -1139,11 +1139,11 @@ const saveCategories = (tx, categories) => {
 
   // Insert new category data
   categories.forEach(category => {
-    const [min1, min2, min3] = category.minimalElements.map(min => String(min));    
-    
+    const [min1, min2, min3] = category.minimalElements.map(min => String(min));  // Explicitly cast to integers
+
     tx.executeSql(
       'INSERT INTO tb_category (Id, CategoryValue, Min1, Min2, Min3) VALUES (?, ?, ?, ?, ?)',
-      [category.id, category.value, ...String(category.minimalElements)],
+      [category.id, category.value, min1, min2, min3],  // Use the casted integers
       () => {
         console.log('Insert successful for category value:', category.value);
       },
