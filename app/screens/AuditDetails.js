@@ -118,7 +118,7 @@ const AuditDetails = ({route, navigation}) => {
         if (signatureData != null) {
           setSignatureSaved(true);
           setReady(true);
-        } 
+        }
         setLoading(false);
       })
       .catch(error => {
@@ -126,10 +126,39 @@ const AuditDetails = ({route, navigation}) => {
         setLoading(false);
       });
 
-    database
-      .getAllElements(AuditId)
-      .then(elements => 
-        {setKpiElements(elements);
+    // database
+    //   .getAllElements(AuditId)
+    //   .then(elements =>
+    //     {setKpiElements(elements);
+    //     // console.log('Get KPI Elements ' + JSON.stringify(elements));
+    //   })
+    //   .catch(error => console.error(error));
+    // Replace database call with mock data
+    const mockElements = [
+      {
+        elements_auditId: 1,
+        Id: "MOCK1",
+        ElementLabel: "Mock Label 1",
+        ElementValue: "Mock Value 1",
+        AuditId: AuditId,
+        ElementComment: "This is mock comment 1",
+      },
+      {
+        elements_auditId: 2,
+        Id: "MOCK2",
+        ElementLabel: "Mock Label 2",
+        ElementValue: "Mock Value 2",
+        AuditId: AuditId,
+        ElementComment: "This is mock comment 2",
+      },
+    ];
+
+    // Simulate async behavior and set mock data
+    new Promise(resolve => {
+      setTimeout(() => resolve(mockElements), 500);
+    })
+      .then(elements => {
+        setKpiElements(elements);
         // console.log('Get KPI Elements ' + JSON.stringify(elements));
       })
       .catch(error => console.error(error));
@@ -807,17 +836,24 @@ const RemarkModal = ({
   btnColor,
 }) => (
   <Modal isOpen={isOpen} onClose={onClose}>
-    <Modal.Content maxWidth="400px">
+    <Modal.Content
+      maxWidth="400px"
+      style={{
+        marginBottom: "40%", // This moves the modal higher manually
+        // You can also use a fixed position if needed
+        // position: 'absolute',
+        // top: '10%',
+        // transform: [{ translateY: -100 }] // Optional for more fine-tuned control
+      }}
+    >
       <Modal.CloseButton />
       <Modal.Header>Opmerkingen</Modal.Header>
       <Modal.Body>
         <FormControl>
-          <FormControl.Label>
-            {currentKPI.ElementLabel}
-          </FormControl.Label>
+          <FormControl.Label>{currentKPI.ElementLabel}</FormControl.Label>
           <TextArea
             placeholder="Type hier uw opmerking..."
-            value={currentKPI.ElementComment || ''}
+            value={currentKPI.ElementComment || ""}
             onChangeText={text =>
               setCurrentKPI({
                 ...currentKPI, // Spread the existing KPI data
@@ -832,7 +868,7 @@ const RemarkModal = ({
           <Button variant="ghost" onPress={onClose}>
             Annuleren
           </Button>
-          <Button onPress={saveRemark} bg={btnColor} _text={{color: 'white'}}>
+          <Button onPress={saveRemark} bg={btnColor} _text={{color: "white"}}>
             Opslaan
           </Button>
         </Button.Group>

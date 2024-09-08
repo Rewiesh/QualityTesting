@@ -240,9 +240,9 @@ const AuditErrorForm = ({navigation, route}) => {
   ];
 
   return (
-    <Box flex={1} _contentContainerStyle={{p: '2', mb: '50', pb: '75'}}>
+    <Box flex={1} _contentContainerStyle={{p: "2", mb: "50", pb: "75"}}>
       <SectionList
-        sections={[{title: 'Form', data: formItems}]}
+        sections={[{title: "Form", data: formItems}]}
         renderItem={renderItem}
         keyExtractor={item => item.id}
         contentContainerStyle={{padding: 8}}
@@ -257,9 +257,10 @@ const AuditErrorForm = ({navigation, route}) => {
                 theme.colors.fdis[400],
                 theme.colors.fdis[600],
               )}
-              _text={{color: 'white'}}
-              onPress={saveError}>
-              Opslaan
+              _text={{color: "white"}}
+              onPress={saveError}
+            >
+              Opmerking opslaan
             </Button>
           )
         }
@@ -270,6 +271,7 @@ const AuditErrorForm = ({navigation, route}) => {
         error={error}
         onSaveLogBookImage={onSaveLogBookImage}
         onDeleteLogBookImage={onDeleteLogBookImage}
+        onSaveError={saveError}
       />
       <RenderModalTechnicalAspects
         modalTechVisible={modalTechVisible}
@@ -277,6 +279,7 @@ const AuditErrorForm = ({navigation, route}) => {
         error={error}
         onSaveTechnicalAspectImage={onSaveTechnicalAspectImage}
         onDeleteTechnicalAspectImage={onDeleteTechnicalAspectImage}
+        onSaveError={saveError}
       />
     </Box>
   );
@@ -463,10 +466,11 @@ const RenderModalLogBook = ({
   error,
   onSaveLogBookImage,
   onDeleteLogBookImage,
+  onSaveError,
 }) => {
   const handleTakePhoto = async () => {
     const result = await launchCamera({
-      mediaType: 'photo',
+      mediaType: "photo",
       includeBase64: false,
     });
     if (result.assets?.length > 0) {
@@ -477,7 +481,7 @@ const RenderModalLogBook = ({
 
   const handleSelectFromGallery = async () => {
     const result = await launchImageLibrary({
-      mediaType: 'photo',
+      mediaType: "photo",
       includeBase64: false,
     });
     if (result.assets?.length > 0) {
@@ -486,23 +490,31 @@ const RenderModalLogBook = ({
     }
   };
 
+  const handleSave = async () => {
+    console.log("handle save");
+    onSaveError();
+  };
+
   return (
     <Modal
       isOpen={modalLogBookVisible}
-      onClose={() => setModalLogBookVisible(false)}>
+      onClose={() => setModalLogBookVisible(false)}
+    >
       <Modal.Content maxWidth="400px">
         <Modal.CloseButton />
         <Modal.Header>Voeg afbeelding toe</Modal.Header>
         <Modal.Body>
           <Button
             onPress={handleTakePhoto}
-            leftIcon={<Icon as={MaterialIcons} name="camera" />}>
+            leftIcon={<Icon as={MaterialIcons} name="camera" />}
+          >
             Maak een foto
           </Button>
           <Button
             mt="2"
             onPress={handleSelectFromGallery}
-            leftIcon={<Icon as={MaterialIcons} name="photo-library" />}>
+            leftIcon={<Icon as={MaterialIcons} name="photo-library" />}
+          >
             Kies uit galerij
           </Button>
           {error.LogBookImg && (
@@ -517,12 +529,20 @@ const RenderModalLogBook = ({
                 mt={2}
                 _icon={{
                   as: MaterialIcons,
-                  name: 'delete',
-                  size: 'md',
-                  color: 'red.500',
+                  name: "delete",
+                  size: "md",
+                  color: "red.500",
                 }}
                 onPress={() => onDeleteLogBookImage()}
               />
+              <Button
+                mt="2"
+                onPress={handleSave}
+                leftIcon={<Icon as={MaterialIcons} name="save" />}
+                width="full"
+              >
+                Opmerking opslaan
+              </Button>
             </Center>
           )}
         </Modal.Body>
@@ -537,10 +557,11 @@ const RenderModalTechnicalAspects = ({
   error,
   onSaveTechnicalAspectImage,
   onDeleteTechnicalAspectImage,
+  onSaveError,
 }) => {
   const handleTakePhoto = async () => {
     const result = await launchCamera({
-      mediaType: 'photo',
+      mediaType: "photo",
       includeBase64: false,
     });
     if (result.assets?.length > 0) {
@@ -551,13 +572,17 @@ const RenderModalTechnicalAspects = ({
 
   const handleSelectFromGallery = async () => {
     const result = await launchImageLibrary({
-      mediaType: 'photo',
+      mediaType: "photo",
       includeBase64: false,
     });
     if (result.assets?.length > 0) {
       const imageUri = result.assets[0].uri;
       onSaveTechnicalAspectImage(imageUri);
     }
+  };
+
+  const handleSave = async () => {
+    onSaveError();
   };
 
   return (
@@ -568,13 +593,15 @@ const RenderModalTechnicalAspects = ({
         <Modal.Body>
           <Button
             onPress={handleTakePhoto}
-            leftIcon={<Icon as={MaterialIcons} name="camera" />}>
+            leftIcon={<Icon as={MaterialIcons} name="camera" />}
+          >
             Maak een foto
           </Button>
           <Button
             mt="2"
             onPress={handleSelectFromGallery}
-            leftIcon={<Icon as={MaterialIcons} name="photo-library" />}>
+            leftIcon={<Icon as={MaterialIcons} name="photo-library" />}
+          >
             Kies uit galerij
           </Button>
           {error.TechnicalAspectsImg && (
@@ -589,12 +616,20 @@ const RenderModalTechnicalAspects = ({
                 mt={2}
                 _icon={{
                   as: MaterialIcons,
-                  name: 'delete',
-                  size: 'md',
-                  color: 'red.500',
+                  name: "delete",
+                  size: "md",
+                  color: "red.500",
                 }}
                 onPress={() => onDeleteTechnicalAspectImage()}
               />
+              <Button
+                mt="2"
+                onPress={handleSave}
+                leftIcon={<Icon as={MaterialIcons} name="save" />}
+                width="full"
+              >
+                Opmerking opslaan
+              </Button>
             </Center>
           )}
         </Modal.Body>
