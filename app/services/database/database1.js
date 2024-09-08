@@ -475,6 +475,24 @@ const getAuditDate = async AuditId => {
   }
 };
 
+const getCompletedAudits = async () => {
+  const query =
+    "SELECT adt.* " + // Select only the columns from tb_audits
+    "FROM tb_audits adt " +
+    "JOIN tb_audit_signature sig ON sig.AuditCode = adt.AuditCode " +
+    "WHERE sig.AuditCode IS NOT NULL";
+
+  try {
+    const results = await executeSelect(query); // Execute the query
+    console.log("Retrieved completed audits successfully:", results);
+    return results; // Return the results as an array
+  } catch (error) {
+    console.error("Failed to retrieve completed audits:", error);
+    throw error; // Rethrow the error to ensure calling code can handle it
+  }
+};
+
+
 //Categories
 const getCategoryById = async (categoryId) => {
   try {
@@ -1859,6 +1877,7 @@ export {
   getClients,
   getAuditsOfClient,
   getAuditById,
+  getCompletedAudits,
   getCategoryById,
   getCategoriesByClient,
   getCategoriesByClientSorted,
