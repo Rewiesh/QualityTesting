@@ -472,6 +472,8 @@ const RenderModalLogBook = ({
     const result = await launchCamera({
       mediaType: "photo",
       includeBase64: false,
+      maxWidth: 1080,
+      maxHeight: 1920,
     });
     if (result.assets?.length > 0) {
       const imageUri = result.assets[0].uri;
@@ -483,6 +485,8 @@ const RenderModalLogBook = ({
     const result = await launchImageLibrary({
       mediaType: "photo",
       includeBase64: false,
+      maxWidth: 1080,
+      maxHeight: 1920,
     });
     if (result.assets?.length > 0) {
       const imageUri = result.assets[0].uri;
@@ -563,6 +567,8 @@ const RenderModalTechnicalAspects = ({
     const result = await launchCamera({
       mediaType: "photo",
       includeBase64: false,
+      maxWidth: 1080,
+      maxHeight: 1920,
     });
     if (result.assets?.length > 0) {
       const imageUri = result.assets[0].uri;
@@ -574,6 +580,8 @@ const RenderModalTechnicalAspects = ({
     const result = await launchImageLibrary({
       mediaType: "photo",
       includeBase64: false,
+      maxWidth: 1080,
+      maxHeight: 1920,
     });
     if (result.assets?.length > 0) {
       const imageUri = result.assets[0].uri;
@@ -608,7 +616,7 @@ const RenderModalTechnicalAspects = ({
             <Center mt={2}>
               <Image
                 source={{uri: error.TechnicalAspectsImg}}
-                alt="Technische aspecten afbeelding"
+                alt="Technische afbeelding"
                 size="xl"
                 resizeMode="contain"
               />

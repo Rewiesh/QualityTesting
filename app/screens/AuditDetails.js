@@ -854,12 +854,13 @@ const RemarkModal = ({
           <TextArea
             placeholder="Type hier uw opmerking..."
             value={currentKPI.ElementComment || ""}
-            onChangeText={text =>
-              setCurrentKPI({
-                ...currentKPI, // Spread the existing KPI data
-                ElementComment: text, // Update the comment field with new text
-              })
-            }
+            onChangeText={text => {
+              console.log(text); // Check if the new text is being captured
+              setCurrentKPI(prev => ({
+                ...prev,
+                ElementComment: text,
+              }));
+            }}
           />
         </FormControl>
       </Modal.Body>
