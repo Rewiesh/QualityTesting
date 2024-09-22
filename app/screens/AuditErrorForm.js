@@ -259,7 +259,7 @@ const AuditErrorForm = ({navigation, route}) => {
               )}
               _text={{color: 'white'}}
               onPress={saveError}>
-              Opslaan
+              Opmerking opslaan
             </Button>
           )
         }
@@ -270,6 +270,7 @@ const AuditErrorForm = ({navigation, route}) => {
         error={error}
         onSaveLogBookImage={onSaveLogBookImage}
         onDeleteLogBookImage={onDeleteLogBookImage}
+        onSaveError={saveError}
       />
       <RenderModalTechnicalAspects
         modalTechVisible={modalTechVisible}
@@ -277,6 +278,7 @@ const AuditErrorForm = ({navigation, route}) => {
         error={error}
         onSaveTechnicalAspectImage={onSaveTechnicalAspectImage}
         onDeleteTechnicalAspectImage={onDeleteTechnicalAspectImage}
+        onSaveError={saveError}
       />
     </Box>
   );
@@ -383,7 +385,7 @@ const LogBook = ({
         </TouchableOpacity>
       </HStack>
       <TextArea
-        placeholder="Voer hier uw logboekgegevens in"
+        placeholder="Plaats hier uw opmerking"
         value={error.LogBook}
         onChangeText={onLogBookChange}
       />
@@ -429,7 +431,7 @@ const TechnicalAspects = ({
         </TouchableOpacity>
       </HStack>
       <TextArea
-        placeholder="Voer hier uw technische aspecten in"
+        placeholder="Plaats hier uw opmerking"
         value={error.TechnicalAspects}
         onChangeText={onTechnicalAspectsChange}
       />
@@ -450,7 +452,7 @@ const TechnicalAspects = ({
               color: 'red.500',
             }}
             onPress={() => onDeleteTechnicalAspectImage()}
-          />
+          />      
         </Center>
       )}
     </Box>
@@ -462,12 +464,15 @@ const RenderModalLogBook = ({
   setModalLogBookVisible,
   error,
   onSaveLogBookImage,
-  onDeleteLogBookImage,
+  onDeleteLogBookImage,  
+  onSaveError,
 }) => {
   const handleTakePhoto = async () => {
     const result = await launchCamera({
       mediaType: 'photo',
       includeBase64: false,
+      maxWidth: 1080,
+      maxHeight: 1920,
     });
     if (result.assets?.length > 0) {
       const imageUri = result.assets[0].uri;
@@ -479,11 +484,18 @@ const RenderModalLogBook = ({
     const result = await launchImageLibrary({
       mediaType: 'photo',
       includeBase64: false,
+      maxWidth: 1080,
+      maxHeight: 1920,
     });
     if (result.assets?.length > 0) {
       const imageUri = result.assets[0].uri;
       onSaveLogBookImage(imageUri);
     }
+  };
+
+  const handleSave = async () => {
+    console.log("handle save");
+    onSaveError();
   };
 
   return (
@@ -523,6 +535,14 @@ const RenderModalLogBook = ({
                 }}
                 onPress={() => onDeleteLogBookImage()}
               />
+              <Button
+                mt="2"
+                onPress={handleSave}
+                leftIcon={<Icon as={MaterialIcons} name="save" />}
+                width="full"
+              >
+                Opmerking opslaan
+              </Button>              
             </Center>
           )}
         </Modal.Body>
@@ -537,11 +557,14 @@ const RenderModalTechnicalAspects = ({
   error,
   onSaveTechnicalAspectImage,
   onDeleteTechnicalAspectImage,
+  onSaveError,
 }) => {
   const handleTakePhoto = async () => {
     const result = await launchCamera({
       mediaType: 'photo',
       includeBase64: false,
+      maxWidth: 1080,
+      maxHeight: 1920,      
     });
     if (result.assets?.length > 0) {
       const imageUri = result.assets[0].uri;
@@ -553,11 +576,18 @@ const RenderModalTechnicalAspects = ({
     const result = await launchImageLibrary({
       mediaType: 'photo',
       includeBase64: false,
+      maxWidth: 1080,
+      maxHeight: 1920,      
     });
     if (result.assets?.length > 0) {
       const imageUri = result.assets[0].uri;
       onSaveTechnicalAspectImage(imageUri);
     }
+  };
+
+  const handleSave = async () => {
+    console.log("handle save");
+    onSaveError();
   };
 
   return (
@@ -595,6 +625,14 @@ const RenderModalTechnicalAspects = ({
                 }}
                 onPress={() => onDeleteTechnicalAspectImage()}
               />
+              <Button
+                mt="2"
+                onPress={handleSave}
+                leftIcon={<Icon as={MaterialIcons} name="save" />}
+                width="full"
+              >
+                Opmerking opslaan
+              </Button>              
             </Center>
           )}
         </Modal.Body>

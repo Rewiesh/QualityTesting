@@ -220,14 +220,14 @@ const AuditResumeForm = ({route, navigation}) => {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{flex: 1}}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 100}>
       <SectionList
         sections={sections}
         keyExtractor={(item, index) => item.key + index}
         renderItem={renderItem}
         contentContainerStyle={{
           padding: 10,
-          paddingBottom: 75, // Adjust as needed
+          paddingBottom: 150, // Adjust as needed
         }}
         ListFooterComponent={
           <Button

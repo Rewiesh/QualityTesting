@@ -127,6 +127,35 @@ const AuditDetails = ({route, navigation}) => {
         // console.log('Get KPI Elements ' + JSON.stringify(elements));
       })
       .catch(error => console.error(error));
+
+    // const mockElements = [
+    //   {
+    //     elements_auditId: 1,
+    //     Id: "MOCK1",
+    //     ElementLabel: "Mock Label 1",
+    //     ElementValue: "Mock Value 1",
+    //     AuditId: AuditId,
+    //     ElementComment: "This is mock comment 1",
+    //   },
+    //   {
+    //     elements_auditId: 2,
+    //     Id: "MOCK2",
+    //     ElementLabel: "Mock Label 2",
+    //     ElementValue: "Mock Value 2",
+    //     AuditId: AuditId,
+    //     ElementComment: "This is mock comment 2",
+    //   },
+    // ];
+
+    // // Simulate async behavior and set mock data
+    // new Promise(resolve => {
+    //   setTimeout(() => resolve(mockElements), 500);
+    // })
+    //   .then(elements => {
+    //     setKpiElements(elements);
+    //     // console.log('Get KPI Elements ' + JSON.stringify(elements));
+    //   })
+    //   .catch(error => console.error(error));
   };
 
   const handleKpiValueChange = (kpi, elements_auditId, newValue) => {
@@ -768,7 +797,16 @@ const RemarkModal = ({
   btnColor,
 }) => (
   <Modal isOpen={isOpen} onClose={onClose}>
-    <Modal.Content maxWidth="400px">
+    <Modal.Content 
+        maxWidth="400px" 
+        style={{
+          marginBottom: "40%", // This moves the modal higher manually
+          // You can also use a fixed position if needed
+          // position: 'absolute',
+          // top: '10%',
+          // transform: [{ translateY: -100 }] // Optional for more fine-tuned control
+          }}
+      >
       <Modal.CloseButton />
       <Modal.Header>Opmerkingen</Modal.Header>
       <Modal.Body>
@@ -779,12 +817,13 @@ const RemarkModal = ({
           <TextArea
             placeholder="Type hier uw opmerking..."
             value={currentKPI.ElementComment || ''}
-            onChangeText={text =>
-              setCurrentKPI({
-                ...currentKPI, // Spread the existing KPI data
-                ElementComment: text, // Update the comment field with new text
-              })
-            }
+            onChangeText={text => {
+              console.log(text); // Check if the new text is being captured
+              setCurrentKPI(prev => ({
+                ...prev,
+                ElementComment: text,
+              }));
+            }}
           />
         </FormControl>
       </Modal.Body>
