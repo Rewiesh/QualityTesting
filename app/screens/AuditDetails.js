@@ -788,61 +788,6 @@ const KpiRow = ({kpi, onChange, openRemarkModal, cardBackgroundColor}) => {
   );
 };
 
-// const RemarkModal = ({
-//   isOpen,
-//   onClose,
-//   currentKPI,
-//   setCurrentKPI,
-//   saveRemark,
-//   btnColor,
-// }) => (
-//   <Modal isOpen={isOpen} onClose={onClose}>
-//     <Modal.Content 
-//         maxWidth="400px" 
-//         style={{
-//           marginBottom: "40%", // This moves the modal higher manually
-//           // You can also use a fixed position if needed
-//           // position: 'absolute',
-//           // top: '10%',
-//           // transform: [{ translateY: -100 }] // Optional for more fine-tuned control
-//           }}
-//       >
-//       <Modal.CloseButton />
-//       <Modal.Header>Opmerkingen</Modal.Header>
-//       <Modal.Body>
-//         <FormControl>
-//           <FormControl.Label>
-//             {currentKPI.ElementLabel}
-//           </FormControl.Label>
-//           <TextArea
-//             placeholder="Type hier uw opmerking..."
-//             value={currentKPI.ElementComment || ''}
-//             // onChangeText={text => {
-//             //   console.log(text);
-//             // }}
-//             onChangeText={text => {
-//               console.log(text); // Check if the new text is being captured
-//               setCurrentKPI(prev => ({
-//                 ...prev,
-//                 ElementComment: prev + text,
-//               }));
-//             }}
-//           />
-//         </FormControl>
-//       </Modal.Body>
-//       <Modal.Footer>
-//         <Button.Group space={2}>
-//           <Button variant="ghost" onPress={onClose}>
-//             Annuleren
-//           </Button>
-//           <Button onPress={saveRemark} bg={btnColor} _text={{color: 'white'}}>
-//             Opslaan
-//           </Button>
-//         </Button.Group>
-//       </Modal.Footer>
-//     </Modal.Content>
-//   </Modal>
-// );
 
 const RemarkModal = ({
   isOpen,
