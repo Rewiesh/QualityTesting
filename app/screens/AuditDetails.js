@@ -91,8 +91,8 @@ const AuditDetails = ({route, navigation}) => {
       .getAuditById(AuditId)
       .then(audit => {
         setAudit(audit);
-        console.log('audit.NameClient: ' + audit.NameClient);
-        console.log('audit.LocationSize: ' + audit.LocationSize);
+        console.log("audit.NameClient: " + audit.NameClient);
+        console.log("audit.LocationSize: " + audit.LocationSize);
 
         return audit;
       })
@@ -103,9 +103,10 @@ const AuditDetails = ({route, navigation}) => {
             audit.LocationSize,
           ),
           database.getAuditCounterElements(audit.Id),
+          database.getAuditSignature(audit.AuditCode),
         ]),
       )
-      .then(([categories, counters]) => {
+      .then(([categories, counters, signatureData]) => {
         const all = categories.map((cat, index) => {
           const counter = counters.find(
             counter => counter.CategoryId === cat.Id,
@@ -113,6 +114,11 @@ const AuditDetails = ({route, navigation}) => {
           return {...cat, CounterElements: counter.CounterElements};
         });
         setCategories(all);
+        setSignature(signatureData);
+        if (signatureData != null) {
+          setSignatureSaved(true);
+          setReady(true);
+        }
         setLoading(false);
       })
       .catch(error => {
