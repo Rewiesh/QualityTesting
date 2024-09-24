@@ -291,92 +291,124 @@ const AuditDetails = ({route, navigation}) => {
       }
       setLoading(true);
       setLoadingText("Voorbereiden op uploaden ...");
-      const uploadResults = await uploadImages();
-      setLoadingText("Formulieren uploaden...");
-      setLoading(true);
-
-      console.log("Upload results: " + JSON.stringify(uploadResults, null, 2));
-      console.log("Getting data for uploading auditId: " + audit.Id);
-      const [
-        user,
-        forms,
-        auditElements,
-        auditSignature,
-        dateString,
-        clients,
-        images,
-      ] = await Promise.all([
-        userManager.getCurrentUser(),
-        database.getAllForms(audit.Id),
-        database.getAllElements(audit.Id),
-        database.getAuditSignature(audit.AuditCode),
-        database.getAuditDate(audit.Id),
-        database.getAllPresentClient(audit.Id),
-        database.getErrorsImages(audit.Id),
+      const [allReadyAudits] = await Promise.all([
+        database.getCompletedAudits(),
       ]);
+      console.log("All Ready Audits:", allReadyAudits); // Log the data
+      setLoadingText(allReadyAudits.length + " voltooide audits gevonden.");
+      setTimeout(() => {}, 500);
 
-      console.log("auditSignature: ", auditSignature);
-      const responseSign = await uploadImage(
-        user.username,
-        user.password,
-        "file://" + auditSignature,
-        "image/png",
-      );
-      const SignatureImageId = responseSign;
-      console.log();
+      for (let i = 0; i < allReadyAudits.length; i++) {
+        //
+        let uploadAuditId = allReadyAudits[i].Id;
+        let uploadAuditCode = allReadyAudits[i].AuditCode;
 
-      if (!dateString) {
-        throw new Error("Audit date is undefined");
-      }
+        console.log("AuditCode:", allReadyAudits[i].AuditCode);
 
-      const date = new Date(dateString);
-      if (isNaN(date)) {
-        throw new Error("Invalid audit date format");
-      }
-      const auditDate = date.toISOString();
+        // Update the loading text to show progress
+        let currectAuditLoadingText = `Audit: ${
+          allReadyAudits[i].AuditCode
+        } wordt nu upgeload (${i + 1}/${allReadyAudits.length})`;
 
-      const request = {
-        audit: {
-          Id: audit.Id,
-          Code: audit.AuditCode,
-          DateTime: auditDate,
-          SignatureImageId: SignatureImageId,
-          PresentClients: clients.map(client => client.name),
-          Elements: auditElements,
-        },
-        forms: forms,
-      };
+        setLoadingText(currectAuditLoadingText);
 
-      // Add the logbookImageId and technicalAspectsImageId to forms.errors
-      forms.forEach(form => {
-        if (form.Errors) {
-          form.Errors.forEach(error => {
-            uploadResults.forEach(uploadResult => {
-              if (
-                form.Id === uploadResult.FormId && // Ensure form ID matches
-                error.ElementTypeId === uploadResult.ElementTypeId &&
-                error.ErrorTypeId === uploadResult.ErrorTypeId
-              ) {
-                if (uploadResult.logbookImageId) {
-                  error.LogbookImageId = uploadResult.logbookImageId;
-                }
-                if (uploadResult.technicalAspectsImageId) {
-                  error.TechnicalAspectsImageId =
-                    uploadResult.technicalAspectsImageId;
-                }
-              }
-            });
-          });
+        const uploadResults = await uploadImages(
+          currectAuditLoadingText,
+          uploadAuditId,
+        );
+        setLoadingText(
+          `${currectAuditLoadingText}\n${"Formulieren uploaden..."}`,
+        );
+        setLoading(true);
+        console.log(
+          "Upload results: " + JSON.stringify(uploadResults, null, 2),
+        );
+        console.log("Getting data for uploading auditId: " + uploadAuditId);
+        const [
+          user,
+          forms,
+          auditElements,
+          auditSignature,
+          dateString,
+          clients,
+          images,
+        ] = await Promise.all([
+          userManager.getCurrentUser(),
+          database.getAllForms(uploadAuditId),
+          database.getAllElements(uploadAuditId),
+          database.getAuditSignature(uploadAuditCode),
+          database.getAuditDate(uploadAuditId),
+          database.getAllPresentClient(uploadAuditId),
+          database.getErrorsImages(uploadAuditId),
+        ]);
+
+        console.log("auditSignature: ", auditSignature);
+        const responseSign = await uploadImage(
+          user.username,
+          user.password,
+          "file://" + auditSignature,
+          "image/png",
+        );
+        const SignatureImageId = responseSign;
+        console.log();
+
+        if (!dateString) {
+          throw new Error("Audit date is undefined");
         }
-      });
 
-      console.log("Upload JSON: " + JSON.stringify(request, null, 2));
-      const response = await uploadAudit(user.username, user.password, request);
-      setLoadingText("Audit is succesvol geupload");
-      setLoadingText("Lokale data worden opgeschoond.");
-      await database.removeAllFromAudit(audit.Id);
-      await database.deleteAudit(audit.Id);
-      setLoadingText("Lokale data opgeschoond.");
+        const date = new Date(dateString);
+        if (isNaN(date)) {
+          throw new Error("Invalid audit date format");
+        }
+        const auditDate = date.toISOString();
+
+        const request = {
+          audit: {
+            Id: uploadAuditId,
+            Code: uploadAuditCode,
+            DateTime: auditDate,
+            SignatureImageId: SignatureImageId,
+            PresentClients: clients.map(client => client.name),
+            Elements: auditElements,
+          },
+          forms: forms,
+        };
+
+        // Add the logbookImageId and technicalAspectsImageId to forms.errors
+        forms.forEach(form => {
+          if (form.Errors) {
+            form.Errors.forEach(error => {
+              uploadResults.forEach(uploadResult => {
+                if (
+                  form.Id === uploadResult.FormId && // Ensure form ID matches
+                  error.ElementTypeId === uploadResult.ElementTypeId &&
+                  error.ErrorTypeId === uploadResult.ErrorTypeId
+                ) {
+                  if (uploadResult.logbookImageId) {
+                    error.LogbookImageId = uploadResult.logbookImageId;
+                  }
+                  if (uploadResult.technicalAspectsImageId) {
+                    error.TechnicalAspectsImageId =
+                      uploadResult.technicalAspectsImageId;
+                  }
+                }
+              });
+            });
+          }
+        });
+
+        console.log(allReadyAudits[i].AuditCode + "Upload JSON: " + JSON.stringify(request, null, 2));
+        const response = await uploadAudit(user.username, user.password, request);
+        setLoadingText("Audit is succesvol geupload");
+        setLoadingText("Lokale data worden opgeschoond.");
+        await database.removeAllFromAudit(uploadAuditId);
+        await database.deleteAudit(uploadAuditId);
+        setLoadingText("Lokale data opgeschoond.");
+        setLoading(false);
+      }
+      setLoadingText("");
+      setLoading(false);
+
       // Navigate to Clients screen and trigger onReload
       setTimeout(() => {
         navigation.navigate("Opdrachtgever");
@@ -388,17 +420,18 @@ const AuditDetails = ({route, navigation}) => {
     }
   };
 
-  const uploadImages = async () => {
-    setLoadingText("Uploaden van foto...");
+  const uploadImages = async (uploadText, UploadAuditId) => {
+    setLoadingText(`${uploadText}\n${"Uploaden van foto..."}`);
     setLoading(true);
 
+    let auditId = UploadAuditId;
     let logbookImageId = null;
     let technicalAspectsImageId = null;    
 
     try {
       const user = await userManager.getCurrentUser();
       const [errorImages, remarks] = await Promise.all([
-        database.getErrorsImages(audit.Id)
+        database.getErrorsImages(auditId)
       ]);
 
       const list = errorImages;
@@ -413,7 +446,7 @@ const AuditDetails = ({route, navigation}) => {
         console.log('UploadImage JSON: ' + JSON.stringify(request, null, 2));
 
         setLoadingText(
-          item.remarkAndImage == null
+          `${uploadText}\n` + item.remarkAndImage == null
             ? `Uploaden van foto’s ${i + 1}/${list.length}`
             : `Uploaden van remark’s ${i + 1}/${list.length}`,
         );
@@ -440,8 +473,8 @@ const AuditDetails = ({route, navigation}) => {
           technicalAspectsImageId,
         });
       }
-
-      setLoadingText(`Foto's zijn succesvol geupload.`);
+      setLoadingText(`${uploadText}\n${"Foto's zijn succesvol geupload."}`);
+      // setLoadingText(`Foto's zijn succesvol geupload.`);
       setLoading(false);
 
       return results; 
