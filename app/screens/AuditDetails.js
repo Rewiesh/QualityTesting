@@ -187,20 +187,25 @@ const AuditDetails = ({route, navigation}) => {
     setRemarkModalVisible(true);
   };
 
-  const saveRemark = () => {
-    console.log('currentKPI element : ' + JSON.stringify(currentKPI, null, 2));
+  const saveRemark = remark => {
+    console.log("New remark:", remark);
 
+    // Update the database with the correct ElementComment (remark)
     database.setKpiElementComment(
       currentKPI.elements_auditId,
-      currentKPI.ElementComment,
-    );    
+      remark, // Use the latest remark directly
+    );
+
+    // Update the list of KPIs with the updated comment
     const updatedKpis = kpiElements.map(kpi =>
       kpi.elements_auditId === currentKPI.elements_auditId
-        ? {...kpi, ElementComment: currentKPI.ElementComment}
+        ? {...kpi, ElementComment: remark} // Set remark directly
         : kpi,
     );
-    console.log('updatedKpis : ' + JSON.stringify(updatedKpis, null, 2));
 
+    console.log("updatedKpis : " + JSON.stringify(updatedKpis, null, 2));
+
+    // Update the state and close the modal
     setKpiElements(updatedKpis);
     setRemarkModalVisible(false);
   };
@@ -836,37 +841,36 @@ const RemarkModal = ({
   saveRemark,
   btnColor,
 }) => {
-  const textInputRef = useRef(currentKPI.ElementComment || '');
+  const [remark, setRemark] = useState(currentKPI.ElementComment || ""); // Use state for the text input value
 
   const handleSaveRemark = () => {
+    // Update the current KPI's ElementComment with the latest text value
     setCurrentKPI(prev => ({
       ...prev,
-      ElementComment: textInputRef.current, // Save the text input value
+      ElementComment: remark, // Save the remark state value
     }));
-    saveRemark();
+
+    // Pass the remark directly to saveRemark
+    saveRemark(remark); // Pass the new remark value to saveRemark
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <Modal.Content 
-        maxWidth="400px" 
+      <Modal.Content
+        maxWidth="400px"
         style={{
-          marginBottom: "40%", 
+          marginBottom: "40%",
         }}
       >
         <Modal.CloseButton />
         <Modal.Header>Opmerkingen</Modal.Header>
         <Modal.Body>
           <FormControl>
-            <FormControl.Label>
-              {currentKPI.ElementLabel}
-            </FormControl.Label>
+            <FormControl.Label>{currentKPI.ElementLabel}</FormControl.Label>
             <TextArea
               placeholder="Type hier uw opmerking..."
-              defaultValue={textInputRef.current} // Use ref for initial value
-              onChangeText={text => {
-                textInputRef.current = text; // Update ref on text change
-              }}
+              value={remark} // Controlled input via state
+              onChangeText={text => setRemark(text)} // Update state on text change
             />
           </FormControl>
         </Modal.Body>
@@ -875,10 +879,10 @@ const RemarkModal = ({
             <Button variant="ghost" onPress={onClose}>
               Annuleren
             </Button>
-            <Button 
-              onPress={handleSaveRemark} 
-              bg={btnColor} 
-              _text={{color: 'white'}}
+            <Button
+              onPress={handleSaveRemark}
+              bg={btnColor}
+              _text={{color: "white"}}
             >
               Opslaan
             </Button>
@@ -888,6 +892,8 @@ const RemarkModal = ({
     </Modal>
   );
 };
+
+
 
 // functions
 const onStartResumeClick = ({AuditId, navigation, audit, user, clientName}) => {
