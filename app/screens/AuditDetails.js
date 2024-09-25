@@ -843,6 +843,12 @@ const RemarkModal = ({
 }) => {
   const [remark, setRemark] = useState(currentKPI.ElementComment || ""); // Use state for the text input value
 
+  // Update remark state whenever currentKPI changes (e.g., when the modal opens)
+  useEffect(() => {
+    setRemark(currentKPI.ElementComment || ""); // Set remark when currentKPI changes
+  }, [currentKPI]);
+
+  
   const handleSaveRemark = () => {
     // Update the current KPI's ElementComment with the latest text value
     setCurrentKPI(prev => ({
@@ -892,8 +898,6 @@ const RemarkModal = ({
     </Modal>
   );
 };
-
-
 
 // functions
 const onStartResumeClick = ({AuditId, navigation, audit, user, clientName}) => {
