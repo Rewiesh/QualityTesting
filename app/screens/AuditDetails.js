@@ -57,7 +57,7 @@ const AuditDetails = ({route, navigation}) => {
   const [remarkModalVisible, setRemarkModalVisible] = useState(false);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
   const [currentKPI, setCurrentKPI] = useState({});
-  
+  const [remark, setRemark] = useState('');
   const backgroundColor = useColorModeValue(
     'coolGray.50',
     theme.colors.fdis[1100],
@@ -178,16 +178,22 @@ const AuditDetails = ({route, navigation}) => {
     setKpiElements(updatedKpis);
     if (newValue === 'O') {
       setCurrentKPI(kpi);
+      setRemark(kpi.ElementComment);
       setRemarkModalVisible(true);
     }
   };
 
   const openRemarkModal = kpi => {
     setCurrentKPI(kpi);
+    setRemark(kpi.ElementComment);
     setRemarkModalVisible(true);
   };
 
-  const saveRemark = remark => {
+  const remarkChange = text => {
+    setRemark(text); // Handle state changes outside the modal
+  };
+
+  const saveRemark = () => {
     console.log("New remark:", remark);
 
     // Update the database with the correct ElementComment (remark)
@@ -569,10 +575,11 @@ const AuditDetails = ({route, navigation}) => {
       flex={1}
       bg={backgroundColor}
       _contentContainerStyle={{
-        p: '2',
-        mb: '4',
-        pb: '120', // Adjust this value to the height of your footer
-      }}>
+        p: "2",
+        mb: "4",
+        pb: "120", // Adjust this value to the height of your footer
+      }}
+    >
       <AuditSection
         audit={audit}
         cardBackgroundColor={cardBackgroundColor}
@@ -585,7 +592,8 @@ const AuditDetails = ({route, navigation}) => {
         p="1"
         shadow="1"
         mt={2}
-        rounded={'xs'}>
+        rounded={"xs"}
+      >
         <Heading fontSize="lg" bold mt="1" color={headingTextColor} p="2">
           Categories (Geteld/Minimum)
         </Heading>
@@ -603,7 +611,8 @@ const AuditDetails = ({route, navigation}) => {
         p="1"
         shadow="1"
         mt={2}
-        rounded={'xs'}>
+        rounded={"xs"}
+      >
         <Heading fontSize="lg" bold mt="1" color={headingTextColor}>
           KPI-metrieken
         </Heading>
@@ -621,17 +630,19 @@ const AuditDetails = ({route, navigation}) => {
         btnColor={btnColor}
         isOpen={remarkModalVisible}
         onClose={() => setRemarkModalVisible(false)}
-        currentKPI={currentKPI}
-        setCurrentKPI={setCurrentKPI}
         saveRemark={saveRemark}
+        label={currentKPI.ElementLabel}
+        value={remark}
+        onChangeText={remarkChange}
       />
       <Button
         mt="2"
         bg={useColorModeValue(theme.colors.fdis[400], theme.colors.fdis[600])}
-        _text={{color: 'white'}}
+        _text={{color: "white"}}
         onPress={() =>
           onStartResumeClick({AuditId, navigation, audit, user, clientName})
-        }>
+        }
+      >
         Starten/Hervatten
       </Button>
       <VStack
@@ -640,24 +651,25 @@ const AuditDetails = ({route, navigation}) => {
         p="1"
         shadow="1"
         mt={2}
-        rounded={'xs'}>
+        rounded={"xs"}
+      >
         {signature ? (
           <Image
             alt="signature"
             resizeMode="contain"
             source={{uri: signature}}
             style={{
-              width: '100%',
+              width: "100%",
               height: 120,
               borderWidth: 1,
-              borderColor: '#ccc',
+              borderColor: "#ccc",
               borderRadius: 5,
-              overflow: 'hidden', // Ensure the image does not leak outside the container
-              backgroundColor: 'white', // Adds background color to differentiate from empty state
+              overflow: "hidden", // Ensure the image does not leak outside the container
+              backgroundColor: "white", // Adds background color to differentiate from empty state
             }}
           />
         ) : (
-          <View style={{height: 120, marginTop: 5, overflow: 'hidden'}}>
+          <View style={{height: 120, marginTop: 5, overflow: "hidden"}}>
             <Signature
               ref={signatureRef}
               onOK={handleSignature}
@@ -676,7 +688,8 @@ const AuditDetails = ({route, navigation}) => {
               theme.colors.fdis[400],
               theme.colors.fdis[600],
             )}
-            _text={{color: 'white'}}>
+            _text={{color: "white"}}
+          >
             Handtekening wissen
           </Button>
           <Button
@@ -687,14 +700,18 @@ const AuditDetails = ({route, navigation}) => {
               theme.colors.fdis[400],
               theme.colors.fdis[600],
             )}
-            _text={{color: 'white'}}>
+            _text={{color: "white"}}
+          >
             Handtekening opslaan
           </Button>
         </HStack>
         <UploadModal
           isOpen={uploadModalVisible}
           onClose={() => setUploadModalVisible(false)}
-          onConfirm={() => {console.log('Confirm upload'); getFormsToSubmit();}}
+          onConfirm={() => {
+            console.log("Confirm upload");
+            getFormsToSubmit();
+          }}
         />
         <Button
           mt="2"
@@ -702,7 +719,8 @@ const AuditDetails = ({route, navigation}) => {
           onPress={uncomplete}
           success={true}
           bg={useColorModeValue(theme.colors.fdis[400], theme.colors.fdis[600])}
-          _text={{color: 'white'}}>
+          _text={{color: "white"}}
+        >
           Uploaden
         </Button>
       </VStack>
@@ -832,34 +850,15 @@ const KpiRow = ({kpi, onChange, openRemarkModal, cardBackgroundColor}) => {
   );
 };
 
-
 const RemarkModal = ({
   isOpen,
   onClose,
-  currentKPI,
-  setCurrentKPI,
+  label,
+  value,
+  onChangeText,
   saveRemark,
   btnColor,
 }) => {
-  const [remark, setRemark] = useState(currentKPI.ElementComment || ""); // Use state for the text input value
-
-  // Update remark state whenever currentKPI changes (e.g., when the modal opens)
-  useEffect(() => {
-    setRemark(currentKPI.ElementComment || ""); // Set remark when currentKPI changes
-  }, [currentKPI]);
-
-  
-  const handleSaveRemark = () => {
-    // Update the current KPI's ElementComment with the latest text value
-    setCurrentKPI(prev => ({
-      ...prev,
-      ElementComment: remark, // Save the remark state value
-    }));
-
-    // Pass the remark directly to saveRemark
-    saveRemark(remark); // Pass the new remark value to saveRemark
-  };
-
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <Modal.Content
@@ -872,11 +871,11 @@ const RemarkModal = ({
         <Modal.Header>Opmerkingen</Modal.Header>
         <Modal.Body>
           <FormControl>
-            <FormControl.Label>{currentKPI.ElementLabel}</FormControl.Label>
+            <FormControl.Label>{label}</FormControl.Label>
             <TextArea
               placeholder="Type hier uw opmerking..."
-              value={remark} // Controlled input via state
-              onChangeText={text => setRemark(text)} // Update state on text change
+              value={value} // Controlled input via props
+              onChangeText={onChangeText} // Update state via props
             />
           </FormControl>
         </Modal.Body>
@@ -885,11 +884,7 @@ const RemarkModal = ({
             <Button variant="ghost" onPress={onClose}>
               Annuleren
             </Button>
-            <Button
-              onPress={handleSaveRemark}
-              bg={btnColor}
-              _text={{color: "white"}}
-            >
+            <Button onPress={saveRemark} bg={btnColor} _text={{color: "white"}}>
               Opslaan
             </Button>
           </Button.Group>
@@ -898,6 +893,7 @@ const RemarkModal = ({
     </Modal>
   );
 };
+
 
 // functions
 const onStartResumeClick = ({AuditId, navigation, audit, user, clientName}) => {
