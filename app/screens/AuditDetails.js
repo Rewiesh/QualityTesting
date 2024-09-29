@@ -4,6 +4,7 @@
 /* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
 import React, {useState, useEffect, useRef} from 'react';
+import debounce from 'lodash.debounce';
 import {
   Box,
   VStack,
@@ -189,9 +190,14 @@ const AuditDetails = ({route, navigation}) => {
     setRemarkModalVisible(true);
   };
 
-  const remarkChange = text => {
-    setRemark(text); // Handle state changes outside the modal
-  };
+  const remarkChange = debounce(text => {
+    setRemark(text);
+  
+    setCurrentKPI(prevKPI => ({
+      ...prevKPI,
+      ElementComment: text,
+    }));
+  }, 300); // Debounce with 300ms delay
 
   const saveRemark = () => {
     console.log("New remark:", remark);
@@ -199,7 +205,7 @@ const AuditDetails = ({route, navigation}) => {
     // Update the database with the correct ElementComment (remark)
     database.setKpiElementComment(
       currentKPI.elements_auditId,
-      remark, // Use the latest remark directly
+      remark + '  test', // Use the latest remark directly
     );
 
     // Update the list of KPIs with the updated comment
@@ -850,23 +856,16 @@ const KpiRow = ({kpi, onChange, openRemarkModal, cardBackgroundColor}) => {
   );
 };
 
-const RemarkModal = ({
-  isOpen,
-  onClose,
-  label,
-  value,
-  onChangeText,
-  saveRemark,
-  btnColor,
-}) => {
+const RemarkModal = ({ isOpen, onClose, label, value, onChangeText, saveRemark, btnColor }) => {
+  const [localRemark, setLocalRemark] = useState(value);
+
+  useEffect(() => {
+    setLocalRemark(value); // Sync local state when the modal opens
+  }, [value]);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <Modal.Content
-        maxWidth="400px"
-        style={{
-          marginBottom: "40%",
-        }}
-      >
+      <Modal.Content maxWidth="400px" style={{ marginBottom: "40%" }}>
         <Modal.CloseButton />
         <Modal.Header>Opmerkingen</Modal.Header>
         <Modal.Body>
@@ -874,8 +873,11 @@ const RemarkModal = ({
             <FormControl.Label>{label}</FormControl.Label>
             <TextArea
               placeholder="Type hier uw opmerking..."
-              value={value} // Controlled input via props
-              onChangeText={onChangeText} // Update state via props
+              value={localRemark} // Use local state
+              onChangeText={text => {
+                setLocalRemark(text); // Update local state
+                onChangeText(text); // Also trigger external state update
+              }}
             />
           </FormControl>
         </Modal.Body>
@@ -884,7 +886,7 @@ const RemarkModal = ({
             <Button variant="ghost" onPress={onClose}>
               Annuleren
             </Button>
-            <Button onPress={saveRemark} bg={btnColor} _text={{color: "white"}}>
+            <Button onPress={saveRemark} bg={btnColor} _text={{ color: "white" }}>
               Opslaan
             </Button>
           </Button.Group>
@@ -893,7 +895,6 @@ const RemarkModal = ({
     </Modal>
   );
 };
-
 
 // functions
 const onStartResumeClick = ({AuditId, navigation, audit, user, clientName}) => {
