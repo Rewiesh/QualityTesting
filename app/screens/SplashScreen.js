@@ -21,7 +21,7 @@ const SplashScreen = () => {
       padding={1}
       position="relative">
       <Image
-        source={require('../assets/images/logo/screen.png')}
+        source={require('../assets/images/logo/image_login.jpg')}
         alt="Loading logo"
         resizeMode="contain"
         width={`${screenWidth}px`}

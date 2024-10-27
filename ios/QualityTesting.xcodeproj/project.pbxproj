@@ -477,6 +477,7 @@
 				DEVELOPMENT_TEAM = M53Y2ZC39Y;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = QualityTesting/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Quality Control";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -504,6 +505,7 @@
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = M53Y2ZC39Y;
 				INFOPLIST_FILE = QualityTesting/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Quality Control";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
