@@ -1,3 +1,7 @@
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable no-undef */
+/* eslint-disable semi */
+/* eslint-disable prettier/prettier */
 import React, {useState, useEffect} from 'react';
 import {
   KeyboardAvoidingView,

@@ -19,6 +19,7 @@ import {
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {ShowToast} from '../services/Util';
 import {fetchData} from '../services/api/Api1';
+import { fetchAuditData } from '../services/api/newAPI';
 import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
 
@@ -88,7 +89,8 @@ const Clients = ({route, navigation}) => {
 
     try {
       const user = await userManager.getCurrentUser();
-      const {data, error} = await fetchData(user.username, user.password);
+      // const {data, error} = await fetchData(user.username, user.password);
+      const {data, error} = await fetchAuditData(user.username, user.password);
 
       if (error) {
         ShowToast({

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import React, {useState, useEffect} from 'react';
 import {KeyboardAvoidingView, Keyboard} from 'react-native';
 import {

@@ -996,42 +996,40 @@ const saveAllData = async response => {
 
       // Assuming `response` is the object resolved by fetchAudits
       // and the actual audits data is wrapped inside the `data` property.
-      const auditsData = response.audits; // Access the audits array
       const floorData = response.floors;
       const areaData = response.areas;
       const categoriesData = response.categories;
-      const elementsData = response.elementTypes;
-      const elementsStatusData = response.elementStatuses;
-      const clientsData = response.clients;
+      const elementsData = response.elements;
       const errorsData = response.errorTypes;
-      // console.log('auditsData : ' + JSON.stringify(auditsData, null, 2));
-      // console.log('floorData : ' + JSON.stringify(floorData, null, 2));
-      // console.log('areaData : ' + JSON.stringify(areaData, null, 2));
-      console.log(
-        "categoriesData : " + JSON.stringify(categoriesData, null, 2),
-      );
-      // console.log('elementsData : ' + JSON.stringify(elementsData, null, 2));
-      // console.log('elementsStatusData : ' +JSON.stringify(elementsStatusData, null, 2));
-      // console.log('clientsData : '  + JSON.stringify(clientsData, null, 2));
-      // console.log('errorsData : ' + JSON.stringify(errorsData, null, 2));
+      const clientsData = response.clients;
+      const elementsStatusData = response.elementStatuses;
+      const auditsData = response.audits; // Access the audits array
+      console.log('auditsData : ' + JSON.stringify(auditsData, null, 2));
+      console.log('floorData : ' + JSON.stringify(floorData, null, 2));
+      console.log('areaData : ' + JSON.stringify(areaData, null, 2));
+      console.log('categoriesData : ' + JSON.stringify(categoriesData, null, 2),);
+      console.log('elementsData : ' + JSON.stringify(elementsData, null, 2));
+      console.log('elementsStatusData : ' +JSON.stringify(elementsStatusData, null, 2));
+      console.log('clientsData : '  + JSON.stringify(clientsData, null, 2));
+      console.log('errorsData : ' + JSON.stringify(errorsData, null, 2));
 
       // Check if to save data are arrays before proceeding
       if (Array.isArray(floorData)) {
         saveFloors(tx, floorData);
       } else {
-        console.error("floorData is not an array:", floorData);
+        console.error('floorData is not an array:', floorData);
       }
 
       if (Array.isArray(areaData)) {
         saveAreas(tx, areaData);
       } else {
-        console.error("areas data is not an array:", areaData);
+        console.error('areas data is not an array:', areaData);
       }
 
       if (Array.isArray(categoriesData)) {
         saveCategories(tx, categoriesData);
       } else {
-        console.error("categories data is not an array:", categoriesData);
+        console.error('categories data is not an array:', categoriesData);
       }
 
       if (Array.isArray(elementsData)) {
@@ -1040,32 +1038,33 @@ const saveAllData = async response => {
         console.error("elementsData is not an array:", elementsData);
       }
 
-      if (Array.isArray(auditsData)) {
-        saveAudits(tx, auditsData);
+      if (Array.isArray(errorsData)) {
+        saveErrors(tx, errorsData);
       } else {
-        console.error("Audits data is not an array:", auditsData);
+        console.error("errorsData is not an array:", errorsData);
       }
-
-      if (Array.isArray(elementsStatusData)) {
-        saveElementsStatus(tx, elementsStatusData);
-      } else {
-        console.error(
-          "elementsStatusData is not an array:",
-          elementsStatusData,
-        );
-      }
-
+      
       if (Array.isArray(clientsData)) {
         saveClientsCategories(tx, clientsData);
       } else {
         console.error("clientsData is not an array:", clientsData);
       }
 
-      if (Array.isArray(errorsData)) {
-        saveErrors(tx, errorsData);
+      if (Array.isArray(auditsData)) {
+        saveAudits(tx, auditsData);
       } else {
-        console.error("errorsData is not an array:", errorsData);
+        console.error("Audits data is not an array:", auditsData);
       }
+
+      // if (Array.isArray(elementsStatusData)) {
+      //   saveElementsStatus(tx, elementsStatusData);
+      // } else {
+      //   console.error(
+      //     "elementsStatusData is not an array:",
+      //     elementsStatusData,
+      //   );
+      // }
+
 
       // You can add other operations here if necessary
     });
@@ -1090,7 +1089,7 @@ const saveFloors = (tx, floors) => {
       floors.forEach(floor => {
         tx.executeSql(
           "INSERT INTO tb_floor (Id, FloorValue) VALUES (?, ?)",
-          [floor.id, floor.value],
+          [floor.id, floor.name],
           () => {
             console.log("Insert successful for floor ID:", floor.id);
           },
@@ -1133,14 +1132,16 @@ const saveAreas = (tx, areas) => {
 
     // Insert associated elements for each area
     if (area.elements && area.elements.length > 0) {
-      area.elements.forEach(elementId => {
+      area.elements.forEach(element => {
         tx.executeSql(
           "INSERT INTO tb_area_element (AreaId, element_Id) VALUES (?, ?)",
-          [area.abbreviation, elementId],
-          // () => {
-          //   console.log('Insert successful for element_Id:', elementId);
-          // }
-          // ,
+          [area.abbreviation, element.elementId],
+          () => {
+            console.log("Insert successful for Element ID:", element.elementId);
+          },
+          (tx, error) => {
+            console.error("Error inserting element:", error.message);
+          }
         );
       });
     }
@@ -1162,9 +1163,9 @@ const saveCategories = (tx, categories) => {
 
     tx.executeSql(
       "INSERT INTO tb_category (Id, CategoryValue, Min1, Min2, Min3) VALUES (?, ?, ?, ?, ?)",
-      [category.id, category.value, min1, min2, min3], // Use the casted integers
+      [category.id, category.name, min1, min2, min3], // Use the casted integers
       () => {
-        console.log("Insert successful for category value:", category.value);
+        console.log("Insert successful for category value:", category.name);
       },
     );
 
@@ -1173,10 +1174,13 @@ const saveCategories = (tx, categories) => {
       category.areas.forEach(area => {
         tx.executeSql(
           "INSERT INTO tb_area_category (AreaId, Category_Id) VALUES (?, ?)",
-          [area, category.id],
+          [area.abbreviation, category.id],
           () => {
             console.log("Insert successful for area category value:", area);
           },
+          (tx, error) => {
+            console.error("Error inserting area category:", error.message);
+          }
         );
       });
     }
@@ -1195,9 +1199,9 @@ const saveElements = (tx, elements) => {
   elements.forEach(element => {
     tx.executeSql(
       "INSERT INTO tb_element (Id, ElementTypeValue) VALUES (?, ?)",
-      [element.id, element.value],
+      [element.id, element.name],
       () => {
-        console.log("Insert successful for tb_element:", element.value);
+        console.log("Insert successful for tb_element:", element.name);
       },
     );
   });
@@ -1209,9 +1213,11 @@ const saveAudits = (tx, audits) => {
     return;
   }
 
+  // Clear existing audits and elements (only once)
   tx.executeSql("DELETE FROM tb_audits");
   tx.executeSql("DELETE FROM tb_elements_audit");
 
+  // Insert new audits
   audits.forEach(audit => {
     if (!audit.id) {
       console.error("Audit ID is missing");
@@ -1231,47 +1237,50 @@ const saveAudits = (tx, audits) => {
         audit.dateTime,
         audit.clientName,
         audit.clientLocation,
-        audit.isUnSaved,
-        audit.clientLocationSize,
+        audit.isUnSaved ?? 0, // Default to 0 if null
+        audit.clientLocationSize ?? "", // Default to empty string if null
       ],
-      (tx, results) => {
-        console.log("Audit inserted successfully");
+      () => {
+        console.log("Audit inserted successfully:", audit.id);
+
+        // Insert elements only after audit insertion is successful
+        if (audit.elements && audit.elements.length > 0) {
+          audit.elements.forEach(kpiElement => {
+            if (!kpiElement.id) {
+              console.error("Element ID is missing");
+              return;
+            }
+
+            const elementInsertQuery = `INSERT INTO tb_elements_audit (
+              Id, ElementLabel, ElementValue, AuditId, ElementComment
+            ) VALUES (?, ?, ?, ?, ?)`;
+
+            tx.executeSql(
+              elementInsertQuery,
+              [
+                kpiElement.id,
+                kpiElement.elementLabel,
+                kpiElement.elementValue ?? "", // Default to empty string if null
+                audit.id,
+                kpiElement.elementComment ?? "", // Default to empty string if null
+              ],
+              () => {
+                console.log("Element inserted successfully for audit:", audit.id, kpiElement.elementLabel);
+              },
+              (tx, error) => {
+                console.error("Error inserting element:", error.message);
+              }
+            );
+          });
+        }
       },
       (tx, error) => {
         console.error("Error inserting audit:", error.message);
-      },
+      }
     );
-    if (audit.elements && audit.elements.length > 0) {
-      audit.elements.forEach(kpiElement => {
-        if (!kpiElement.id) {
-          console.error("Element ID is missing");
-          return;
-        }
-
-        const elementInsertQuery = `INSERT INTO tb_elements_audit (
-          Id, ElementLabel, ElementValue, AuditId, ElementComment
-        ) VALUES (?, ?, ?, ?, ?)`;
-
-        tx.executeSql(
-          elementInsertQuery,
-          [
-            kpiElement.id,
-            kpiElement.elementLabel,
-            kpiElement.elementValue,
-            audit.id,
-            kpiElement.elementComment ? kpiElement.elementComment : "",
-          ],
-          (tx, results) => {
-            console.log("Element inserted successfully");
-          },
-          (tx, error) => {
-            console.error("Error inserting element:", error.message);
-          },
-        );
-      });
-    }
   });
 };
+
 
 const saveElementsStatus = (tx, elementsStatus) => {
   if (!elementsStatus || elementsStatus.length === 0) {
@@ -1301,20 +1310,27 @@ const saveClientsCategories = (tx, clients) => {
     console.error("No clients to save");
     return;
   }
-  // Clear existing client categories data
-  tx.executeSql("DELETE FROM tb_client_category");
 
-  // Insert new client categories data
-  clients.forEach(client => {
-    client.categories.forEach(clientCategory => {
+  // Clear existing client categories data once before inserting new ones
+  tx.executeSql("DELETE FROM tb_client_category", [], () => {
+    console.log("Existing tb_client_category records deleted");
+
+    // Insert new client categories data
+    clients.forEach(client => {
       tx.executeSql(
         "INSERT INTO tb_client_category (NameClient, Category_Id) VALUES (?, ?)",
-        [client.name, clientCategory],
+        [client.clientName, client.categoryId], // Corrected property names
         () => {
-          console.log("Insert successful for tb_client_category:", client.name);
+          console.log("Insert successful for tb_client_category:", client.clientName);
         },
+        (tx, error) => {
+          console.error("Error inserting client category:", error.message);
+        }
       );
     });
+
+  }, (tx, error) => {
+    console.error("Error deleting tb_client_category:", error.message);
   });
 };
 
@@ -1330,9 +1346,9 @@ const saveErrors = (tx, errors) => {
   errors.forEach(error => {
     tx.executeSql(
       "INSERT INTO tb_errortype (Id, ErrorTypeValue) VALUES (?, ?)",
-      [error.id, error.value],
+      [error.id, error.name],
       () => {
-        console.log("Insert successful for tb_errortype:", error.value);
+        console.log("Insert successful for tb_errortype:", error.name);
       },
     );
   });

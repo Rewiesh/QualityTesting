@@ -34,6 +34,7 @@ import RNFS from "react-native-fs";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import api from "../services/api/Api";
 import {uploadImage, uploadAudit} from "../services/api/Api1";
+import { uploadAuditData } from "../services/api/newAPI";
 import * as database from "../services/database/database1";
 import userManager from "../services/UserManager";
 
@@ -257,8 +258,8 @@ const AuditDetails = ({route, navigation}) => {
       if (uploadModalVisible) {
         setUploadModalVisible(false);
       }
-      setLoading(true);
-      setLoadingText("Voorbereiden op uploaden ...");
+      // setLoading(true);
+      // setLoadingText("Voorbereiden op uploaden ...");
       const [allReadyAudits] = await Promise.all([
         database.getCompletedAudits(),
       ]);
@@ -279,11 +280,12 @@ const AuditDetails = ({route, navigation}) => {
         } wordt nu upgeload (${i + 1}/${allReadyAudits.length})`;
 
         setLoadingText(currectAuditLoadingText);
-
-        const uploadResults = await uploadImages(
-          currectAuditLoadingText,
-          uploadAuditId,
-        );
+        
+        const uploadResults = null;
+        // const uploadResults = await uploadImages(
+        //   currectAuditLoadingText,
+        //   uploadAuditId,
+        // );
         setLoadingText(
           `${currectAuditLoadingText}\n${"Formulieren uploaden..."}`,
         );
@@ -311,12 +313,13 @@ const AuditDetails = ({route, navigation}) => {
         ]);
 
         console.log("auditSignature: ", auditSignature);
-        const responseSign = await uploadImage(
-          user.username,
-          user.password,
-          "file://" + auditSignature,
-          "image/png",
-        );
+        const responseSign = null;
+        // const responseSign = await uploadImage(
+        //   user.username,
+        //   user.password,
+        //   "file://" + auditSignature,
+        //   "image/png",
+        // );
         const SignatureImageId = responseSign;
         console.log();
 
@@ -370,17 +373,23 @@ const AuditDetails = ({route, navigation}) => {
             "Upload JSON: " +
             JSON.stringify(request, null, 2),
         );
-        const response = await uploadAudit(
+        // const response = await uploadAudit(
+        //   user.username,
+        //   user.password,
+        //   request,
+        // );
+        const response = await uploadAuditData(
           user.username,
           user.password,
           request,
         );
-        setLoadingText("Audit is succesvol geupload");
-        setLoadingText("Lokale data worden opgeschoond.");
-        await database.removeAllFromAudit(uploadAuditId);
-        await database.deleteAudit(uploadAuditId);
-        setLoadingText("Lokale data opgeschoond.");
-        setLoading(false);
+        
+        // setLoadingText("Audit is succesvol geupload");
+        // setLoadingText("Lokale data worden opgeschoond.");
+        // await database.removeAllFromAudit(uploadAuditId);
+        // await database.deleteAudit(uploadAuditId);
+        // setLoadingText("Lokale data opgeschoond.");
+        // setLoading(false);
       }
       setLoadingText("");
       setLoading(false);

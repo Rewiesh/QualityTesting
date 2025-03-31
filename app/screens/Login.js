@@ -19,6 +19,7 @@ import {ShowToast} from '../services/Util';
 import {StyleSheet} from 'react-native';
 import userManager from '../services/UserManager';
 import {fetchData} from '../services/api/Api1';
+import {isLoginValid, fetchToken, fetchAuditData} from '../services/api/newAPI';
 import * as database from '../services/database/database1';
 
 const Login = ({navigation}) => {
@@ -44,12 +45,40 @@ const Login = ({navigation}) => {
     redirectUser();
   }, []);
 
+  // const loginUser = async () => {
+  //   setIsLoading(true);
+  //   try {
+  //     const {data, error} = await fetchData(username, password);
+  //     if (error) {
+  //       // Using NativeBase Toast to show error
+  //       ShowToast({
+  //         status: 'error',
+  //         message: 'Ongeldige inloggegevens.',
+  //         bgColor: bgColor,
+  //         textColor: textColor,
+  //       });
+  //     } else {
+  //       await database.InitializeDatabase(); // Ensure database is initialized before proceeding
+  //       await database.saveAllData(data); // Save all data to the database
+  //       userManager.setCurrentUser(username, password); // Set the current user
+  //       navigation.replace('MyTabs'); // Navigate to 'MyTabs'
+  //     }
+  //   } catch (error) {
+  //     console.error('Error during login:', error);
+  //   } finally {
+  //     setIsLoading(false); // Reset loading state irrespective of success/failure
+  //   }
+  // };
+
   const loginUser = async () => {
-    setIsLoading(true);
+    // setIsLoading(true);
     try {
-      const {data, error} = await fetchData(username, password);
+      const {data, error} = await fetchAuditData(username, password);
+
+      // console.log(data);
       if (error) {
         // Using NativeBase Toast to show error
+      console.log(error);
         ShowToast({
           status: 'error',
           message: 'Ongeldige inloggegevens.',
@@ -57,6 +86,8 @@ const Login = ({navigation}) => {
           textColor: textColor,
         });
       } else {
+        console.log('Login successful!');
+        setIsLoading(true);
         await database.InitializeDatabase(); // Ensure database is initialized before proceeding
         await database.saveAllData(data); // Save all data to the database
         userManager.setCurrentUser(username, password); // Set the current user
