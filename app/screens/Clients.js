@@ -1,3 +1,8 @@
+/* eslint-disable react/self-closing-comp */
+/* eslint-disable react/no-unstable-nested-components */
+/* eslint-disable no-alert */
+/* eslint-disable no-trailing-spaces */
+/* eslint-disable prettier/prettier */
 import React, { useState, useEffect } from 'react';
 import {
   Image,
@@ -53,6 +58,7 @@ const Clients = ({route, navigation}) => {
     setUnsavedData(false);
     try {
       const clients = await database.getClients();
+      console.log('clients', clients)
       setClients(clients);
       clients.forEach(client => {
         console.log(client.NameClient);

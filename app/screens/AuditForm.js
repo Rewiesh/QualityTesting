@@ -1,6 +1,7 @@
-/* eslint-disable react-native/no-inline-styles */
-/* eslint-disable no-undef */
-/* eslint-disable semi */
+/* eslint-disable react/self-closing-comp */
+/* eslint-disable react/no-unstable-nested-components */
+/* eslint-disable no-alert */
+/* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
 import React, {useState, useEffect} from 'react';
 import {

@@ -1,3 +1,7 @@
+/* eslint-disable react/self-closing-comp */
+/* eslint-disable react/no-unstable-nested-components */
+/* eslint-disable no-alert */
+/* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
 import React, {useState, useEffect} from 'react';
 import {
@@ -71,34 +75,49 @@ const Login = ({navigation}) => {
   // };
 
   const loginUser = async () => {
-    // setIsLoading(true);
+    setIsLoading(true);
     try {
-      const {data, error} = await fetchAuditData(username, password);
-
-      // console.log(data);
+      console.log('username', username);
+      console.log('password', password);
+  
+      const { data, error } = await fetchAuditData(username, password);
+  
       if (error) {
-        // Using NativeBase Toast to show error
-      console.log(error);
+        console.log('Login error:', error);
         ShowToast({
           status: 'error',
           message: 'Ongeldige inloggegevens.',
-          bgColor: bgColor,
-          textColor: textColor,
+          bgColor,
+          textColor,
         });
-      } else {
-        console.log('Login successful!');
-        setIsLoading(true);
-        await database.InitializeDatabase(); // Ensure database is initialized before proceeding
-        await database.saveAllData(data); // Save all data to the database
-        userManager.setCurrentUser(username, password); // Set the current user
-        navigation.replace('MyTabs'); // Navigate to 'MyTabs'
+        return; // Stop verder uitvoeren
       }
+  
+      console.log('Login successful!');
+  
+      await database.InitializeDatabase();
+  
+      if (data && Array.isArray(data) ? data.length > 0 : Object.keys(data).length > 0) {
+        await database.saveAllData(data);
+      } else {
+        console.log('Geen data om op te slaan.');
+      }
+  
+      userManager.setCurrentUser(username, password);
+      navigation.replace('MyTabs');
     } catch (error) {
       console.error('Error during login:', error);
+      ShowToast({
+        status: 'error',
+        message: 'Er ging iets mis tijdens het inloggen.',
+        bgColor,
+        textColor,
+      });
     } finally {
-      setIsLoading(false); // Reset loading state irrespective of success/failure
+      setIsLoading(false);
     }
   };
+  
 
   if (isLoading) {
     return (

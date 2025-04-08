@@ -1,3 +1,6 @@
+/* eslint-disable react/self-closing-comp */
+/* eslint-disable react/no-unstable-nested-components */
+/* eslint-disable no-alert */
 /* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
 import SQLite from "react-native-sqlite-storage";
@@ -1053,6 +1056,8 @@ const saveAllData = async response => {
       if (Array.isArray(auditsData)) {
         saveAudits(tx, auditsData);
       } else {
+        executeSql("DELETE FROM tb_audits");
+        executeSql("DELETE FROM tb_elements_audit");
         console.error("Audits data is not an array:", auditsData);
       }
 
@@ -1280,7 +1285,6 @@ const saveAudits = (tx, audits) => {
     );
   });
 };
-
 
 const saveElementsStatus = (tx, elementsStatus) => {
   if (!elementsStatus || elementsStatus.length === 0) {

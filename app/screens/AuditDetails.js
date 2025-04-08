@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable quotes */
 /* eslint-disable react/self-closing-comp */
 /* eslint-disable react/no-unstable-nested-components */
 /* eslint-disable no-alert */
@@ -34,7 +36,7 @@ import RNFS from "react-native-fs";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import api from "../services/api/Api";
 import {uploadImage, uploadAudit} from "../services/api/Api1";
-import { uploadAuditData } from "../services/api/newAPI";
+import { uploadAuditData, uploadAuditImage } from "../services/api/newAPI";
 import * as database from "../services/database/database1";
 import userManager from "../services/UserManager";
 
@@ -258,12 +260,13 @@ const AuditDetails = ({route, navigation}) => {
       if (uploadModalVisible) {
         setUploadModalVisible(false);
       }
-      // setLoading(true);
-      // setLoadingText("Voorbereiden op uploaden ...");
+      setLoading(true);
+      setLoadingText("Voorbereiden op uploaden ...");
       const [allReadyAudits] = await Promise.all([
         database.getCompletedAudits(),
       ]);
       console.log("All Ready Audits:", allReadyAudits); // Log the data
+      console.log("allReadyAudits.length:", allReadyAudits.length); // Log the data
       setLoadingText(allReadyAudits.length + " voltooide audits gevonden.");
       setTimeout(() => {}, 500);
 
@@ -281,11 +284,11 @@ const AuditDetails = ({route, navigation}) => {
 
         setLoadingText(currectAuditLoadingText);
         
-        const uploadResults = null;
-        // const uploadResults = await uploadImages(
-        //   currectAuditLoadingText,
-        //   uploadAuditId,
-        // );
+        // const uploadResults = null;
+        const uploadResults = await uploadImages(
+          currectAuditLoadingText,
+          uploadAuditId,
+        );
         setLoadingText(
           `${currectAuditLoadingText}\n${"Formulieren uploaden..."}`,
         );
@@ -313,15 +316,21 @@ const AuditDetails = ({route, navigation}) => {
         ]);
 
         console.log("auditSignature: ", auditSignature);
-        const responseSign = null;
+        // const responseSign = null;
         // const responseSign = await uploadImage(
         //   user.username,
         //   user.password,
         //   "file://" + auditSignature,
         //   "image/png",
         // );
-        const SignatureImageId = responseSign;
-        console.log();
+        const responseSign = await uploadAuditImage(
+          user.username,
+          user.password,
+          "file://" + auditSignature,
+          "image/png",
+        );
+        const SignatureImageId = responseSign?.id;
+        // console.log();
 
         if (!dateString) {
           throw new Error("Audit date is undefined");
@@ -346,31 +355,33 @@ const AuditDetails = ({route, navigation}) => {
         };
 
         // Add the logbookImageId and technicalAspectsImageId to forms.errors
-        forms.forEach(form => {
-          if (form.Errors) {
-            form.Errors.forEach(error => {
-              uploadResults.forEach(uploadResult => {
-                if (
-                  form.Id === uploadResult.FormId && // Ensure form ID matches
-                  error.ElementTypeId === uploadResult.ElementTypeId &&
-                  error.ErrorTypeId === uploadResult.ErrorTypeId
-                ) {
-                  if (uploadResult.logbookImageId) {
-                    error.LogbookImageId = uploadResult.logbookImageId;
+        if(uploadResults != null) {
+          forms.forEach(form => {
+            if (form.Errors) {
+              form.Errors.forEach(error => {
+                uploadResults.forEach(uploadResult => {
+                  if (
+                    form.Id === uploadResult.FormId && // Ensure form ID matches
+                    error.ElementTypeId === uploadResult.ElementTypeId &&
+                    error.ErrorTypeId === uploadResult.ErrorTypeId
+                  ) {
+                    if (uploadResult.logbookImageId) {
+                      error.LogbookImageId = uploadResult.logbookImageId;
+                    }
+                    if (uploadResult.technicalAspectsImageId) {
+                      error.TechnicalAspectsImageId =
+                        uploadResult.technicalAspectsImageId;
+                    }
                   }
-                  if (uploadResult.technicalAspectsImageId) {
-                    error.TechnicalAspectsImageId =
-                      uploadResult.technicalAspectsImageId;
-                  }
-                }
+                });
               });
-            });
-          }
-        });
+            }
+          });
+        }
 
         console.log(
           allReadyAudits[i].AuditCode +
-            "Upload JSON: " +
+            " Upload JSON: " +
             JSON.stringify(request, null, 2),
         );
         // const response = await uploadAudit(
@@ -384,20 +395,20 @@ const AuditDetails = ({route, navigation}) => {
           request,
         );
         
-        // setLoadingText("Audit is succesvol geupload");
-        // setLoadingText("Lokale data worden opgeschoond.");
+        setLoadingText("Audit is succesvol geupload");
+        setLoadingText("Lokale data worden opgeschoond.");
         // await database.removeAllFromAudit(uploadAuditId);
         // await database.deleteAudit(uploadAuditId);
-        // setLoadingText("Lokale data opgeschoond.");
-        // setLoading(false);
+        setLoadingText("Lokale data opgeschoond.");
+        setLoading(false);
       }
       setLoadingText("");
       setLoading(false);
 
       // Navigate to Clients screen and trigger onReload
-      setTimeout(() => {
-        navigation.navigate("Opdrachtgever");
-      }, 1000);
+      // setTimeout(() => {
+      //   navigation.navigate("Opdrachtgever");
+      // }, 1000);
     } catch (error) {
       setLoading(false);
       console.error(error);
@@ -436,7 +447,13 @@ const AuditDetails = ({route, navigation}) => {
             : `Uploaden van remark’s ${i + 1}/${list.length}`,
         );
 
-        const response = await uploadImage(
+        // const response = await uploadImage(
+        //   user.username,
+        //   user.password,
+        //   request.imageError.Image,
+        //   request.imageError.MimeType,
+        // );
+        const response = await uploadAuditImage(
           user.username,
           user.password,
           request.imageError.Image,
@@ -459,7 +476,7 @@ const AuditDetails = ({route, navigation}) => {
         });
       }
       setLoadingText(`${uploadText}\n${"Foto's zijn succesvol geupload."}`);
-      // setLoadingText(`Foto's zijn succesvol geupload.`);
+      setLoadingText(`Foto's zijn succesvol geupload.`);
       setLoading(false);
 
       return results;
