@@ -397,8 +397,8 @@ const AuditDetails = ({route, navigation}) => {
         
         setLoadingText("Audit is succesvol geupload");
         setLoadingText("Lokale data worden opgeschoond.");
-        // await database.removeAllFromAudit(uploadAuditId);
-        // await database.deleteAudit(uploadAuditId);
+        await database.removeAllFromAudit(uploadAuditId);
+        await database.deleteAudit(uploadAuditId);
         setLoadingText("Lokale data opgeschoond.");
         setLoading(false);
       }
@@ -406,9 +406,9 @@ const AuditDetails = ({route, navigation}) => {
       setLoading(false);
 
       // Navigate to Clients screen and trigger onReload
-      // setTimeout(() => {
-      //   navigation.navigate("Opdrachtgever");
-      // }, 1000);
+      setTimeout(() => {
+        navigation.navigate("Opdrachtgever");
+      }, 1000);
     } catch (error) {
       setLoading(false);
       console.error(error);
