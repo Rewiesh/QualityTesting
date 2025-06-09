@@ -8,6 +8,7 @@ import {
         loginAPI,
         tokenAPI,
         getAuditDataAPI,
+        getUserActivity,
         postAuditDataAPI,
         postImageAPI,
     } from '../api/newEndpoint';
@@ -204,4 +205,38 @@ import {
       }
     };
 
-export {isLoginValid, fetchToken, fetchAuditData, uploadAuditData, uploadAuditImage};
+    const fetchUserActivity = async (username, password) => {
+      const { accessToken, error: tokenError } = await fetchToken(username, password);
+      console.log('fetchUserActivity accessToken', accessToken);
+      console.log('fetchUserActivity username', username);
+    
+      if (tokenError) {
+        return { error: tokenError }; // Stop als token ophalen faalt
+      }
+    
+      try {
+        const response = await fetch(getUserActivity, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'X-Username': username,
+            'Content-Type': 'application/json',
+          },
+        });
+    
+        const result = await response.json();
+        console.log('Formatted JSON Response (UserActivity):', JSON.stringify(result, null, 2));
+    
+        if (!response.ok) {
+          return { error: result.error || 'Failed to fetch user activity' };
+        }
+    
+        return { data: result };
+      } catch (error) {
+        console.error('Error fetching user activity data:', error);
+        return { error: 'Network error or invalid server response' };
+      }
+    };
+    
+
+export {isLoginValid, fetchToken, fetchAuditData, fetchUserActivity, uploadAuditData, uploadAuditImage};

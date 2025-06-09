@@ -329,8 +329,8 @@ const AuditDetails = ({route, navigation}) => {
           "file://" + auditSignature,
           "image/png",
         );
-        const SignatureImageId = responseSign?.id;
-        // console.log();
+        const SignatureImageId = responseSign;
+        console.log('SignatureImageId', SignatureImageId);
 
         if (!dateString) {
           throw new Error("Audit date is undefined");

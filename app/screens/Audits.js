@@ -34,7 +34,7 @@ const Audits = ({route, navigation}) => {
           setAuditsList(auditsData);
           setUser(userData);
           console.log(userData);
-          console.log(auditsData);
+          console.log('auditdata:', auditsData);
         } catch (error) {
           console.error('Failed to fetch audits:', error);
           alert('Failed to load audits. Error: ' + error.message);
@@ -90,8 +90,8 @@ const Audits = ({route, navigation}) => {
                 color={styles.textColor}
                 fontSize="md"
                 _dark={{color: 'warmGray.50'}}>
-                {item.isUnSaved ? item.isUnSaved : ''}
-                {item.AuditCode}
+                {item.isUnSaved === '*' ? '*' : ''}
+                {String(item.AuditCode)}
               </Text>
               <Text note fontSize="xs" color={styles.textColor}>
                 {item.LocationClient}
