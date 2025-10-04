@@ -3,9 +3,17 @@
 // export const getAuditDataAPI    = 'http://192.168.56.102:8080/ords/icca/api/getAudits/';
 // export const postAuditDataAPI   = 'http://192.168.56.102:8080/ords/icca/api/postAudits/';
 
-export const loginAPI           = 'https://gb2149609998bbd-iccacdb1.adb.eu-amsterdam-1.oraclecloudapps.com/ords/icca/auth/login/';
-export const tokenAPI           = 'https://gb2149609998bbd-iccacdb1.adb.eu-amsterdam-1.oraclecloudapps.com/ords/icca/oauth/token';
-export const getAuditDataAPI    = 'https://gb2149609998bbd-iccacdb1.adb.eu-amsterdam-1.oraclecloudapps.com/ords/icca/api/getAudits/';
-export const getUserActivity    = 'https://gb2149609998bbd-iccacdb1.adb.eu-amsterdam-1.oraclecloudapps.com/ords/icca/api/getUserActivity/';
-export const postAuditDataAPI   = 'https://gb2149609998bbd-iccacdb1.adb.eu-amsterdam-1.oraclecloudapps.com/ords/icca/api/postAudits/';
-export const postImageAPI       = 'https://gb2149609998bbd-iccacdb1.adb.eu-amsterdam-1.oraclecloudapps.com/ords/icca/api/postImage/';
+// export const loginAPI           = 'https://gb2149609998bbd-iccacdb1.adb.eu-amsterdam-1.oraclecloudapps.com/ords/icca/auth/login/';
+// export const tokenAPI           = 'https://gb2149609998bbd-iccacdb1.adb.eu-amsterdam-1.oraclecloudapps.com/ords/icca/oauth/token';
+// export const getAuditDataAPI    = 'https://gb2149609998bbd-iccacdb1.adb.eu-amsterdam-1.oraclecloudapps.com/ords/icca/api/getAudits/';
+// export const getUserActivity    = 'https://gb2149609998bbd-iccacdb1.adb.eu-amsterdam-1.oraclecloudapps.com/ords/icca/api/getUserActivity/';
+// export const postAuditDataAPI   = 'https://gb2149609998bbd-iccacdb1.adb.eu-amsterdam-1.oraclecloudapps.com/ords/icca/api/postAudits/';
+// export const postImageAPI       = 'https://gb2149609998bbd-iccacdb1.adb.eu-amsterdam-1.oraclecloudapps.com/ords/icca/api/postImage/';
+
+
+export const tokenAPI           = 'https://icca-dashboard.maxapex.net/ords/icca/oauth/token';
+export const loginAPI           = 'https://icca-dashboard.maxapex.net/ords/icca/auth/login/';
+export const getAuditDataAPI    = 'https://icca-dashboard.maxapex.net/ords/icca/api/getAudits/';
+export const getUserActivity    = 'https://icca-dashboard.maxapex.net/ords/icca/api/getUserActivity/';
+export const postAuditDataAPI   = 'https://icca-dashboard.maxapex.net/ords/icca/api/postAudits/';
+export const postImageAPI       = 'https://icca-dashboard.maxapex.net/ords/icca/api/postImage/';

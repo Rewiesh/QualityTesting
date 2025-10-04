@@ -63,8 +63,8 @@ const fetchToken = async (username, password) => {
           return { error: 'Authentication failed: Invalid credentials' };
       }
 
-      const clientId = 'Ek-5xKEx9eUQ2ktzhHReYQ..'; // Vervang met jouw client_id
-      const clientSecret = 'NyMgfsr8UWZNS7_LNEP23w..'; // Vervang met jouw client_secret
+      const clientId = 'vlp-2lhHEggSF1U-DRpjaA..'; // Vervang met jouw client_id
+      const clientSecret = 'd8oAU_Sil3qCRDsbc7qnJQ..'; // Vervang met jouw client_secret
       const credentials = btoa(`${clientId}:${clientSecret}`);
       console.log('errsss');
       const responseToken = await fetch(tokenAPI, {
