@@ -337,6 +337,43 @@ const InitializeDatabase = async () => {
       });
     });
   }
+
+  // Database migration: Add upload status tracking columns
+  const migrationStatements = [
+    `ALTER TABLE tb_audits ADD COLUMN upload_status TEXT DEFAULT 'pending'`,
+    `ALTER TABLE tb_audits ADD COLUMN upload_error TEXT DEFAULT NULL`,
+    `ALTER TABLE tb_audits ADD COLUMN last_upload_attempt TEXT DEFAULT NULL`,
+  ];
+
+  for (const sql of migrationStatements) {
+    try {
+      await new Promise((resolve, reject) => {
+        database.transaction(tx => {
+          tx.executeSql(
+            sql,
+            [],
+            (_, result) => {
+              console.log(`Migration successful: ${sql}`);
+              resolve(result);
+            },
+            (tx, error) => {
+              // Ignore duplicate column errors (column already exists from previous migration)
+              if (error.message && error.message.includes('duplicate column')) {
+                console.log(`Column already exists, skipping: ${sql}`);
+                resolve();
+              } else {
+                console.error(`Migration error: ${sql}`, error);
+                reject(error);
+              }
+            },
+          );
+        });
+      });
+    } catch (error) {
+      console.log(`Skipping migration (non-critical): ${error.message}`);
+      // Continue with other migrations even if one fails
+    }
+  }
 };
 
 // --------- Exists --------- //
@@ -420,6 +457,22 @@ const setKpiElementComment = (idElement, comment) => {
   });
 };
 
+const setAuditUploadStatus = async (auditId, status, errorMessage = null, attempt = null) => {
+  const timestamp = attempt || new Date().toISOString();
+  try {
+    await executeTransaction(tx => {
+      tx.executeSql(
+        `UPDATE tb_audits SET upload_status = ?, upload_error = ?, last_upload_attempt = ? WHERE Id = ?`,
+        [status, errorMessage, timestamp, auditId],
+      );
+    });
+    console.log(`Audit ${auditId} upload status updated to: ${status}`);
+  } catch (error) {
+    console.error("Error updating audit upload status:", error);
+    throw error;
+  }
+};
+
 // --------- Getters --------- //
 
 //Clients
@@ -447,6 +500,19 @@ const getAuditById = async AuditId => {
   } catch (error) {
     console.error("Error executing SQL query:", error); // Log any errors
     throw error; // Rethrow error after logging
+  }
+};
+
+const getFailedAudits = async () => {
+  const sqlQuery = `SELECT * FROM tb_audits WHERE upload_status = 'failed' ORDER BY last_upload_attempt DESC`;
+  try {
+    const results = await executeSelect(sqlQuery);
+    console.log(`Found ${results.length} failed audits`);
+    return results;
+  } catch (error) {
+    console.error("Error fetching failed audits:", error);
+    // Return empty array if column doesn't exist yet (before migration)
+    return [];
   }
 };
 
@@ -1012,8 +1078,8 @@ const saveAllData = async response => {
       console.log('areaData : ' + JSON.stringify(areaData, null, 2));
       console.log('categoriesData : ' + JSON.stringify(categoriesData, null, 2),);
       console.log('elementsData : ' + JSON.stringify(elementsData, null, 2));
-      console.log('elementsStatusData : ' +JSON.stringify(elementsStatusData, null, 2));
-      console.log('clientsData : '  + JSON.stringify(clientsData, null, 2));
+      console.log('elementsStatusData : ' + JSON.stringify(elementsStatusData, null, 2));
+      console.log('clientsData : ' + JSON.stringify(clientsData, null, 2));
       console.log('errorsData : ' + JSON.stringify(errorsData, null, 2));
 
       // Check if to save data are arrays before proceeding
@@ -1046,7 +1112,7 @@ const saveAllData = async response => {
       } else {
         console.error("errorsData is not an array:", errorsData);
       }
-      
+
       if (Array.isArray(clientsData)) {
         saveClientsCategories(tx, clientsData);
       } else {
@@ -1894,10 +1960,12 @@ export {
   setAuditUnsaved,
   setKpiElementValue,
   setKpiElementComment,
+  setAuditUploadStatus,
   //getters
   getClients,
   getAuditsOfClient,
   getAuditById,
+  getFailedAudits,
   getCompletedAudits,
   getCategoryById,
   getCategoriesByClient,
