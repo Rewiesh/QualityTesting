@@ -283,10 +283,10 @@ const AuditDetails = ({ route, navigation }) => {
           await database.setAuditUploadStatus(uploadAuditId, 'uploading', null);
 
           // 🧪 TEST: Forceer een error voor testing
-          if (uploadAuditCode === '20015') { // Gebruik jouw test audit code
+          const testAuditCodes = ['20015', '20016', '20017', '20018', '20019'];
+          if (testAuditCodes.includes(uploadAuditCode)) { // Gebruik jouw test audit code
             throw new Error('TEST ERROR: Simulated network failure');
           }
-
 
           // Upload images
           const uploadResults = await uploadImages(
