@@ -274,6 +274,7 @@ const AuditDetails = ({ route, navigation }) => {
       for (let i = 0; i < allReadyAudits.length; i++) {
         const uploadAuditId = allReadyAudits[i].Id;
         const uploadAuditCode = allReadyAudits[i].AuditCode;
+
         console.log("AuditCode:", uploadAuditCode);
         // Update the loading text to show progress
         const currectAuditLoadingText = `Audit: ${uploadAuditCode} wordt nu upgeload (${i + 1}/${allReadyAudits.length})`;
