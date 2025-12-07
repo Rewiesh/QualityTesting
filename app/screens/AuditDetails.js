@@ -271,6 +271,9 @@ const AuditDetails = ({ route, navigation }) => {
       console.log("allReadyAudits.length:", allReadyAudits.length);
       setLoadingText(allReadyAudits.length + " voltooide audits gevonden.");
       setTimeout(() => { }, 500);
+
+      const failedAudits = []; // Keep track of failed audits
+
       for (let i = 0; i < allReadyAudits.length; i++) {
         const uploadAuditId = allReadyAudits[i].Id;
         const uploadAuditCode = allReadyAudits[i].AuditCode;
@@ -284,7 +287,7 @@ const AuditDetails = ({ route, navigation }) => {
           await database.setAuditUploadStatus(uploadAuditId, 'uploading', null);
 
           // 🧪 TEST: Forceer een error voor testing
-          const testAuditCodes = ['20015', '20016', '20017', '20018', '20019'];
+          const testAuditCodes = ['20016', '20018', '20019', '20020', '20021', '20022', '20023', '20024', '20025'];
           if (testAuditCodes.includes(uploadAuditCode)) { // Gebruik jouw test audit code
             throw new Error('TEST ERROR: Simulated network failure');
           }
@@ -293,6 +296,7 @@ const AuditDetails = ({ route, navigation }) => {
           const uploadResults = await uploadImages(
             currectAuditLoadingText,
             uploadAuditId,
+            uploadAuditCode // Pass code for testing
           );
           setLoadingText(
             `${currectAuditLoadingText}\n${"Formulieren uploaden..."}`,
@@ -320,12 +324,23 @@ const AuditDetails = ({ route, navigation }) => {
             database.getErrorsImages(uploadAuditId),
           ]);
           console.log("auditSignature: ", auditSignature);
+
+          // 🧪 TEST: Forceer Signature Error
+          if (['20026', '20030'].includes(uploadAuditCode)) {
+            throw new Error(`Signature upload failed for audit ${uploadAuditCode}: No ID returned (TEST)`);
+          }
+
           const responseSign = await uploadAuditImage(
             user.username,
             user.password,
             "file://" + auditSignature,
             "image/png",
           );
+
+          if (!responseSign) {
+            throw new Error(`Signature upload failed for audit ${uploadAuditCode}: No ID returned`);
+          }
+
           const SignatureImageId = responseSign;
           console.log('SignatureImageId', SignatureImageId);
           if (!dateString) {
@@ -381,6 +396,22 @@ const AuditDetails = ({ route, navigation }) => {
             user.password,
             request,
           );
+
+          // 🧪 TEST: Forceer Final Upload Error (Empty Response)
+          if (['20028', '20032'].includes(uploadAuditCode)) {
+            console.log("TEST: Simulating empty response for audit " + uploadAuditCode);
+            // We throw here to simulate validation failure
+            throw new Error("Audit upload failed: No response from server (TEST)");
+          }
+
+          console.log("Upload Response: ", response);
+
+          // Validate the response from the server
+          if (!response) {
+            throw new Error("Audit upload failed: No response from server");
+          }
+          // If your server returns a specific success structure (e.g. response.result === 'OK'), check it here
+          // For now, assuming non-null return means success based on newAPI.js implementation
           setLoadingText("Audit is succesvol geupload");
           setLoadingText("Lokale data worden opgeschoond.");
 
@@ -391,7 +422,7 @@ const AuditDetails = ({ route, navigation }) => {
           setLoadingText("Lokale data opgeschoond.");
           console.log(`Audit ${uploadAuditCode} successfully uploaded and removed`);
         } catch (error) {
-          // ❌ Bij error: markeer als failed en stop
+          // ❌ Bij error: markeer als failed maar ga door met de volgende
           console.error(`Upload failed for ${uploadAuditCode}:`, error);
 
           await database.setAuditUploadStatus(
@@ -400,26 +431,28 @@ const AuditDetails = ({ route, navigation }) => {
             error.message
           );
 
-          // Stop de loop en toon error dialog
-          setLoading(false);
-          setUploadErrorDialogVisible(true);
-          setUploadErrorInfo({
+          failedAudits.push({
             auditCode: uploadAuditCode,
             auditId: uploadAuditId,
             errorMessage: error.message,
           });
-
-          // Stop uploading other audits
-          return;
         }
       }
 
-      setLoadingText("");
       setLoading(false);
-      // Navigate to Clients screen and trigger onReload
-      setTimeout(() => {
-        navigation.navigate("Opdrachtgever");
-      }, 1000);
+      setLoadingText("");
+
+      if (failedAudits.length > 0) {
+        // Toon error dialog met alle errors
+        setUploadErrorInfo({ failedAudits });
+        setUploadErrorDialogVisible(true);
+      } else {
+        // Alleen navigeren als alles succesvol was
+        setTimeout(() => {
+          navigation.navigate("Opdrachtgever");
+        }, 1000);
+      }
+
     } catch (error) {
       setLoading(false);
       console.error(error);
@@ -427,13 +460,22 @@ const AuditDetails = ({ route, navigation }) => {
     }
   };
 
-  const uploadImages = async (uploadText, UploadAuditId) => {
+  const uploadImages = async (uploadText, UploadAuditId, UploadAuditCode) => {
     setLoadingText(`${uploadText}\n${"Uploaden van foto..."}`);
     setLoading(true);
 
     let auditId = UploadAuditId;
     let logbookImageId = null;
     let technicalAspectsImageId = null;
+
+    // 🧪 TEST: Forceer Image Error
+    if (['20027', '20031'].includes(UploadAuditCode)) {
+      // We simulate this by throwing an error inside the function, 
+      // mimicking the behavior when an image fails to retrieve an ID or network fails
+      console.error("TEST ERROR: Simulated Image Upload Failure for " + UploadAuditCode);
+      setLoading(false);
+      throw new Error(`Image upload failed for item TEST: No ID returned (TEST)`);
+    }
 
     try {
       const user = await userManager.getCurrentUser();
@@ -458,18 +500,16 @@ const AuditDetails = ({ route, navigation }) => {
             : `Uploaden van remark’s ${i + 1}/${list.length}`,
         );
 
-        // const response = await uploadImage(
-        //   user.username,
-        //   user.password,
-        //   request.imageError.Image,
-        //   request.imageError.MimeType,
-        // );
         const response = await uploadAuditImage(
           user.username,
           user.password,
           request.imageError.Image,
           request.imageError.MimeType,
         );
+
+        if (!response) {
+          throw new Error(`Image upload failed for item ${i}: No ID returned`);
+        }
 
         if (item.traceImageData.Field === "logbook") {
           logbookImageId = response;
@@ -493,8 +533,8 @@ const AuditDetails = ({ route, navigation }) => {
       return results;
     } catch (error) {
       console.error(error);
-      alert(error.message);
       setLoading(false);
+      throw error; // Rethrow to let getFormsToSubmit handle it
     }
   };
 
@@ -680,40 +720,54 @@ const AuditDetails = ({ route, navigation }) => {
     );
   });
 
-  const UploadErrorDialog = ({ visible, info, onRetry, onClose }) => (
-    <Modal isOpen={visible} onClose={onClose}>
-      <Modal.Content>
-        <Modal.CloseButton />
-        <Modal.Header>❌ Upload Mislukt</Modal.Header>
-        <Modal.Body>
-          <VStack space={3}>
-            <HStack>
-              <Text bold>Audit: </Text>
-              <Text>{info.auditCode}</Text>
-            </HStack>
-            <Box bg="red.100" p={2} rounded="md">
-              <Text fontSize="xs" color="red.700">{info.errorMessage}</Text>
-            </Box>
-            <Box bg="green.100" p={2} rounded="md">
-              <Text fontSize="xs" color="green.700">
-                ✅ Uw gegevens zijn VEILIG opgeslagen op het apparaat
+  const UploadErrorDialog = ({ visible, info, onRetry, onClose }) => {
+    const failures = info.failedAudits || (info.auditCode ? [info] : []);
+
+    return (
+      <Modal isOpen={visible} onClose={onClose}>
+        <Modal.Content>
+          <Modal.CloseButton />
+          <Modal.Header>❌ Upload Mislukt</Modal.Header>
+          <Modal.Body>
+            <VStack space={3}>
+              <Text bold fontSize="md">
+                {failures.length} Audit(s) niet geupload
               </Text>
-            </Box>
-          </VStack>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button.Group space={2} flexDirection="column" width="100%">
-            <Button onPress={onRetry} colorScheme="blue" width="100%">
-              🔄 Opnieuw Proberen
-            </Button>
-            <Button onPress={onClose} variant="ghost" width="100%">
-              Later
-            </Button>
-          </Button.Group>
-        </Modal.Footer>
-      </Modal.Content>
-    </Modal>
-  );
+
+              <ScrollView maxH="200">
+                <VStack space={2}>
+                  {failures.map((fail, idx) => (
+                    <Box key={idx} bg="red.100" p={2} rounded="md">
+                      <HStack justifyContent="space-between">
+                        <Text bold>Audit: {fail.auditCode}</Text>
+                      </HStack>
+                      <Text fontSize="xs" color="red.700">{fail.errorMessage}</Text>
+                    </Box>
+                  ))}
+                </VStack>
+              </ScrollView>
+
+              <Box bg="green.100" p={2} rounded="md">
+                <Text fontSize="xs" color="green.700">
+                  ✅ Succesvolle audits zijn verwijderd van het apparaat. Data van mislukte audits is VEILIG opgeslagen en kan later opnieuw geprobeerd worden.
+                </Text>
+              </Box>
+            </VStack>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button.Group space={2} flexDirection="column" width="100%">
+              <Button onPress={onRetry} colorScheme="blue" width="100%">
+                🔄 Opnieuw Proberen (Alles)
+              </Button>
+              <Button onPress={onClose} variant="ghost" width="100%">
+                Later
+              </Button>
+            </Button.Group>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal>
+    );
+  };
 
   return (
     <ScrollView
