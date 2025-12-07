@@ -18,17 +18,17 @@ import {
   Center,
   IconButton,
   Pressable,
-  useTheme, 
+  useTheme,
   useColorModeValue
 } from 'native-base';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {ShowToast} from '../services/Util';
-import {fetchData} from '../services/api/Api1';
+import { ShowToast } from '../services/Util';
+import { fetchData } from '../services/api/Api1';
 import { fetchAuditData } from '../services/api/newAPI';
 import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
 
-const Clients = ({route, navigation}) => {
+const Clients = ({ route, navigation }) => {
   const theme = useTheme();
   const [unsavedData, setUnsavedData] = useState(false);
   const [loaded, setLoaded] = useState(true);
@@ -70,7 +70,7 @@ const Clients = ({route, navigation}) => {
   };
 
   const onListItemClick = client => {
-    navigation.navigate("Audits", {clientName: client.NameClient});
+    navigation.navigate("Audits", { clientName: client.NameClient });
   };
 
   const onReload = () => {
@@ -96,7 +96,7 @@ const Clients = ({route, navigation}) => {
     try {
       const user = await userManager.getCurrentUser();
       // const {data, error} = await fetchData(user.username, user.password);
-      const {data, error} = await fetchAuditData(user.username, user.password);
+      const { data, error } = await fetchAuditData(user.username, user.password);
 
       if (error) {
         ShowToast({
@@ -107,6 +107,10 @@ const Clients = ({route, navigation}) => {
         });
       } else {
         await database.saveAllData(data);
+
+        // Voer migratie uit als kolommen nog niet bestaan
+        // Dit is veilig - functie checkt of kolommen al bestaan
+        await database.runUploadStatusMigration();
       }
 
       await loadClients();
@@ -136,7 +140,7 @@ const Clients = ({route, navigation}) => {
     );
   }
 
-  const renderItem = ({item}) => (
+  const renderItem = ({ item }) => (
     <RenderClientRow item={item} onListItemClick={onListItemClick} />
   );
 
@@ -173,7 +177,7 @@ const RenderEmpty = () => {
   );
 };
 
-const RenderClientRow = ({item, onListItemClick}) => {
+const RenderClientRow = ({ item, onListItemClick }) => {
   const theme = useTheme();
   const unifiedColor = useColorModeValue('coolGray.800', 'white'); // Using one color for text, icon, and borders
 
@@ -191,7 +195,7 @@ const RenderClientRow = ({item, onListItemClick}) => {
 
   return (
     <Pressable onPress={() => onListItemClick(item)}>
-      {({isPressed}) => (
+      {({ isPressed }) => (
         <Box
           borderBottomWidth={styles.borderWidth}
           py="5"
@@ -200,7 +204,7 @@ const RenderClientRow = ({item, onListItemClick}) => {
           bg={isPressed ? styles.pressedColor : styles.bgColor}
           p="2"
           style={{
-            transform: [{scale: isPressed ? 0.96 : 1}],
+            transform: [{ scale: isPressed ? 0.96 : 1 }],
           }}>
           <HStack justifyContent="space-between" alignItems="center" px="4">
             <Text bold color={styles.textColor} fontSize="md">
@@ -218,7 +222,7 @@ const RenderClientRow = ({item, onListItemClick}) => {
   );
 };
 
-const RenderModal = ({unsavedData, setUnsavedData, reloadData}) => {
+const RenderModal = ({ unsavedData, setUnsavedData, reloadData }) => {
   return (
     <Modal
       isOpen={unsavedData}
@@ -246,8 +250,8 @@ const RenderModal = ({unsavedData, setUnsavedData, reloadData}) => {
             </Button>
             <Button
               onPress={() => {
-                setUnsavedData(false); 
-                reloadData(); 
+                setUnsavedData(false);
+                reloadData();
               }}>
               Doorgaan
             </Button>

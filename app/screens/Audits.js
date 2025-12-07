@@ -3,8 +3,8 @@
 /* eslint-disable no-alert */
 /* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
-import React, {useState, useCallback} from 'react';
-import {useFocusEffect} from '@react-navigation/native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Box,
   HStack,
@@ -14,16 +14,19 @@ import {
   VStack,
   useTheme,
   useColorModeValue,
+  Button,
+  Icon,
 } from 'native-base';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
 
-const Audits = ({route, navigation}) => {
+const Audits = ({ route, navigation }) => {
   const theme = useTheme();
   const [auditsList, setAuditsList] = useState([]);
   const [user, setUser] = useState({});
-  const {clientName} = route.params;
+  const [failedCount, setFailedCount] = useState(0);
+  const { clientName } = route.params;
 
   useFocusEffect(
     useCallback(() => {
@@ -31,8 +34,10 @@ const Audits = ({route, navigation}) => {
         try {
           const auditsData = await database.getAuditsOfClient(clientName);
           const userData = await userManager.getCurrentUser();
+          const failedAudits = await database.getFailedAudits();
           setAuditsList(auditsData);
           setUser(userData);
+          setFailedCount(failedAudits.length);
           console.log(userData);
           console.log('auditdata:', auditsData);
         } catch (error) {
@@ -52,6 +57,32 @@ const Audits = ({route, navigation}) => {
       user: user,
     });
   };
+
+  // Header button voor failed uploads
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () =>
+        failedCount > 0 ? (
+          <Button
+            onPress={() => navigation.navigate('Mislukte Uploads')}
+            startIcon={
+              <Icon
+                as={MaterialIcons}
+                name="error-outline"
+                size="lg"
+                color="white"
+              />
+            }
+            backgroundColor="red.500"
+            _pressed={{ bg: 'red.600' }}
+            px="3"
+            py="2"
+            mr="2">
+            {failedCount}
+          </Button>
+        ) : null,
+    });
+  }, [navigation, failedCount]);
 
   const styles = {
     listBackgroundColor: useColorModeValue('white', theme.colors.fdis[800]),
@@ -73,23 +104,23 @@ const Audits = ({route, navigation}) => {
     return 'visibility'; // Default icon
   };
 
-  const renderAuditRow = ({item}) => (
+  const renderAuditRow = ({ item }) => (
     <Pressable onPress={() => onAuditClick(item)}>
-      {({isHovered, isPressed}) => (
+      {({ isHovered, isPressed }) => (
         <Box
           borderBottomWidth="1"
           py="3"
           borderColor={styles.borderColor}
           bg={isPressed ? styles.pressedColor : styles.bgColor}
           px="4"
-          style={{transform: [{scale: isPressed ? 0.96 : 1}]}}>
+          style={{ transform: [{ scale: isPressed ? 0.96 : 1 }] }}>
           <HStack justifyContent="space-between" alignItems="center">
             <VStack space={1}>
               <Text
                 bold
                 color={styles.textColor}
                 fontSize="md"
-                _dark={{color: 'warmGray.50'}}>
+                _dark={{ color: 'warmGray.50' }}>
                 {item.isUnSaved === '*' ? '*' : ''}
                 {String(item.AuditCode)}
               </Text>

@@ -203,7 +203,10 @@ const InitializeDatabase = async () => {
           NameClient VARCHAR(20),
           LocationClient VARCHAR(20),
           isUnSaved VARCHAR(4),
-          LocationSize VARCHAR(20)
+          LocationSize VARCHAR(20),
+          upload_status TEXT DEFAULT 'pending',
+          upload_error TEXT DEFAULT NULL,
+          last_upload_attempt TEXT DEFAULT NULL
       );`,
     `CREATE TABLE IF NOT EXISTS tb_elements_audit (
           elements_auditId INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -337,8 +340,13 @@ const InitializeDatabase = async () => {
       });
     });
   }
+};
 
-  // Database migration: Add upload status tracking columns
+// Aparte migratie functie voor upload status tracking
+// Deze kan veilig meerdere keren worden aangeroepen (idempotent)
+const runUploadStatusMigration = async () => {
+  const database = await openDatabase();
+
   const migrationStatements = [
     `ALTER TABLE tb_audits ADD COLUMN upload_status TEXT DEFAULT 'pending'`,
     `ALTER TABLE tb_audits ADD COLUMN upload_error TEXT DEFAULT NULL`,
@@ -357,7 +365,7 @@ const InitializeDatabase = async () => {
               resolve(result);
             },
             (tx, error) => {
-              // Ignore duplicate column errors (column already exists from previous migration)
+              // Ignore duplicate column errors
               if (error.message && error.message.includes('duplicate column')) {
                 console.log(`Column already exists, skipping: ${sql}`);
                 resolve();
@@ -371,7 +379,6 @@ const InitializeDatabase = async () => {
       });
     } catch (error) {
       console.log(`Skipping migration (non-critical): ${error.message}`);
-      // Continue with other migrations even if one fails
     }
   }
 };
@@ -458,6 +465,7 @@ const setKpiElementComment = (idElement, comment) => {
 };
 
 const setAuditUploadStatus = async (auditId, status, errorMessage = null, attempt = null) => {
+  // Lazy migration: probeer eerst, als het faalt door missing column, voer migratie uit
   const timestamp = attempt || new Date().toISOString();
   try {
     await executeTransaction(tx => {
@@ -468,8 +476,22 @@ const setAuditUploadStatus = async (auditId, status, errorMessage = null, attemp
     });
     console.log(`Audit ${auditId} upload status updated to: ${status}`);
   } catch (error) {
-    console.error("Error updating audit upload status:", error);
-    throw error;
+    // Als het faalt omdat kolom niet bestaat, voer migratie uit en probeer opnieuw
+    if (error.message && error.message.includes('no such column')) {
+      console.log('Upload status columns missing, running migration...');
+      await runUploadStatusMigration();
+      // Probeer opnieuw na migratie
+      await executeTransaction(tx => {
+        tx.executeSql(
+          `UPDATE tb_audits SET upload_status = ?, upload_error = ?, last_upload_attempt = ? WHERE Id = ?`,
+          [status, errorMessage, timestamp, auditId],
+        );
+      });
+      console.log(`Audit ${auditId} upload status updated to: ${status} (after migration)`);
+    } else {
+      console.error("Error updating audit upload status:", error);
+      throw error;
+    }
   }
 };
 
@@ -510,8 +532,14 @@ const getFailedAudits = async () => {
     console.log(`Found ${results.length} failed audits`);
     return results;
   } catch (error) {
+    // Kolommen bestaan nog niet (migratie niet uitgevoerd)
+    // Dit is normaal bij eerste run na update
+    if (error && error.message && error.message.includes('no such column')) {
+      console.log('Upload status columns not yet migrated, returning empty array');
+      return [];
+    }
     console.error("Error fetching failed audits:", error);
-    // Return empty array if column doesn't exist yet (before migration)
+    // Return empty array als fallback
     return [];
   }
 };
@@ -2008,4 +2036,6 @@ export {
   deleteAudit,
   // Upserts
   upsertSignature,
+  // Migration
+  runUploadStatusMigration,
 };
