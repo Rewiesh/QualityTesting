@@ -5,7 +5,7 @@
 /* eslint-disable no-alert */
 /* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
-import React, {useState, useEffect, useRef} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import debounce from "lodash.debounce";
 import {
   Box,
@@ -29,24 +29,24 @@ import {
   TextArea,
   Icon,
 } from "native-base";
-import {View, StyleSheet, TextInput} from "react-native";
-import {useIsFocused} from "@react-navigation/native";
+import { View, StyleSheet, TextInput } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import Signature from "react-native-signature-canvas";
 import RNFS from "react-native-fs";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import api from "../services/api/Api";
-import {uploadImage, uploadAudit} from "../services/api/Api1";
+import { uploadImage, uploadAudit } from "../services/api/Api1";
 import { uploadAuditData, uploadAuditImage } from "../services/api/newAPI";
 import * as database from "../services/database/database1";
 import userManager from "../services/UserManager";
 
-const AuditDetails = ({route, navigation}) => {
+const AuditDetails = ({ route, navigation }) => {
   const theme = useTheme();
   const scrollViewRef = useRef();
   const signatureRef = useRef(null);
   const isFocused = useIsFocused();
   //
-  const {AuditId, clientName, user} = route.params;
+  const { AuditId, clientName, user } = route.params;
   //
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("Gegegevens worden geladen");
@@ -59,6 +59,8 @@ const AuditDetails = ({route, navigation}) => {
   const [ready, setReady] = useState(false);
   const [remarkModalVisible, setRemarkModalVisible] = useState(false);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
+  const [uploadErrorDialogVisible, setUploadErrorDialogVisible] = useState(false);
+  const [uploadErrorInfo, setUploadErrorInfo] = useState({});
   const [currentKPI, setCurrentKPI] = useState({});
   const [remark, setRemark] = useState("");
   const backgroundColor = useColorModeValue(
@@ -116,8 +118,8 @@ const AuditDetails = ({route, navigation}) => {
         const all = categories.map((cat, index) => {
           const counter = counters.find(
             counter => counter.CategoryId === cat.Id,
-          ) || {CounterElements: 0};
-          return {...cat, CounterElements: counter.CounterElements};
+          ) || { CounterElements: 0 };
+          return { ...cat, CounterElements: counter.CounterElements };
         });
         setCategories(all);
         setSignature(signatureData);
@@ -232,9 +234,9 @@ const AuditDetails = ({route, navigation}) => {
   };
 
   const disableScroll = () =>
-    scrollViewRef.current.setNativeProps({scrollEnabled: false});
+    scrollViewRef.current.setNativeProps({ scrollEnabled: false });
   const enableScroll = () =>
-    scrollViewRef.current.setNativeProps({scrollEnabled: true});
+    scrollViewRef.current.setNativeProps({ scrollEnabled: true });
 
   const isUploadReady = () => {
     return ready == true && signatureSaved === true;
@@ -265,146 +267,147 @@ const AuditDetails = ({route, navigation}) => {
       const [allReadyAudits] = await Promise.all([
         database.getCompletedAudits(),
       ]);
-      console.log("All Ready Audits:", allReadyAudits); // Log the data
-      console.log("allReadyAudits.length:", allReadyAudits.length); // Log the data
+      console.log("All Ready Audits:", allReadyAudits);
+      console.log("allReadyAudits.length:", allReadyAudits.length);
       setLoadingText(allReadyAudits.length + " voltooide audits gevonden.");
-      setTimeout(() => {}, 500);
-
+      setTimeout(() => { }, 500);
       for (let i = 0; i < allReadyAudits.length; i++) {
-        //
-        let uploadAuditId = allReadyAudits[i].Id;
-        let uploadAuditCode = allReadyAudits[i].AuditCode;
-
-        console.log("AuditCode:", allReadyAudits[i].AuditCode);
-
+        const uploadAuditId = allReadyAudits[i].Id;
+        const uploadAuditCode = allReadyAudits[i].AuditCode;
+        console.log("AuditCode:", uploadAuditCode);
         // Update the loading text to show progress
-        let currectAuditLoadingText = `Audit: ${
-          allReadyAudits[i].AuditCode
-        } wordt nu upgeload (${i + 1}/${allReadyAudits.length})`;
-
+        const currectAuditLoadingText = `Audit: ${uploadAuditCode} wordt nu upgeload (${i + 1}/${allReadyAudits.length})`;
         setLoadingText(currectAuditLoadingText);
-        
-        // const uploadResults = null;
-        const uploadResults = await uploadImages(
-          currectAuditLoadingText,
-          uploadAuditId,
-        );
-        setLoadingText(
-          `${currectAuditLoadingText}\n${"Formulieren uploaden..."}`,
-        );
-        setLoading(true);
-        console.log(
-          "Upload results: " + JSON.stringify(uploadResults, null, 2),
-        );
-        console.log("Getting data for uploading auditId: " + uploadAuditId);
-        const [
-          user,
-          forms,
-          auditElements,
-          auditSignature,
-          dateString,
-          clients,
-          images,
-        ] = await Promise.all([
-          userManager.getCurrentUser(),
-          database.getAllForms(uploadAuditId),
-          database.getAllElements(uploadAuditId),
-          database.getAuditSignature(uploadAuditCode),
-          database.getAuditDate(uploadAuditId),
-          database.getAllPresentClient(uploadAuditId),
-          database.getErrorsImages(uploadAuditId),
-        ]);
-
-        console.log("auditSignature: ", auditSignature);
-        // const responseSign = null;
-        // const responseSign = await uploadImage(
-        //   user.username,
-        //   user.password,
-        //   "file://" + auditSignature,
-        //   "image/png",
-        // );
-        const responseSign = await uploadAuditImage(
-          user.username,
-          user.password,
-          "file://" + auditSignature,
-          "image/png",
-        );
-        const SignatureImageId = responseSign;
-        console.log('SignatureImageId', SignatureImageId);
-
-        if (!dateString) {
-          throw new Error("Audit date is undefined");
-        }
-
-        const date = new Date(dateString);
-        if (isNaN(date)) {
-          throw new Error("Invalid audit date format");
-        }
-        const auditDate = date.toISOString();
-
-        const request = {
-          audit: {
-            Id: uploadAuditId,
-            Code: uploadAuditCode,
-            DateTime: auditDate,
-            SignatureImageId: SignatureImageId,
-            PresentClients: clients.map(client => client.name),
-            Elements: auditElements,
-          },
-          forms: forms,
-        };
-
-        // Add the logbookImageId and technicalAspectsImageId to forms.errors
-        if(uploadResults != null) {
-          forms.forEach(form => {
-            if (form.Errors) {
-              form.Errors.forEach(error => {
-                uploadResults.forEach(uploadResult => {
-                  if (
-                    form.Id === uploadResult.FormId && // Ensure form ID matches
-                    error.ElementTypeId === uploadResult.ElementTypeId &&
-                    error.ErrorTypeId === uploadResult.ErrorTypeId
-                  ) {
-                    if (uploadResult.logbookImageId) {
-                      error.LogbookImageId = uploadResult.logbookImageId;
+        try {
+          // Markeer als "uploading"
+          await database.setAuditUploadStatus(uploadAuditId, 'uploading', null);
+          // Upload images
+          const uploadResults = await uploadImages(
+            currectAuditLoadingText,
+            uploadAuditId,
+          );
+          setLoadingText(
+            `${currectAuditLoadingText}\n${"Formulieren uploaden..."}`,
+          );
+          setLoading(true);
+          console.log(
+            "Upload results: " + JSON.stringify(uploadResults, null, 2),
+          );
+          console.log("Getting data for uploading auditId: " + uploadAuditId);
+          const [
+            user,
+            forms,
+            auditElements,
+            auditSignature,
+            dateString,
+            clients,
+            images,
+          ] = await Promise.all([
+            userManager.getCurrentUser(),
+            database.getAllForms(uploadAuditId),
+            database.getAllElements(uploadAuditId),
+            database.getAuditSignature(uploadAuditCode),
+            database.getAuditDate(uploadAuditId),
+            database.getAllPresentClient(uploadAuditId),
+            database.getErrorsImages(uploadAuditId),
+          ]);
+          console.log("auditSignature: ", auditSignature);
+          const responseSign = await uploadAuditImage(
+            user.username,
+            user.password,
+            "file://" + auditSignature,
+            "image/png",
+          );
+          const SignatureImageId = responseSign;
+          console.log('SignatureImageId', SignatureImageId);
+          if (!dateString) {
+            throw new Error("Audit date is undefined");
+          }
+          const date = new Date(dateString);
+          if (isNaN(date)) {
+            throw new Error("Invalid audit date format");
+          }
+          const auditDate = date.toISOString();
+          const request = {
+            audit: {
+              Id: uploadAuditId,
+              Code: uploadAuditCode,
+              DateTime: auditDate,
+              SignatureImageId: SignatureImageId,
+              PresentClients: clients.map(client => client.name),
+              Elements: auditElements,
+            },
+            forms: forms,
+          };
+          // Add the logbookImageId and technicalAspectsImageId to forms.errors
+          if (uploadResults != null) {
+            forms.forEach(form => {
+              if (form.Errors) {
+                form.Errors.forEach(error => {
+                  uploadResults.forEach(uploadResult => {
+                    if (
+                      form.Id === uploadResult.FormId &&
+                      error.ElementTypeId === uploadResult.ElementTypeId &&
+                      error.ErrorTypeId === uploadResult.ErrorTypeId
+                    ) {
+                      if (uploadResult.logbookImageId) {
+                        error.LogbookImageId = uploadResult.logbookImageId;
+                      }
+                      if (uploadResult.technicalAspectsImageId) {
+                        error.TechnicalAspectsImageId =
+                          uploadResult.technicalAspectsImageId;
+                      }
                     }
-                    if (uploadResult.technicalAspectsImageId) {
-                      error.TechnicalAspectsImageId =
-                        uploadResult.technicalAspectsImageId;
-                    }
-                  }
+                  });
                 });
-              });
-            }
-          });
-        }
-
-        console.log(
-          allReadyAudits[i].AuditCode +
+              }
+            });
+          }
+          console.log(
+            uploadAuditCode +
             " Upload JSON: " +
             JSON.stringify(request, null, 2),
-        );
-        // const response = await uploadAudit(
-        //   user.username,
-        //   user.password,
-        //   request,
-        // );
-        const response = await uploadAuditData(
-          user.username,
-          user.password,
-          request,
-        );
-        
-        setLoadingText("Audit is succesvol geupload");
-        setLoadingText("Lokale data worden opgeschoond.");
-        await database.removeAllFromAudit(uploadAuditId);
-        await database.deleteAudit(uploadAuditId);
-        setLoadingText("Lokale data opgeschoond.");
-        setLoading(false);
+          );
+          const response = await uploadAuditData(
+            user.username,
+            user.password,
+            request,
+          );
+          setLoadingText("Audit is succesvol geupload");
+          setLoadingText("Lokale data worden opgeschoond.");
+
+          // ✅ ALLEEN bij VOLLEDIGE success: verwijder data
+          await database.removeAllFromAudit(uploadAuditId);
+          await database.deleteAudit(uploadAuditId);
+
+          setLoadingText("Lokale data opgeschoond.");
+          console.log(`Audit ${uploadAuditCode} successfully uploaded and removed`);
+        } catch (error) {
+          // ❌ Bij error: markeer als failed en stop
+          console.error(`Upload failed for ${uploadAuditCode}:`, error);
+
+          await database.setAuditUploadStatus(
+            uploadAuditId,
+            'failed',
+            error.message
+          );
+
+          // Stop de loop en toon error dialog
+          setLoading(false);
+          setUploadErrorDialogVisible(true);
+          setUploadErrorInfo({
+            auditCode: uploadAuditCode,
+            auditId: uploadAuditId,
+            errorMessage: error.message,
+          });
+
+          // Stop uploading other audits
+          return;
+        }
       }
+
       setLoadingText("");
       setLoading(false);
-
       // Navigate to Clients screen and trigger onReload
       setTimeout(() => {
         navigation.navigate("Opdrachtgever");
@@ -512,7 +515,7 @@ const AuditDetails = ({route, navigation}) => {
       headerRight: () => (
         <Button
           onPress={() =>
-            navigation.navigate("Aanwezig bij Audit", {AuditId: AuditId})
+            navigation.navigate("Aanwezig bij Audit", { AuditId: AuditId })
           }
           startIcon={
             <Icon
@@ -562,7 +565,7 @@ const AuditDetails = ({route, navigation}) => {
     database.setKpiElementValue(elements_auditId, newValue);
     const updatedKpis = kpiElements.map(kpi =>
       kpi.elements_auditId === elements_auditId
-        ? {...kpi, ElementValue: newValue}
+        ? { ...kpi, ElementValue: newValue }
         : kpi,
     );
 
@@ -592,7 +595,7 @@ const AuditDetails = ({route, navigation}) => {
     // Update the list of KPIs with the updated comment
     const updatedKpis = kpiElements.map(kpi =>
       kpi.elements_auditId === currentKPI.elements_auditId
-        ? {...kpi, ElementComment: newRemark} // Set remark directly
+        ? { ...kpi, ElementComment: newRemark } // Set remark directly
         : kpi,
     );
 
@@ -603,7 +606,7 @@ const AuditDetails = ({route, navigation}) => {
     setRemarkModalVisible(false);
   };
 
-  const RemarkModal2 = React.memo(({isOpen, onClose, btnColor, value}) => {
+  const RemarkModal2 = React.memo(({ isOpen, onClose, btnColor, value }) => {
     const [localRemark, setLocalRemark] = useState("");
     const initialRender = useRef(true);
 
@@ -622,13 +625,13 @@ const AuditDetails = ({route, navigation}) => {
         borderColor: "gray", // Optional: Border color
         borderRadius: 5, // Optional: Rounded corners
         padding: 10, // Optional: Padding inside the input
-        color : "black"
+        color: "black"
       },
     });
 
     return (
       <Modal isOpen={isOpen} onClose={onClose}>
-        <Modal.Content maxWidth="400px" style={{marginBottom: "40%"}}>
+        <Modal.Content maxWidth="400px" style={{ marginBottom: "40%" }}>
           <Modal.CloseButton />
           <Modal.Header>Opmerkingen</Modal.Header>
           <Modal.Body>
@@ -658,7 +661,7 @@ const AuditDetails = ({route, navigation}) => {
                   saveRemark(localRemark); // Call saveRemark without parameters
                 }}
                 bg={btnColor}
-                _text={{color: "white"}}
+                _text={{ color: "white" }}
               >
                 Opslaan
               </Button>
@@ -668,6 +671,41 @@ const AuditDetails = ({route, navigation}) => {
       </Modal>
     );
   });
+
+  const UploadErrorDialog = ({ visible, info, onRetry, onClose }) => (
+    <Modal isOpen={visible} onClose={onClose}>
+      <Modal.Content>
+        <Modal.CloseButton />
+        <Modal.Header>❌ Upload Mislukt</Modal.Header>
+        <Modal.Body>
+          <VStack space={3}>
+            <HStack>
+              <Text bold>Audit: </Text>
+              <Text>{info.auditCode}</Text>
+            </HStack>
+            <Box bg="red.100" p={2} rounded="md">
+              <Text fontSize="xs" color="red.700">{info.errorMessage}</Text>
+            </Box>
+            <Box bg="green.100" p={2} rounded="md">
+              <Text fontSize="xs" color="green.700">
+                ✅ Uw gegevens zijn VEILIG opgeslagen op het apparaat
+              </Text>
+            </Box>
+          </VStack>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button.Group space={2} flexDirection="column" width="100%">
+            <Button onPress={onRetry} colorScheme="blue" width="100%">
+              🔄 Opnieuw Proberen
+            </Button>
+            <Button onPress={onClose} variant="ghost" width="100%">
+              Later
+            </Button>
+          </Button.Group>
+        </Modal.Footer>
+      </Modal.Content>
+    </Modal>
+  );
 
   return (
     <ScrollView
@@ -731,17 +769,17 @@ const AuditDetails = ({route, navigation}) => {
         isOpen={remarkModalVisible}
         onClose={() => setRemarkModalVisible(false)}
         value={remark}
-        // onChangeText={setRemark}
-        // currentKPI={currentKPI}
-        // setCurrentKPI={setCurrentKPI}
-        // saveRemark={saveRemark}
+      // onChangeText={setRemark}
+      // currentKPI={currentKPI}
+      // setCurrentKPI={setCurrentKPI}
+      // saveRemark={saveRemark}
       />
       <Button
         mt="2"
         bg={useColorModeValue(theme.colors.fdis[400], theme.colors.fdis[600])}
-        _text={{color: "white"}}
+        _text={{ color: "white" }}
         onPress={() =>
-          onStartResumeClick({AuditId, navigation, audit, user, clientName})
+          onStartResumeClick({ AuditId, navigation, audit, user, clientName })
         }
       >
         Starten/Hervatten
@@ -758,7 +796,7 @@ const AuditDetails = ({route, navigation}) => {
           <Image
             alt="signature"
             resizeMode="contain"
-            source={{uri: signature}}
+            source={{ uri: signature }}
             style={{
               width: "100%",
               height: 120,
@@ -770,7 +808,7 @@ const AuditDetails = ({route, navigation}) => {
             }}
           />
         ) : (
-          <View style={{height: 120, marginTop: 5, overflow: "hidden"}}>
+          <View style={{ height: 120, marginTop: 5, overflow: "hidden" }}>
             <Signature
               ref={signatureRef}
               onOK={handleSignature}
@@ -789,7 +827,7 @@ const AuditDetails = ({route, navigation}) => {
               theme.colors.fdis[400],
               theme.colors.fdis[600],
             )}
-            _text={{color: "white"}}
+            _text={{ color: "white" }}
           >
             Handtekening wissen
           </Button>
@@ -801,7 +839,7 @@ const AuditDetails = ({route, navigation}) => {
               theme.colors.fdis[400],
               theme.colors.fdis[600],
             )}
-            _text={{color: "white"}}
+            _text={{ color: "white" }}
           >
             Handtekening opslaan
           </Button>
@@ -814,13 +852,22 @@ const AuditDetails = ({route, navigation}) => {
             getFormsToSubmit();
           }}
         />
+        <UploadErrorDialog
+          visible={uploadErrorDialogVisible}
+          info={uploadErrorInfo}
+          onRetry={() => {
+            setUploadErrorDialogVisible(false);
+            getFormsToSubmit();
+          }}
+          onClose={() => setUploadErrorDialogVisible(false)}
+        />
         <Button
           mt="2"
           isDisabled={!isUploadReady()}
           onPress={uncomplete}
           success={true}
           bg={useColorModeValue(theme.colors.fdis[400], theme.colors.fdis[600])}
-          _text={{color: "white"}}
+          _text={{ color: "white" }}
         >
           Uploaden
         </Button>
@@ -844,10 +891,10 @@ const AuditSection = ({
       divider={<Box borderBottomWidth="1" borderColor="gray.300" />}
     >
       {[
-        {label: "Klant", value: audit.NameClient},
-        {label: "Code", value: audit.AuditCode},
-        {label: "Audit soort", value: audit.Type},
-        {label: "Locatie", value: audit.LocationClient},
+        { label: "Klant", value: audit.NameClient },
+        { label: "Code", value: audit.AuditCode },
+        { label: "Audit soort", value: audit.Type },
+        { label: "Locatie", value: audit.LocationClient },
       ].map((item, index) => (
         <HStack
           key={index}
@@ -871,7 +918,7 @@ const AuditSection = ({
   </VStack>
 );
 
-const CategoryCard = ({category, cardBackgroundColor, key}) => {
+const CategoryCard = ({ category, cardBackgroundColor, key }) => {
   const isFail = (category.CounterElements || 0) < (category.Min || 0);
   const textColor = useColorModeValue(
     isFail ? "red.500" : "green.500", // Bright colors for text in light mode
@@ -908,7 +955,7 @@ const CategoryCard = ({category, cardBackgroundColor, key}) => {
   );
 };
 
-const KpiRow = ({kpi, onChange, openRemarkModal, cardBackgroundColor}) => {
+const KpiRow = ({ kpi, onChange, openRemarkModal, cardBackgroundColor }) => {
   const textColor = useColorModeValue("coolGray.800", "white"); // Text color
   const borderColor = useColorModeValue("gray.300", "white"); // Border color
   return (
@@ -1006,7 +1053,7 @@ const KpiRow = ({kpi, onChange, openRemarkModal, cardBackgroundColor}) => {
 // };
 
 // functions
-const onStartResumeClick = ({AuditId, navigation, audit, user, clientName}) => {
+const onStartResumeClick = ({ AuditId, navigation, audit, user, clientName }) => {
   console.log(AuditId);
   if (!AuditId) {
     console.log("Audit data is not available yet");
@@ -1021,7 +1068,7 @@ const onStartResumeClick = ({AuditId, navigation, audit, user, clientName}) => {
       );
 
       if (form) {
-        navigation.navigate("Audit Formulier", {form: form});
+        navigation.navigate("Audit Formulier", { form: form });
         console.log("Form bestaat, redirect naar Toon formulier");
       } else {
         navigation.navigate("Uitgevoerde Audit", {
@@ -1035,7 +1082,7 @@ const onStartResumeClick = ({AuditId, navigation, audit, user, clientName}) => {
     .catch(console.error);
 };
 
-const UploadModal = ({isOpen, onClose, onConfirm}) => {
+const UploadModal = ({ isOpen, onClose, onConfirm }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <Modal.Content>
