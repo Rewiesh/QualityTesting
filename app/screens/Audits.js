@@ -62,7 +62,7 @@ const Audits = ({ route, navigation }) => {
   useEffect(() => {
     navigation.setOptions({
       headerRight: () =>
-        failedCount > 0 ? (
+        failedCount >= 0 ? (
           <Button
             onPress={() => navigation.navigate('Mislukte Uploads')}
             startIcon={

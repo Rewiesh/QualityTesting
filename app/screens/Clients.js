@@ -3,7 +3,8 @@
 /* eslint-disable no-alert */
 /* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Image,
   Modal,
@@ -19,7 +20,8 @@ import {
   IconButton,
   Pressable,
   useTheme,
-  useColorModeValue
+  useColorModeValue,
+  Icon
 } from 'native-base';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { ShowToast } from '../services/Util';
@@ -34,6 +36,7 @@ const Clients = ({ route, navigation }) => {
   const [loaded, setLoaded] = useState(true);
   const [clients, setClients] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [failedCount, setFailedCount] = useState(0);
   const listBackgroundColor = useColorModeValue(
     "white",
     theme.colors.fdis[800],
@@ -53,6 +56,46 @@ const Clients = ({ route, navigation }) => {
     //   onReload();
     // }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchFailedCount = async () => {
+        try {
+          const failedAudits = await database.getFailedAudits();
+          setFailedCount(failedAudits.length);
+        } catch (error) {
+          console.error('Error fetching failed count:', error);
+        }
+      };
+      fetchFailedCount();
+    }, [])
+  );
+
+  // Header button voor failed uploads
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () =>
+        failedCount > 0 ? (
+          <Button
+            onPress={() => navigation.navigate('Mislukte Uploads')}
+            startIcon={
+              <Icon
+                as={MaterialIcons}
+                name="error-outline"
+                size="lg"
+                color="white"
+              />
+            }
+            backgroundColor="red.500"
+            _pressed={{ bg: 'red.600' }}
+            px="3"
+            py="2"
+            mr="2">
+            {failedCount}
+          </Button>
+        ) : null,
+    });
+  }, [navigation, failedCount]);
 
   const loadClients = async () => {
     setUnsavedData(false);
@@ -107,10 +150,6 @@ const Clients = ({ route, navigation }) => {
         });
       } else {
         await database.saveAllData(data);
-
-        // Voer migratie uit als kolommen nog niet bestaan
-        // Dit is veilig - functie checkt of kolommen al bestaan
-        await database.runUploadStatusMigration();
       }
 
       await loadClients();
@@ -238,7 +277,7 @@ const RenderModal = ({ unsavedData, setUnsavedData, reloadData }) => {
         <Modal.Header>Waarschuwing!</Modal.Header>
         <Modal.Body>
           Sommige gegevens zijn niet opgeslagen. Als u doorgaat, gaan deze
-          verloren. Wilt u doorgaan?
+          verloren(Note: Gefaalde audits worden niet overschreven). Wilt u doorgaan?
         </Modal.Body>
         <Modal.Footer>
           <Button.Group space={2}>

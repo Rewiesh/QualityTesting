@@ -1087,9 +1087,35 @@ const clearSettings = () => {
 const saveAllData = async response => {
   try {
     await executeTransaction(tx => {
-      executeSql("DELETE FROM tb_error");
-      executeSql("DELETE FROM tb_form");
-      executeSql("DELETE FROM tb_remarks");
+      // ⚠️ BELANGRIJK: Behoud ALLE data van failed audits
+      // Delete alleen data van audits die NIET gefailed zijn
+
+      // Delete errors alleen van non-failed audits
+      executeSql(`
+        DELETE FROM tb_error 
+        WHERE FormId IN (
+          SELECT FormId FROM tb_form 
+          WHERE AuditId NOT IN (
+            SELECT Id FROM tb_audits WHERE upload_status = 'failed'
+          )
+        )
+      `);
+
+      // Delete forms alleen van non-failed audits
+      executeSql(`
+        DELETE FROM tb_form 
+        WHERE AuditId NOT IN (
+          SELECT Id FROM tb_audits WHERE upload_status = 'failed'
+        )
+      `);
+
+      // Delete remarks alleen van non-failed audits
+      executeSql(`
+        DELETE FROM tb_remarks 
+        WHERE auditId NOT IN (
+          SELECT Id FROM tb_audits WHERE upload_status = 'failed'
+        )
+      `);
 
       // Assuming `response` is the object resolved by fetchAudits
       // and the actual audits data is wrapped inside the `data` property.
@@ -1150,8 +1176,9 @@ const saveAllData = async response => {
       if (Array.isArray(auditsData)) {
         saveAudits(tx, auditsData);
       } else {
-        executeSql("DELETE FROM tb_audits");
-        executeSql("DELETE FROM tb_elements_audit");
+        // Ook hier: behoud failed audits
+        executeSql("DELETE FROM tb_audits WHERE upload_status IS NULL OR upload_status != 'failed'");
+        executeSql("DELETE FROM tb_elements_audit WHERE AuditId NOT IN (SELECT Id FROM tb_audits WHERE upload_status = 'failed')");
         console.error("Audits data is not an array:", auditsData);
       }
 
@@ -1312,9 +1339,25 @@ const saveAudits = (tx, audits) => {
     return;
   }
 
-  // Clear existing audits and elements (only once)
-  tx.executeSql("DELETE FROM tb_audits");
-  tx.executeSql("DELETE FROM tb_elements_audit");
+  // ⚠️ BELANGRIJK: Behoud failed audits - deze bestaan alleen lokaal
+  // Delete alleen audits die NIET gefailed zijn (pending, completed, uploading)
+  // Failed audits worden NIET verwijderd zodat ze kunnen worden ge-retry'd
+  tx.executeSql(
+    "DELETE FROM tb_audits WHERE upload_status IS NULL OR upload_status != 'failed'",
+    [],
+    () => console.log("Cleared non-failed audits"),
+    (tx, error) => console.error("Error clearing audits:", error)
+  );
+
+  // Delete alleen elements van audits die niet gefailed zijn
+  tx.executeSql(
+    `DELETE FROM tb_elements_audit WHERE AuditId NOT IN (
+      SELECT Id FROM tb_audits WHERE upload_status = 'failed'
+    )`,
+    [],
+    () => console.log("Cleared elements for non-failed audits"),
+    (tx, error) => console.error("Error clearing elements:", error)
+  );
 
   // Insert new audits
   audits.forEach(audit => {
@@ -1323,58 +1366,75 @@ const saveAudits = (tx, audits) => {
       return;
     }
 
-    const auditInsertQuery = `INSERT INTO tb_audits (
-      Id, AuditCode, Type, DateTime, NameClient, LocationClient, isUnSaved, LocationSize
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-
+    // ⚠️ SKIP audit als deze al bestaat met status 'failed'
+    // Check eerst of deze audit lokaal bestaat als failed
     tx.executeSql(
-      auditInsertQuery,
-      [
-        audit.id,
-        String(audit.code),
-        audit.type,
-        audit.dateTime,
-        audit.clientName,
-        audit.clientLocation,
-        audit.isUnSaved ?? 0, // Default to 0 if null
-        audit.clientLocationSize ?? "", // Default to empty string if null
-      ],
-      () => {
-        console.log("Audit inserted successfully:", audit.id);
-
-        // Insert elements only after audit insertion is successful
-        if (audit.elements && audit.elements.length > 0) {
-          audit.elements.forEach(kpiElement => {
-            if (!kpiElement.id) {
-              console.error("Element ID is missing");
-              return;
-            }
-
-            const elementInsertQuery = `INSERT INTO tb_elements_audit (
-              Id, ElementLabel, ElementValue, AuditId, ElementComment
-            ) VALUES (?, ?, ?, ?, ?)`;
-
-            tx.executeSql(
-              elementInsertQuery,
-              [
-                kpiElement.id,
-                kpiElement.elementLabel,
-                kpiElement.elementValue ?? "", // Default to empty string if null
-                audit.id,
-                kpiElement.elementComment ?? "", // Default to empty string if null
-              ],
-              () => {
-                console.log("Element inserted successfully for audit:", audit.id, kpiElement.elementLabel);
-              },
-              (tx, error) => {
-                console.error("Error inserting element:", error.message);
-              }
-            );
-          });
+      "SELECT Id FROM tb_audits WHERE Id = ? AND upload_status = 'failed'",
+      [audit.id],
+      (_, checkResult) => {
+        if (checkResult.rows.length > 0) {
+          console.log(`Skipping insert for failed audit ${audit.id} - preserving local version`);
+          return; // Skip deze audit, behoud de failed versie en zijn data
         }
+
+        // Audit bestaat niet als failed, dus insert normaal
+        const auditInsertQuery = `INSERT INTO tb_audits (
+          Id, AuditCode, Type, DateTime, NameClient, LocationClient, isUnSaved, LocationSize
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+        tx.executeSql(
+          auditInsertQuery,
+          [
+            audit.id,
+            String(audit.code),
+            audit.type,
+            audit.dateTime,
+            audit.clientName,
+            audit.clientLocation,
+            audit.isUnSaved ?? 0,
+            audit.clientLocationSize ?? "",
+          ],
+          () => {
+            console.log("Audit inserted successfully:", audit.id);
+
+            // Insert elements only after audit insertion is successful
+            if (audit.elements && audit.elements.length > 0) {
+              audit.elements.forEach(kpiElement => {
+                if (!kpiElement.id) {
+                  console.error("Element ID is missing");
+                  return;
+                }
+
+                const elementInsertQuery = `INSERT INTO tb_elements_audit (
+                  Id, ElementLabel, ElementValue, AuditId, ElementComment
+                ) VALUES (?, ?, ?, ?, ?)`;
+
+                tx.executeSql(
+                  elementInsertQuery,
+                  [
+                    kpiElement.id,
+                    kpiElement.elementLabel,
+                    kpiElement.elementValue ?? "",
+                    audit.id,
+                    kpiElement.elementComment ?? "",
+                  ],
+                  () => {
+                    console.log("Element inserted successfully for audit:", audit.id, kpiElement.elementLabel);
+                  },
+                  (tx, error) => {
+                    console.error("Error inserting element:", error.message);
+                  }
+                );
+              });
+            }
+          },
+          (tx, error) => {
+            console.error("Error inserting audit:", error.message);
+          }
+        );
       },
       (tx, error) => {
-        console.error("Error inserting audit:", error.message);
+        console.error("Error checking for failed audit:", error);
       }
     );
   });
