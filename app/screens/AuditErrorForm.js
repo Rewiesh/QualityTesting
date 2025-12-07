@@ -3,8 +3,8 @@
 /* eslint-disable no-alert */
 /* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
-import React, {useState, useEffect, useCallback} from 'react';
-import {TouchableOpacity, SafeAreaView, Alert} from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import {
   Button,
   Box,
@@ -22,11 +22,11 @@ import {
   useTheme,
   SectionList,
 } from 'native-base';
-import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
+import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import * as database from '../services/database/database1';
 
-const AuditErrorForm = ({navigation, route}) => {
+const AuditErrorForm = ({ navigation, route }) => {
   const theme = useTheme();
   const [error, setError] = useState(route.params?.error || {});
   const [errorTypes, setErrorTypes] = useState([]);
@@ -145,7 +145,7 @@ const AuditErrorForm = ({navigation, route}) => {
     setError(updatedError);
     console.log(
       'Error after adding TechnicalAspectsImg image :' +
-        JSON.stringify(error, null, 2),
+      JSON.stringify(error, null, 2),
     );
   };
 
@@ -157,7 +157,7 @@ const AuditErrorForm = ({navigation, route}) => {
     setError(updatedError);
     console.log(
       'Error after deleting TechnicalAspectsImg image :' +
-        JSON.stringify(error, null, 2),
+      JSON.stringify(error, null, 2),
     );
   };
 
@@ -194,7 +194,7 @@ const AuditErrorForm = ({navigation, route}) => {
     navigation,
   ]);
 
-  const renderItem = ({item}) => {
+  const renderItem = ({ item }) => {
     return (
       <Box key={item.id}>
         {item.type === 'ElementPicker' && (
@@ -237,20 +237,20 @@ const AuditErrorForm = ({navigation, route}) => {
   };
 
   const formItems = [
-    {id: '1', type: 'ElementPicker'},
-    {id: '2', type: 'ErrorTypePicker'},
-    {id: '3', type: 'ErrorCounter'},
-    {id: '4', type: 'LogBook'},
-    {id: '5', type: 'TechnicalAspects'},
+    { id: '1', type: 'ElementPicker' },
+    { id: '2', type: 'ErrorTypePicker' },
+    { id: '3', type: 'ErrorCounter' },
+    { id: '4', type: 'LogBook' },
+    { id: '5', type: 'TechnicalAspects' },
   ];
 
   return (
-    <Box flex={1} _contentContainerStyle={{p: '2', mb: '50', pb: '75'}}>
+    <Box flex={1} _contentContainerStyle={{ p: '2', mb: '50', pb: '75' }}>
       <SectionList
-        sections={[{title: 'Form', data: formItems}]}
+        sections={[{ title: 'Form', data: formItems }]}
         renderItem={renderItem}
         keyExtractor={item => item.id}
-        contentContainerStyle={{padding: 8}}
+        contentContainerStyle={{ padding: 8 }}
         ListFooterComponent={
           countError > 0 && (
             <Button
@@ -262,7 +262,7 @@ const AuditErrorForm = ({navigation, route}) => {
                 theme.colors.fdis[400],
                 theme.colors.fdis[600],
               )}
-              _text={{color: 'white'}}
+              _text={{ color: 'white' }}
               onPress={saveError}>
               Opmerking opslaan
             </Button>
@@ -289,7 +289,7 @@ const AuditErrorForm = ({navigation, route}) => {
   );
 };
 
-const ElementPicker = ({selectedElement, elements, onElementChange}) => {
+const ElementPicker = ({ selectedElement, elements, onElementChange }) => {
   return (
     <Box>
       <Text fontSize="md" mb="1" bold>
@@ -300,7 +300,7 @@ const ElementPicker = ({selectedElement, elements, onElementChange}) => {
         minWidth="200"
         accessibilityLabel="Kies Element"
         placeholder="Kies Element"
-        _selectedItem={{bg: 'teal.600', endIcon: <CheckIcon size="5" />}}
+        _selectedItem={{ bg: 'teal.600', endIcon: <CheckIcon size="5" /> }}
         mt={1}
         onValueChange={onElementChange}>
         {elements.map((element, index) => (
@@ -330,7 +330,7 @@ const ErrorTypePicker = ({
         minWidth="200"
         accessibilityLabel="Kies Soort fout"
         placeholder="Kies Soort fout"
-        _selectedItem={{bg: 'teal.600', endIcon: <CheckIcon size="5" />}}
+        _selectedItem={{ bg: 'teal.600', endIcon: <CheckIcon size="5" /> }}
         mt={1}
         onValueChange={onErrorTypeChange}>
         {errorTypes.map((errorType, index) => (
@@ -345,7 +345,7 @@ const ErrorTypePicker = ({
   );
 };
 
-const ErrorCounter = ({count, setCount}) => {
+const ErrorCounter = ({ count, setCount }) => {
   return (
     <Box>
       <Text fontSize="md" mb="1" bold>
@@ -354,7 +354,7 @@ const ErrorCounter = ({count, setCount}) => {
       <HStack space={2} justifyContent="space-between" alignItems="center">
         <IconButton
           variant="outline"
-          _icon={{as: MaterialIcons, name: 'remove', size: 'md'}}
+          _icon={{ as: MaterialIcons, name: 'remove', size: 'md' }}
           colorScheme="danger"
           onPress={() =>
             setCount(prevCount => (prevCount > 0 ? prevCount - 1 : 0))
@@ -364,7 +364,7 @@ const ErrorCounter = ({count, setCount}) => {
         <IconButton
           variant="outline"
           colorScheme="success"
-          _icon={{as: MaterialIcons, name: 'add', size: 'md'}}
+          _icon={{ as: MaterialIcons, name: 'add', size: 'md' }}
           onPress={() => setCount(prevCount => prevCount + 1)}
         />
       </HStack>
@@ -397,7 +397,7 @@ const LogBook = ({
       {error.LogBookImg && (
         <Center mt={2}>
           <Image
-            source={{uri: error.LogBookImg}}
+            source={{ uri: error.LogBookImg }}
             alt="Logboek afbeelding"
             size="xl"
             resizeMode="contain"
@@ -443,7 +443,7 @@ const TechnicalAspects = ({
       {error.TechnicalAspectsImg && (
         <Center mt={2}>
           <Image
-            source={{uri: error.TechnicalAspectsImg}}
+            source={{ uri: error.TechnicalAspectsImg }}
             alt="Technische aspecten afbeelding"
             size="xl"
             resizeMode="contain"
@@ -457,7 +457,7 @@ const TechnicalAspects = ({
               color: 'red.500',
             }}
             onPress={() => onDeleteTechnicalAspectImage()}
-          />      
+          />
         </Center>
       )}
     </Box>
@@ -469,7 +469,7 @@ const RenderModalLogBook = ({
   setModalLogBookVisible,
   error,
   onSaveLogBookImage,
-  onDeleteLogBookImage,  
+  onDeleteLogBookImage,
   onSaveError,
 }) => {
   const handleTakePhoto = async () => {
@@ -478,6 +478,7 @@ const RenderModalLogBook = ({
       includeBase64: false,
       maxWidth: 1080,
       maxHeight: 1920,
+      quality: 0.8,
     });
     if (result.assets?.length > 0) {
       const imageUri = result.assets[0].uri;
@@ -491,6 +492,7 @@ const RenderModalLogBook = ({
       includeBase64: false,
       maxWidth: 1080,
       maxHeight: 1920,
+      quality: 0.8,
     });
     if (result.assets?.length > 0) {
       const imageUri = result.assets[0].uri;
@@ -525,7 +527,7 @@ const RenderModalLogBook = ({
           {error.LogBookImg && (
             <Center mt={2}>
               <Image
-                source={{uri: error.LogBookImg}}
+                source={{ uri: error.LogBookImg }}
                 alt="Logboek afbeelding"
                 size="xl"
                 resizeMode="contain"
@@ -547,7 +549,7 @@ const RenderModalLogBook = ({
                 width="full"
               >
                 Opmerking opslaan
-              </Button>              
+              </Button>
             </Center>
           )}
         </Modal.Body>
@@ -569,7 +571,8 @@ const RenderModalTechnicalAspects = ({
       mediaType: 'photo',
       includeBase64: false,
       maxWidth: 1080,
-      maxHeight: 1920,      
+      maxHeight: 1920,
+      quality: 0.8,
     });
     if (result.assets?.length > 0) {
       const imageUri = result.assets[0].uri;
@@ -582,7 +585,8 @@ const RenderModalTechnicalAspects = ({
       mediaType: 'photo',
       includeBase64: false,
       maxWidth: 1080,
-      maxHeight: 1920,      
+      maxHeight: 1920,
+      quality: 0.8,
     });
     if (result.assets?.length > 0) {
       const imageUri = result.assets[0].uri;
@@ -615,7 +619,7 @@ const RenderModalTechnicalAspects = ({
           {error.TechnicalAspectsImg && (
             <Center mt={2}>
               <Image
-                source={{uri: error.TechnicalAspectsImg}}
+                source={{ uri: error.TechnicalAspectsImg }}
                 alt="Technische aspecten afbeelding"
                 size="xl"
                 resizeMode="contain"
@@ -637,7 +641,7 @@ const RenderModalTechnicalAspects = ({
                 width="full"
               >
                 Opmerking opslaan
-              </Button>              
+              </Button>
             </Center>
           )}
         </Modal.Body>
