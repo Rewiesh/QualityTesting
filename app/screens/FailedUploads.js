@@ -252,6 +252,36 @@ const FailedUploads = ({ navigation }) => {
         }
     };
 
+    const handleDelete = async audit => {
+        Alert.alert(
+            'Audit Verwijderen',
+            `Weet u zeker dat u audit ${audit.AuditCode} wilt verwijderen?\n\nZorg ervoor dat u deze audit eerst heeft geëxporteerd indien nodig!`,
+            [
+                {
+                    text: 'Annuleren',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Verwijderen',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            setLoading(true);
+                            await database.removeAllFromAudit(audit.Id);
+                            await database.deleteAudit(audit.Id);
+                            loadFailedAudits();
+                            setLoading(false);
+                        } catch (error) {
+                            setLoading(false);
+                            console.error('Delete error:', error);
+                            Alert.alert('Error', 'Kon audit niet verwijderen');
+                        }
+                    },
+                },
+            ],
+        );
+    };
+
     const cardBackgroundColor = useColorModeValue(
         'gray.100',
         theme.colors.fdis[900],
@@ -336,6 +366,18 @@ const FailedUploads = ({ navigation }) => {
                                         }>
                                         Export
                                     </Button>
+
+                                    <Button
+                                        size="sm"
+                                        flex={0.3}
+                                        colorScheme="red"
+                                        variant="outline"
+                                        onPress={() => handleDelete(audit)}
+                                        isLoading={loading}
+                                        startIcon={
+                                            <MaterialIcons name="delete" size={18} color="#d32f2f" /> // red.700 roughly
+                                        }
+                                    />
                                 </HStack>
                             </VStack>
                         </Box>
