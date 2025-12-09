@@ -49,12 +49,13 @@ const FailedUploads = ({ navigation }) => {
             setLoading(true);
 
             // Verzamel alle data
-            const [forms, elements, signature, clients, images] = await Promise.all([
+            const [forms, elements, signature, clients, images, user] = await Promise.all([
                 database.getAllForms(audit.Id),
                 database.getAllElements(audit.Id),
                 database.getAuditSignature(audit.AuditCode),
                 database.getAllPresentClient(audit.Id),
                 database.getErrorsImages(audit.Id),
+                userManager.getCurrentUser(),
             ]);
 
             // Converteer afbeeldingen naar base64
@@ -81,6 +82,9 @@ const FailedUploads = ({ navigation }) => {
                     exportDate: new Date().toISOString(),
                     appVersion: '0.0.2',
                     exportReason: 'Upload failed',
+                },
+                user: {
+                    username: user?.username || 'unknown',
                 },
                 audit: {
                     ...audit,
