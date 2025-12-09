@@ -94,7 +94,11 @@ const FailedUploads = ({ navigation }) => {
 
             // Schrijf naar file
             const filename = `audit_${audit.AuditCode}_export.json`;
-            const path = `${RNFS.DocumentDirectoryPath}/${filename}`;
+            // const path = `${RNFS.DocumentDirectoryPath}/${filename}`;
+            const path = Platform.select({
+                ios: `${RNFS.DocumentDirectoryPath}/${filename}`,
+                android: `${RNFS.CachesDirectoryPath}/${filename}`, // Android werkt beter met CachesDirectory
+            });
             await RNFS.writeFile(path, JSON.stringify(exportData, null, 2), 'utf8');
 
             // Share via iOS/Android Share Sheet
