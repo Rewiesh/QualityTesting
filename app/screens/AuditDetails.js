@@ -309,8 +309,8 @@ const AuditDetails = ({ route, navigation }) => {
             "image/png",
           );
 
-          if (!responseSign) {
-            throw new Error(`Signature upload failed for audit ${uploadAuditCode}: No ID returned`);
+          if (!responseSign || responseSign.error) {
+            throw new Error(responseSign?.error || `Signature upload failed for audit ${uploadAuditCode}: No ID returned`);
           }
 
           const SignatureImageId = responseSign;
@@ -379,8 +379,8 @@ const AuditDetails = ({ route, navigation }) => {
           console.log("Upload Response: ", response);
 
           // Validate the response from the server
-          if (!response) {
-            throw new Error("Audit upload failed: No response from server");
+          if (!response || response.error) {
+            throw new Error(response?.error || "Audit upload failed: No response from server");
           }
           // If your server returns a specific success structure (e.g. response.result === 'OK'), check it here
           // For now, assuming non-null return means success based on newAPI.js implementation
@@ -479,8 +479,8 @@ const AuditDetails = ({ route, navigation }) => {
           request.imageError.MimeType,
         );
 
-        if (!response) {
-          throw new Error(`Image upload failed for item ${i}: No ID returned`);
+        if (!response || response.error) {
+          throw new Error(response?.error || `Image upload failed for item ${i}: No ID returned`);
         }
 
         if (item.traceImageData.Field === "logbook") {

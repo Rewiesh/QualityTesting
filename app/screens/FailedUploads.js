@@ -148,8 +148,8 @@ const FailedUploads = ({ navigation }) => {
                     img.imageError.MimeType,
                 );
 
-                if (!response) {
-                    throw new Error(`Image upload failed: No ID returned`);
+                if (!response || response.error) {
+                    throw new Error(response?.error || `Image upload failed: No ID returned`);
                 }
 
                 let logbookImageId = null;
@@ -179,8 +179,8 @@ const FailedUploads = ({ navigation }) => {
                 'image/png',
             );
 
-            if (!signatureId) {
-                throw new Error(`Signature upload failed: No ID returned`);
+            if (!signatureId || signatureId.error) {
+                throw new Error(signatureId?.error || `Signature upload failed: No ID returned`);
             }
 
             // Build request
@@ -223,8 +223,8 @@ const FailedUploads = ({ navigation }) => {
             // Upload audit data
             const response = await uploadAuditData(user.username, user.password, request);
 
-            if (!response) {
-                throw new Error("Audit upload failed: No response from server");
+            if (!response || response.error) {
+                throw new Error(response?.error || "Audit upload failed: No response from server");
             }
 
             // ✅ Success: verwijder data
