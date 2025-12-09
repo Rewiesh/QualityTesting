@@ -46,7 +46,6 @@ function AuditsStackScreen() {
         headerTitleStyle: {
           fontWeight: 'bold', // Keeping the bold font style for the title
         },
-        headerBackTitleVisible: false, // Hide back button text on iOS to avoid bubble styling
       }}>
       <AuditsStack.Screen name="Opdrachtgever" component={Clients} />
       <AuditsStack.Screen name="Audits" component={Audits} />

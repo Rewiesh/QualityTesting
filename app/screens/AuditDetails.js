@@ -533,20 +533,30 @@ const AuditDetails = ({ route, navigation }) => {
   const renderAddPersonButton = () => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity
+        <Button
           onPress={() =>
             navigation.navigate("Aanwezig bij Audit", { AuditId: AuditId })
           }
-          style={{ marginRight: 10 }}
+          startIcon={
+            <Icon
+              as={MaterialIcons}
+              name="person-add"
+              size="xl"
+              color="white"
+            />
+          }
+          variant="ghost"
+          _pressed={{
+            bg: "white:alpha.20",
+          }}
+          _text={{
+            color: "white",
+            fontSize: "md",
+          }}
+          px="3"
+          py="2"
           accessibilityLabel="Add Person"
-        >
-          <Icon
-            as={MaterialIcons}
-            name="person-add"
-            size="xl"
-            color="white"
-          />
-        </TouchableOpacity>
+        ></Button>
       ),
     });
   };
