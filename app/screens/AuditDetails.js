@@ -142,34 +142,6 @@ const AuditDetails = ({ route, navigation }) => {
       })
       .catch(error => console.error(error));
 
-    // const mockElements = [
-    //   {
-    //     elements_auditId: 1,
-    //     Id: "MOCK1",
-    //     ElementLabel: "Mock Label 1",
-    //     ElementValue: "Mock Value 1",
-    //     AuditId: AuditId,
-    //     ElementComment: "This is mock comment 1",
-    //   },
-    //   {
-    //     elements_auditId: 2,
-    //     Id: "MOCK2",
-    //     ElementLabel: "Mock Label 2",
-    //     ElementValue: "Mock Value 2",
-    //     AuditId: AuditId,
-    //     ElementComment: "This is mock comment 2",
-    //   },
-    // ];
-
-    // // Simulate async behavior and set mock data
-    // new Promise(resolve => {
-    //   setTimeout(() => resolve(mockElements), 500);
-    // })
-    //   .then(elements => {
-    //     setKpiElements(elements);
-    //     // console.log('Get KPI Elements ' + JSON.stringify(elements));
-    //   })
-    //   .catch(error => console.error(error));
   };
 
   const handleSignature = async signature => {
@@ -902,6 +874,7 @@ const AuditDetails = ({ route, navigation }) => {
               theme.colors.fdis[600],
             )}
             _text={{ color: "white" }}
+            isDisabled={!!signature}
           >
             Handtekening opslaan
           </Button>

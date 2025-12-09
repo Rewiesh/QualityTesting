@@ -3,7 +3,8 @@
 /* eslint-disable prettier/prettier */
 import React, { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { Share, Alert } from 'react-native';
+import { Alert } from 'react-native';
+import Share from 'react-native-share';
 import {
     Box,
     VStack,
@@ -97,10 +98,12 @@ const FailedUploads = ({ navigation }) => {
             await RNFS.writeFile(path, JSON.stringify(exportData, null, 2), 'utf8');
 
             // Share via iOS/Android Share Sheet
-            await Share.share({
+            await Share.open({
                 title: `Audit Export - ${audit.AuditCode}`,
                 message: `Audit export voor ${audit.AuditCode}\nClient: ${audit.NameClient}`,
                 url: `file://${path}`,
+                type: 'application/json',
+                failOnCancel: false,
             });
 
             Alert.alert(
@@ -141,6 +144,10 @@ const FailedUploads = ({ navigation }) => {
                     img.imageError.MimeType,
                 );
 
+                if (!response) {
+                    throw new Error(`Image upload failed: No ID returned`);
+                }
+
                 let logbookImageId = null;
                 let technicalAspectsImageId = null;
 
@@ -167,6 +174,10 @@ const FailedUploads = ({ navigation }) => {
                 `file://${signature}`,
                 'image/png',
             );
+
+            if (!signatureId) {
+                throw new Error(`Signature upload failed: No ID returned`);
+            }
 
             // Build request
             const date = new Date(audit.DateTime);
@@ -206,7 +217,11 @@ const FailedUploads = ({ navigation }) => {
             });
 
             // Upload audit data
-            await uploadAuditData(user.username, user.password, request);
+            const response = await uploadAuditData(user.username, user.password, request);
+
+            if (!response) {
+                throw new Error("Audit upload failed: No response from server");
+            }
 
             // ✅ Success: verwijder data
             await database.removeAllFromAudit(audit.Id);
