@@ -545,9 +545,9 @@ const AuditDetails = ({ route, navigation }) => {
               color="white"
             />
           }
-          backgroundColor={btnColor}
+          variant="ghost"
           _pressed={{
-            bg: theme.colors.fdis[500],
+            bg: "white:alpha.20",
           }}
           _text={{
             color: "white",
