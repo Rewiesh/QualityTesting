@@ -70,11 +70,12 @@ const Audits = ({ route, navigation }) => {
                 as={MaterialIcons}
                 name="error-outline"
                 size="lg"
-                color="white"
+                color="red.500"
               />
             }
             variant="ghost"
-            _pressed={{ bg: "white:alpha.20" }}
+            _pressed={{ bg: "red.100" }}
+            _text={{ color: "red.500", fontWeight: "bold" }}
             px="3"
             py="2"
             mr="2">
