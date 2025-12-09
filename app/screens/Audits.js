@@ -74,7 +74,6 @@ const Audits = ({ route, navigation }) => {
               />
             }
             variant="ghost"
-            _pressed={{ bg: "red.100" }}
             _text={{ color: "red.500", fontWeight: "bold" }}
             px="3"
             py="2"
