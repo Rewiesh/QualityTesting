@@ -29,7 +29,7 @@ import {
   TextArea,
   Icon,
 } from "native-base";
-import { View, StyleSheet, TextInput } from "react-native";
+import { View, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import Signature from "react-native-signature-canvas";
 import RNFS from "react-native-fs";
@@ -533,30 +533,20 @@ const AuditDetails = ({ route, navigation }) => {
   const renderAddPersonButton = () => {
     navigation.setOptions({
       headerRight: () => (
-        <Button
+        <TouchableOpacity
           onPress={() =>
             navigation.navigate("Aanwezig bij Audit", { AuditId: AuditId })
           }
-          startIcon={
-            <Icon
-              as={MaterialIcons}
-              name="person-add"
-              size="xl"
-              color="white"
-            />
-          }
-          variant="ghost"
-          _pressed={{
-            bg: "white:alpha.20",
-          }}
-          _text={{
-            color: "white",
-            fontSize: "md",
-          }}
-          px="3"
-          py="2"
+          style={{ marginRight: 10 }}
           accessibilityLabel="Add Person"
-        ></Button>
+        >
+          <Icon
+            as={MaterialIcons}
+            name="person-add"
+            size="xl"
+            color="white"
+          />
+        </TouchableOpacity>
       ),
     });
   };
