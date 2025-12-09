@@ -73,8 +73,8 @@ const Audits = ({ route, navigation }) => {
                 color="white"
               />
             }
-            backgroundColor="red.500"
-            _pressed={{ bg: 'red.600' }}
+            variant="ghost"
+            _pressed={{ bg: "white:alpha.20" }}
             px="3"
             py="2"
             mr="2">

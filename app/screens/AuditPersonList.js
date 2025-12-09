@@ -3,9 +3,9 @@
 /* eslint-disable no-alert */
 /* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
-import React, {useState, useEffect, useCallback} from 'react';
-import {useIsFocused} from '@react-navigation/native';
-import {Alert} from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useIsFocused } from '@react-navigation/native';
+import { Alert } from 'react-native';
 import {
   Box,
   Button,
@@ -21,20 +21,20 @@ import {
   Input,
   FormControl,
 } from 'native-base';
-import {ShowToast} from '../services/Util';
+import { ShowToast } from '../services/Util';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import * as database from '../services/database/database1';
 
 
-const AuditPersonList = ({route, navigation}) => {
+const AuditPersonList = ({ route, navigation }) => {
   const isFocused = useIsFocused();
   const theme = useTheme();
-  const {AuditId} = route.params;
+  const { AuditId } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
   const [clients, setClients] = useState([]);
   const [nameClient, setNameClient] = useState('');
-  const [changingClient, setChangingClient] = useState(null);  
+  const [changingClient, setChangingClient] = useState(null);
 
   const backgroundColor = useColorModeValue(
     'coolGray.50',
@@ -67,7 +67,7 @@ const AuditPersonList = ({route, navigation}) => {
         console.error('Failed to fetch clients:', error);
         Alert.alert('Failed to load clients.', error.message);
       });
-  }, [AuditId]);  
+  }, [AuditId]);
 
   const saveClient = () => {
     console.log('PresentClients : ' + JSON.stringify(clients));
@@ -87,18 +87,18 @@ const AuditPersonList = ({route, navigation}) => {
         console.error('Error saving client:', error);
         Alert.alert('Error', error.message);
       });
-  };  
+  };
 
   const editClient = client => {
     setModalVisible(true);
     setChangingClient(client);
     setNameClient(client.name);
-  }; 
+  };
 
   const deletePresentClient = client => {
     Alert.alert(
-      'Bevestig Verwijdering', 
-      'Weet u zeker dat u deze klant wilt verwijderen?', 
+      'Bevestig Verwijdering',
+      'Weet u zeker dat u deze klant wilt verwijderen?',
       [
         {
           text: 'Annuleren', // Cancel
@@ -116,7 +116,7 @@ const AuditPersonList = ({route, navigation}) => {
               await database.setAuditUnsaved(AuditId, true);
               ShowToast({
                 status: 'success',
-                message: 'Klant succesvol verwijderd.', 
+                message: 'Klant succesvol verwijderd.',
               });
             } catch (error) {
               console.error('Error deleting client:', error);
@@ -129,9 +129,9 @@ const AuditPersonList = ({route, navigation}) => {
           style: 'destructive',
         },
       ],
-      {cancelable: false},
+      { cancelable: false },
     );
-  };  
+  };
 
   const renderAddPersonButton = () => {
     navigation.setOptions({
@@ -141,9 +141,9 @@ const AuditPersonList = ({route, navigation}) => {
           startIcon={
             <Icon as={MaterialIcons} name="add" size="xl" color="white" />
           }
-          backgroundColor={btnColor}
+          variant="ghost"
           _pressed={{
-            bg: theme.colors.fdis[500],
+            bg: "white:alpha.20",
           }}
           _text={{
             color: 'white',
@@ -156,9 +156,9 @@ const AuditPersonList = ({route, navigation}) => {
     });
   };
 
-  const renderPresentClientRow = ({item}) => (
+  const renderPresentClientRow = ({ item }) => (
     <Pressable onPress={() => editClient(item)}>
-      {({isHovered, isPressed}) => (
+      {({ isHovered, isPressed }) => (
         <Box
           borderBottomWidth="1"
           py="3"
@@ -166,14 +166,14 @@ const AuditPersonList = ({route, navigation}) => {
           bg={isPressed ? 'coolGray.200' : 'coolGray.100'}
           px="4"
           rounded="md"
-          style={{transform: [{scale: isPressed ? 0.96 : 1}]}}>
+          style={{ transform: [{ scale: isPressed ? 0.96 : 1 }] }}>
           <HStack justifyContent="space-between" alignItems="center">
             <VStack space={1}>
               <Text
                 bold
                 color="coolGray.800"
                 fontSize="md"
-                _dark={{color: 'warmGray.200'}}>
+                _dark={{ color: 'warmGray.200' }}>
                 {item.name}
               </Text>
             </VStack>
@@ -189,7 +189,7 @@ const AuditPersonList = ({route, navigation}) => {
         </Box>
       )}
     </Pressable>
-  );  
+  );
 
   return (
     <Box flex={1}>
@@ -197,7 +197,7 @@ const AuditPersonList = ({route, navigation}) => {
         data={clients}
         renderItem={renderPresentClientRow}
         keyExtractor={item => item.id.toString()}
-        contentContainerStyle={{paddingBottom: 120}}
+        contentContainerStyle={{ paddingBottom: 120 }}
       />
       <RenderClientModal
         isOpen={modalVisible}
@@ -242,7 +242,7 @@ const RenderClientModal = ({
           <Button
             onPress={save}
             bg={btnColor}
-            _text={{color: 'white'}}
+            _text={{ color: 'white' }}
             isDisabled={!value.trim()}>
             Opslaan
           </Button>
