@@ -3,18 +3,19 @@
 /* eslint-disable prettier/prettier */
 import React, { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import Share from 'react-native-share';
 import {
     Box,
     VStack,
     Text,
-    Heading,
     Button,
     HStack,
     ScrollView,
-    useTheme,
     useColorModeValue,
+    Center,
+    Icon,
+    Pressable,
 } from 'native-base';
 import RNFS from 'react-native-fs';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -23,9 +24,12 @@ import userManager from '../services/UserManager';
 import { uploadAuditData, uploadAuditImage } from '../services/api/newAPI';
 
 const FailedUploads = ({ navigation }) => {
-    const theme = useTheme();
     const [failedAudits, setFailedAudits] = useState([]);
     const [loading, setLoading] = useState(false);
+
+    // Modern UI Colors
+    const bgMain = useColorModeValue('coolGray.100', 'gray.900');
+    const cardBg = useColorModeValue('white', 'gray.800');
 
     useFocusEffect(
         useCallback(() => {
@@ -282,108 +286,154 @@ const FailedUploads = ({ navigation }) => {
         );
     };
 
-    const cardBackgroundColor = useColorModeValue(
-        'gray.100',
-        theme.colors.fdis[900],
+    // Section Header
+    const renderHeader = () => (
+        <Box px="4" pt="4" pb="2">
+            <HStack justifyContent="space-between" alignItems="center">
+                <Text fontSize="xs" fontWeight="bold" color="gray.500" letterSpacing="lg">
+                    MISLUKTE UPLOADS
+                </Text>
+                <Box bg={failedAudits.length > 0 ? "red.100" : "green.100"} px="3" py="1" rounded="full">
+                    <Text fontSize="xs" fontWeight="bold" color={failedAudits.length > 0 ? "red.600" : "green.600"}>
+                        {failedAudits.length} items
+                    </Text>
+                </Box>
+            </HStack>
+        </Box>
     );
-    const textColor = useColorModeValue('black', 'white');
-    const listBackgroundColor = useColorModeValue(
-        'white',
-        theme.colors.fdis[800],
+
+    // Empty State
+    const renderEmptyState = () => (
+        <Center flex={1} py="20">
+            <VStack alignItems="center" space={4}>
+                <Center bg="green.100" size="20" rounded="full">
+                    <Icon as={MaterialIcons} name="check-circle" size="4xl" color="green.500" />
+                </Center>
+                <VStack alignItems="center" space={1}>
+                    <Text fontSize="lg" fontWeight="bold" color="coolGray.800">
+                        Alles Gesynchroniseerd!
+                    </Text>
+                    <Text fontSize="sm" color="coolGray.500" textAlign="center" px="8">
+                        Alle audits zijn succesvol geupload naar de server.
+                    </Text>
+                </VStack>
+            </VStack>
+        </Center>
+    );
+
+    // Failed Audit Card
+    const renderAuditCard = (audit) => (
+        <Box
+            key={audit.Id}
+            bg={cardBg}
+            mx="4"
+            my="2"
+            rounded="2xl"
+            shadow={2}
+            overflow="hidden"
+        >
+            {/* Card Header with Error Icon */}
+            <HStack bg="red.50" px="4" py="3" alignItems="center" justifyContent="space-between">
+                <HStack alignItems="center" space={3}>
+                    <Center bg="red.100" size="10" rounded="full">
+                        <Icon as={MaterialIcons} name="error-outline" size="md" color="red.600" />
+                    </Center>
+                    <VStack>
+                        <Text fontSize="md" fontWeight="bold" color="coolGray.800">
+                            {audit.AuditCode}
+                        </Text>
+                        <Text fontSize="xs" color="coolGray.500">
+                            {audit.NameClient}
+                        </Text>
+                    </VStack>
+                </HStack>
+                <Icon as={MaterialIcons} name="chevron-right" size="sm" color="coolGray.300" />
+            </HStack>
+
+            {/* Error Message */}
+            <Box px="4" py="3">
+                <Box bg="red.50" p="3" rounded="xl">
+                    <HStack space={2} alignItems="flex-start">
+                        <Icon as={MaterialIcons} name="info" size="xs" color="red.500" mt="0.5" />
+                        <Text fontSize="xs" color="red.700" flex={1}>
+                            {audit.upload_error}
+                        </Text>
+                    </HStack>
+                </Box>
+
+                {/* Timestamp */}
+                <HStack alignItems="center" space={1} mt="3">
+                    <Icon as={MaterialIcons} name="schedule" size="xs" color="coolGray.400" />
+                    <Text fontSize="xs" color="coolGray.400">
+                        Laatste poging: {new Date(audit.last_upload_attempt).toLocaleString('nl-NL')}
+                    </Text>
+                </HStack>
+            </Box>
+
+            {/* Action Buttons */}
+            <HStack px="4" pb="4" space={2}>
+                <Button
+                    flex={1}
+                    size="sm"
+                    bg="fdis.500"
+                    _pressed={{ bg: "fdis.600" }}
+                    rounded="xl"
+                    onPress={() => retryUpload(audit)}
+                    isLoading={loading}
+                    leftIcon={<Icon as={MaterialIcons} name="refresh" size="sm" color="white" />}
+                >
+                    Opnieuw
+                </Button>
+
+                <Button
+                    flex={1}
+                    size="sm"
+                    variant="outline"
+                    borderColor="orange.400"
+                    _text={{ color: "orange.500" }}
+                    _pressed={{ bg: "orange.50" }}
+                    rounded="xl"
+                    onPress={() => exportToJSON(audit)}
+                    isLoading={loading}
+                    leftIcon={<Icon as={MaterialIcons} name="share" size="sm" color="orange.500" />}
+                >
+                    Export
+                </Button>
+
+                <Pressable onPress={() => handleDelete(audit)}>
+                    {({ isPressed }) => (
+                        <Center
+                            bg={isPressed ? "red.100" : "red.50"}
+                            size="10"
+                            rounded="xl"
+                            style={{ transform: [{ scale: isPressed ? 0.95 : 1 }] }}
+                        >
+                            <Icon as={MaterialIcons} name="delete-outline" size="md" color="red.500" />
+                        </Center>
+                    )}
+                </Pressable>
+            </HStack>
+        </Box>
     );
 
     return (
         <ScrollView
             flex={1}
-            bg={listBackgroundColor}
-            p={2}
-            _contentContainerStyle={{ paddingBottom: 120 }}>
-            <VStack space={3}>
-                <Heading size="md" color={textColor}>
-                    Mislukte Uploads ({failedAudits.length})
-                </Heading>
-
-                {failedAudits.length === 0 ? (
-                    <Box bg="green.100" p={4} rounded="md">
-                        <Text color="green.700">
-                            ✅ Alle audits zijn succesvol geupload!
-                        </Text>
-                    </Box>
-                ) : (
-                    failedAudits.map(audit => (
-                        <Box
-                            key={audit.Id}
-                            bg={cardBackgroundColor}
-                            p={3}
-                            rounded="md"
-                            shadow={2}>
-                            <VStack space={2}>
-                                <HStack justifyContent="space-between">
-                                    <VStack>
-                                        <Text bold fontSize="md" color={textColor}>
-                                            {audit.AuditCode}
-                                        </Text>
-                                        <Text fontSize="xs" color="gray.500">
-                                            {audit.NameClient}
-                                        </Text>
-                                    </VStack>
-                                    <MaterialIcons name="error" size={24} color="red" />
-                                </HStack>
-
-                                <Box bg="red.100" p={2} rounded="sm">
-                                    <Text fontSize="xs" color="red.700">
-                                        {audit.upload_error}
-                                    </Text>
-                                </Box>
-
-                                <Text fontSize="xs" color="gray.500">
-                                    Laatste poging:{' '}
-                                    {new Date(audit.last_upload_attempt).toLocaleString('nl-NL')}
-                                </Text>
-
-                                <HStack space={2} mt={2}>
-                                    <Button
-                                        size="sm"
-                                        flex={1}
-                                        colorScheme="blue"
-                                        onPress={() => retryUpload(audit)}
-                                        isLoading={loading}
-                                        startIcon={
-                                            <MaterialIcons name="refresh" size={16} color="white" />
-                                        }>
-                                        Resend
-                                    </Button>
-
-                                    <Button
-                                        size="sm"
-                                        flex={1}
-                                        colorScheme="orange"
-                                        variant="outline"
-                                        onPress={() => exportToJSON(audit)}
-                                        isLoading={loading}
-                                        startIcon={
-                                            <MaterialIcons name="share" size={16} color="orange" />
-                                        }>
-                                        Export
-                                    </Button>
-
-                                    <Button
-                                        size="sm"
-                                        flex={0.3}
-                                        colorScheme="red"
-                                        variant="outline"
-                                        onPress={() => handleDelete(audit)}
-                                        isLoading={loading}
-                                        startIcon={
-                                            <MaterialIcons name="delete" size={18} color="#d32f2f" /> // red.700 roughly
-                                        }
-                                    />
-                                </HStack>
-                            </VStack>
-                        </Box>
-                    ))
-                )}
-            </VStack>
+            bg={bgMain}
+            _contentContainerStyle={{ 
+                flexGrow: 1,
+                paddingBottom: 120 
+            }}
+        >
+            {renderHeader()}
+            
+            {failedAudits.length === 0 ? (
+                renderEmptyState()
+            ) : (
+                <VStack>
+                    {failedAudits.map(audit => renderAuditCard(audit))}
+                </VStack>
+            )}
         </ScrollView>
     );
 };

@@ -63,23 +63,14 @@ const AuditDetails = ({ route, navigation }) => {
   const [uploadErrorInfo, setUploadErrorInfo] = useState({});
   const [currentKPI, setCurrentKPI] = useState({});
   const [remark, setRemark] = useState("");
-  const backgroundColor = useColorModeValue(
-    "coolGray.50",
-    theme.colors.fdis[1100],
-  ); // Adjust for light and dark modes
-  const cardBackgroundColor = useColorModeValue(
-    "gray.100",
-    theme.colors.fdis[900],
-  );
-  const headingTextColor = useColorModeValue("coolGray.800", "black");
-  const textColor = useColorModeValue("coolGray.800", "black");
+  // Modern UI Colors
+  const bgMain = useColorModeValue("coolGray.100", "gray.900");
+  const cardBg = useColorModeValue("white", "gray.800");
+  const headingTextColor = useColorModeValue("coolGray.800", "white");
+  const textColor = useColorModeValue("coolGray.800", "white");
   const btnColor = useColorModeValue(
     theme.colors.fdis[400],
     theme.colors.fdis[600],
-  );
-  const listBackgroundColor = useColorModeValue(
-    "white",
-    theme.colors.fdis[800],
   );
   const refreshingIndicatorColor = useColorModeValue(
     theme.colors.fdis[400],
@@ -563,17 +554,17 @@ const AuditDetails = ({ route, navigation }) => {
 
   if (loading) {
     return (
-      <Center flex={1} bg={listBackgroundColor}>
-        <HStack space={2} justifyContent="center" alignItems="center">
+      <Center flex={1} bg={bgMain}>
+        <VStack space={4} alignItems="center" px="8">
           <Spinner
             size="lg"
             color={refreshingIndicatorColor}
-            accessibilityLabel="Haal actieve klanten op"
+            accessibilityLabel="Laden..."
           />
-          <Heading color={textColor} fontSize="md">
+          <Text color={textColor} fontSize="md" textAlign="center">
             {loadingText}
-          </Heading>
-        </HStack>
+          </Text>
+        </VStack>
       </Center>
     );
   }
@@ -745,301 +736,368 @@ const AuditDetails = ({ route, navigation }) => {
     <ScrollView
       ref={scrollViewRef}
       flex={1}
-      bg={backgroundColor}
+      bg={bgMain}
       _contentContainerStyle={{
-        p: "2",
-        mb: "4",
-        pb: "120", // Adjust this value to the height of your footer
+        p: "4",
+        pb: "120",
       }}
     >
+      {/* Audit Info Section */}
       <AuditSection
         audit={audit}
-        cardBackgroundColor={cardBackgroundColor}
+        cardBg={cardBg}
         headingTextColor={headingTextColor}
         textColor={textColor}
       />
-      <VStack
-        bg={cardBackgroundColor}
-        space={2}
-        p="1"
-        shadow="1"
-        mt={2}
-        rounded={"xs"}
-      >
-        <Heading fontSize="lg" bold mt="1" color={headingTextColor} p="2">
-          Categories (Geteld/Minimum)
-        </Heading>
-        {categories.map((category, index) => (
-          <CategoryCard
-            key={index}
-            category={category}
-            cardBackgroundColor={cardBackgroundColor}
-          />
-        ))}
-      </VStack>
-      <VStack
-        bg={cardBackgroundColor}
-        space={2}
-        p="1"
-        shadow="1"
-        mt={2}
-        rounded={"xs"}
-      >
-        <Heading fontSize="lg" bold mt="1" color={headingTextColor}>
-          KPI-metrieken
-        </Heading>
-        {kpiElements.map((kpi, index) => (
-          <KpiRow
-            key={index}
-            kpi={kpi}
-            onChange={handleKpiValueChange}
-            cardBackgroundColor={cardBackgroundColor}
-            openRemarkModal={() => openRemarkModal(kpi)}
-          />
-        ))}
-      </VStack>
+
+      {/* Categories Section */}
+      <Box bg={cardBg} rounded="2xl" shadow={2} mt={4} overflow="hidden">
+        <Box px="4" py="3" borderBottomWidth={1} borderColor="gray.100">
+          <HStack alignItems="center" space={2}>
+            <Center bg="blue.100" size="8" rounded="lg">
+              <Icon as={MaterialIcons} name="category" size="sm" color="blue.600" />
+            </Center>
+            <Text fontSize="md" fontWeight="bold" color={headingTextColor}>
+              Categories
+            </Text>
+            <Text fontSize="xs" color="gray.400">(Geteld/Minimum)</Text>
+          </HStack>
+        </Box>
+        <VStack>
+          {categories.map((category, index) => (
+            <CategoryCard
+              key={index}
+              category={category}
+              isLast={index === categories.length - 1}
+            />
+          ))}
+        </VStack>
+      </Box>
+
+      {/* KPI Section */}
+      <Box bg={cardBg} rounded="2xl" shadow={2} mt={4} overflow="hidden">
+        <Box px="4" py="3" borderBottomWidth={1} borderColor="gray.100">
+          <HStack alignItems="center" space={2}>
+            <Center bg="purple.100" size="8" rounded="lg">
+              <Icon as={MaterialIcons} name="analytics" size="sm" color="purple.600" />
+            </Center>
+            <Text fontSize="md" fontWeight="bold" color={headingTextColor}>
+              KPI-metrieken
+            </Text>
+          </HStack>
+        </Box>
+        <VStack>
+          {kpiElements.map((kpi, index) => (
+            <KpiRow
+              key={index}
+              kpi={kpi}
+              onChange={handleKpiValueChange}
+              openRemarkModal={() => openRemarkModal(kpi)}
+              isLast={index === kpiElements.length - 1}
+            />
+          ))}
+        </VStack>
+      </Box>
+
       <RemarkModal2
         btnColor={btnColor}
         isOpen={remarkModalVisible}
         onClose={() => setRemarkModalVisible(false)}
         value={remark}
-      // onChangeText={setRemark}
-      // currentKPI={currentKPI}
-      // setCurrentKPI={setCurrentKPI}
-      // saveRemark={saveRemark}
       />
+
+      {/* Start/Resume Button */}
       <Button
-        mt="2"
-        bg={useColorModeValue(theme.colors.fdis[400], theme.colors.fdis[600])}
-        _text={{ color: "white" }}
+        mt="4"
+        size="lg"
+        bg="fdis.500"
+        _pressed={{ bg: "fdis.600" }}
+        _text={{ color: "white", fontWeight: "bold" }}
+        rounded="xl"
+        leftIcon={<Icon as={MaterialIcons} name="play-arrow" size="md" color="white" />}
         onPress={() =>
           onStartResumeClick({ AuditId, navigation, audit, user, clientName })
         }
       >
         Starten/Hervatten
       </Button>
-      <VStack
-        space={2}
-        bg={cardBackgroundColor}
-        p="1"
-        shadow="1"
-        mt={2}
-        rounded={"xs"}
+
+      {/* Signature Section */}
+      <Box bg={cardBg} rounded="2xl" shadow={2} mt={4} overflow="hidden">
+        <Box px="4" py="3" borderBottomWidth={1} borderColor="gray.100">
+          <HStack alignItems="center" space={2}>
+            <Center bg="green.100" size="8" rounded="lg">
+              <Icon as={MaterialIcons} name="draw" size="sm" color="green.600" />
+            </Center>
+            <Text fontSize="md" fontWeight="bold" color={headingTextColor}>
+              Handtekening
+            </Text>
+            {signatureSaved && (
+              <Box bg="green.100" px="2" py="0.5" rounded="full" ml="auto">
+                <Text fontSize="2xs" fontWeight="bold" color="green.600">Opgeslagen</Text>
+              </Box>
+            )}
+          </HStack>
+        </Box>
+        
+        <Box p="4">
+          {signature ? (
+            <Box bg="gray.50" rounded="xl" overflow="hidden" borderWidth={1} borderColor="gray.200">
+              <Image
+                alt="signature"
+                resizeMode="contain"
+                source={{ uri: signature }}
+                style={{
+                  width: "100%",
+                  height: 120,
+                  backgroundColor: "white",
+                }}
+              />
+            </Box>
+          ) : (
+            <Box bg="gray.50" rounded="xl" overflow="hidden" borderWidth={1} borderColor="gray.200">
+              <View
+                style={{ height: 120 }}
+                onTouchStart={() => disableScroll()}
+                onTouchEnd={() => enableScroll()}
+                onTouchCancel={() => enableScroll()}
+              >
+                <Signature
+                  ref={signatureRef}
+                  onOK={handleSignature}
+                  onBegin={disableScroll}
+                  onEnd={enableScroll}
+                  webStyle={signatureStyle}
+                />
+              </View>
+            </Box>
+          )}
+
+          <HStack space={3} mt="4">
+            <Button
+              flex={1}
+              variant="outline"
+              borderColor="gray.300"
+              _text={{ color: "gray.600" }}
+              _pressed={{ bg: "gray.100" }}
+              rounded="xl"
+              leftIcon={<Icon as={MaterialIcons} name="clear" size="sm" color="gray.500" />}
+              onPress={handleClearSignature}
+            >
+              Wissen
+            </Button>
+            <Button
+              flex={1}
+              bg="fdis.500"
+              _pressed={{ bg: "fdis.600" }}
+              _text={{ color: "white" }}
+              rounded="xl"
+              leftIcon={<Icon as={MaterialIcons} name="save" size="sm" color="white" />}
+              onPress={saveSignature}
+              isDisabled={!!signature}
+            >
+              Opslaan
+            </Button>
+          </HStack>
+        </Box>
+      </Box>
+
+      {/* Upload Button */}
+      <Button
+        mt="4"
+        size="lg"
+        bg={isUploadReady() ? "green.500" : "gray.300"}
+        _pressed={{ bg: isUploadReady() ? "green.600" : "gray.300" }}
+        _text={{ color: "white", fontWeight: "bold" }}
+        rounded="xl"
+        leftIcon={<Icon as={MaterialIcons} name="cloud-upload" size="md" color="white" />}
+        isDisabled={!isUploadReady()}
+        onPress={uncomplete}
       >
-        {signature ? (
-          <Image
-            alt="signature"
-            resizeMode="contain"
-            source={{ uri: signature }}
-            style={{
-              width: "100%",
-              height: 120,
-              borderWidth: 1,
-              borderColor: "#ccc",
-              borderRadius: 5,
-              overflow: "hidden", // Ensure the image does not leak outside the container
-              backgroundColor: "white", // Adds background color to differentiate from empty state
-            }}
-          />
-        ) : (
-          <View
-            style={{ height: 120, marginTop: 5, overflow: "hidden" }}
-            onTouchStart={() => disableScroll()}
-            onTouchEnd={() => enableScroll()}
-            onTouchCancel={() => enableScroll()}
-          >
-            <Signature
-              ref={signatureRef}
-              onOK={handleSignature}
-              onBegin={disableScroll}
-              onEnd={enableScroll}
-              webStyle={signatureStyle}
-            />
-          </View>
-        )}
-        <HStack flex={1} space={2}>
-          <Button
-            flex={1}
-            mt="2"
-            onPress={handleClearSignature}
-            bg={useColorModeValue(
-              theme.colors.fdis[400],
-              theme.colors.fdis[600],
-            )}
-            _text={{ color: "white" }}
-          >
-            Handtekening wissen
-          </Button>
-          <Button
-            flex={1}
-            mt="2"
-            onPress={saveSignature}
-            bg={useColorModeValue(
-              theme.colors.fdis[400],
-              theme.colors.fdis[600],
-            )}
-            _text={{ color: "white" }}
-            isDisabled={!!signature}
-          >
-            Handtekening opslaan
-          </Button>
-        </HStack>
-        <UploadModal
-          isOpen={uploadModalVisible}
-          onClose={() => setUploadModalVisible(false)}
-          onConfirm={() => {
-            console.log("Confirm upload");
-            getFormsToSubmit();
-          }}
-        />
-        <UploadErrorDialog
-          visible={uploadErrorDialogVisible}
-          info={uploadErrorInfo}
-          onRetry={() => {
-            setUploadErrorDialogVisible(false);
-            getFormsToSubmit();
-          }}
-          onClose={() => setUploadErrorDialogVisible(false)}
-        />
-        <Button
-          mt="2"
-          isDisabled={!isUploadReady()}
-          onPress={uncomplete}
-          success={true}
-          bg={useColorModeValue(theme.colors.fdis[400], theme.colors.fdis[600])}
-          _text={{ color: "white" }}
-        >
-          Uploaden
-        </Button>
-      </VStack>
+        Uploaden
+      </Button>
+
+      <UploadModal
+        isOpen={uploadModalVisible}
+        onClose={() => setUploadModalVisible(false)}
+        onConfirm={() => {
+          console.log("Confirm upload");
+          getFormsToSubmit();
+        }}
+      />
+      <UploadErrorDialog
+        visible={uploadErrorDialogVisible}
+        info={uploadErrorInfo}
+        onRetry={() => {
+          setUploadErrorDialogVisible(false);
+          getFormsToSubmit();
+        }}
+        onClose={() => setUploadErrorDialogVisible(false)}
+      />
     </ScrollView>
   );
 };
 
 const AuditSection = ({
   audit,
-  cardBackgroundColor,
+  cardBg,
   headingTextColor,
   textColor,
-}) => (
-  <VStack space={2} bg={cardBackgroundColor} p="2" rounded="xs" shadow="1">
-    <Heading size="md" bold color={headingTextColor}>
-      Informatie
-    </Heading>
-    <VStack
-      space={0}
-      divider={<Box borderBottomWidth="1" borderColor="gray.300" />}
-    >
-      {[
-        { label: "Klant", value: audit.NameClient },
-        { label: "Code", value: audit.AuditCode },
-        { label: "Audit soort", value: audit.Type },
-        { label: "Locatie", value: audit.LocationClient },
-      ].map((item, index) => (
-        <HStack
-          key={index}
-          justifyContent="space-between"
-          alignItems="center"
-          bg={index % 2 === 0 ? "gray.50" : "white"}
-        >
-          <Box flex={1} p="2" borderRightWidth="1" borderColor="gray.200">
-            <Text fontWeight="medium" color={textColor}>
-              {item.label}
-            </Text>
-          </Box>
-          <Box flex={1} p="2">
-            <Text textAlign="left" color={textColor}>
-              {item.value}
-            </Text>
-          </Box>
-        </HStack>
-      ))}
-    </VStack>
-  </VStack>
-);
-
-const CategoryCard = ({ category, cardBackgroundColor, key }) => {
-  const isFail = (category.CounterElements || 0) < (category.Min || 0);
-  const textColor = useColorModeValue(
-    isFail ? "red.500" : "green.500", // Bright colors for text in light mode
-    isFail ? "red.500" : "green.500", // Suitable text colors for dark mode
-  );
-  const celColor = "gray.50";
-  const borderColor = useColorModeValue("gray.300", "gray.600"); // Adaptive border color
+}) => {
+  const infoItems = [
+    { label: "Klant", value: audit.NameClient, icon: "business" },
+    { label: "Code", value: audit.AuditCode, icon: "tag" },
+    { label: "Type", value: audit.Type, icon: "assignment" },
+    { label: "Locatie", value: audit.LocationClient, icon: "location-on" },
+  ];
 
   return (
-    <Box
-      borderBottomWidth="1"
-      borderColor={borderColor} // Adjust borderColor for dark mode
-      bg={cardBackgroundColor}
-    >
-      <HStack space={0}>
-        <Box
-          flex={1}
-          borderRightWidth="1"
-          borderColor={useColorModeValue("gray.200", "gray.500")} // Adjust borderColor for dark mode
-          p="2"
-          bg={celColor}
-        >
-          <Text color={textColor} textAlign="left" fontWeight="bold">
-            {category.CategoryValue}
+    <Box bg={cardBg} rounded="2xl" shadow={2} overflow="hidden">
+      <Box px="4" py="3" borderBottomWidth={1} borderColor="gray.100">
+        <HStack alignItems="center" space={2}>
+          <Center bg="fdis.100" size="8" rounded="lg">
+            <Icon as={MaterialIcons} name="info" size="sm" color="fdis.600" />
+          </Center>
+          <Text fontSize="md" fontWeight="bold" color={headingTextColor}>
+            Audit Informatie
           </Text>
-        </Box>
-        <Box flex={1} p="2" bg={celColor}>
-          <Text key={key} color={textColor} textAlign="left" fontWeight="bold">
-            {category.CounterElements || 0}/{category.Min}
-          </Text>
-        </Box>
-      </HStack>
+        </HStack>
+      </Box>
+      <VStack px="4" py="2">
+        {infoItems.map((item, index) => (
+          <HStack
+            key={index}
+            py="3"
+            alignItems="center"
+            borderBottomWidth={index < infoItems.length - 1 ? 1 : 0}
+            borderColor="gray.100"
+          >
+            <Center bg="gray.100" size="8" rounded="lg" mr="3">
+              <Icon as={MaterialIcons} name={item.icon} size="xs" color="gray.500" />
+            </Center>
+            <VStack flex={1}>
+              <Text fontSize="xs" color="gray.400">{item.label}</Text>
+              <Text fontSize="sm" fontWeight="medium" color={textColor}>
+                {item.value || "-"}
+              </Text>
+            </VStack>
+          </HStack>
+        ))}
+      </VStack>
     </Box>
   );
 };
 
-const KpiRow = ({ kpi, onChange, openRemarkModal, cardBackgroundColor }) => {
-  const textColor = useColorModeValue("coolGray.800", "white"); // Text color
-  const borderColor = useColorModeValue("gray.300", "white"); // Border color
+const CategoryCard = ({ category, isLast }) => {
+  const count = category.CounterElements || 0;
+  const min = category.Min || 0;
+  const isFail = count < min;
+  const isComplete = count >= min;
+
+  return (
+    <HStack
+      px="4"
+      py="3"
+      alignItems="center"
+      borderBottomWidth={isLast ? 0 : 1}
+      borderColor="gray.100"
+    >
+      <VStack flex={1}>
+        <Text fontSize="sm" fontWeight="medium" color="coolGray.800">
+          {category.CategoryValue}
+        </Text>
+      </VStack>
+      <HStack alignItems="center" space={2}>
+        <Box
+          bg={isComplete ? "green.100" : "red.100"}
+          px="3"
+          py="1"
+          rounded="full"
+        >
+          <Text
+            fontSize="sm"
+            fontWeight="bold"
+            color={isComplete ? "green.600" : "red.600"}
+          >
+            {count}/{min}
+          </Text>
+        </Box>
+        <Icon
+          as={MaterialIcons}
+          name={isComplete ? "check-circle" : "error"}
+          size="sm"
+          color={isComplete ? "green.500" : "red.500"}
+        />
+      </HStack>
+    </HStack>
+  );
+};
+
+const KpiRow = ({ kpi, onChange, openRemarkModal, isLast }) => {
+  const getValueColor = (value) => {
+    switch (value) {
+      case "V": return { bg: "green.100", color: "green.600" };
+      case "O": return { bg: "orange.100", color: "orange.600" };
+      case "N": return { bg: "red.100", color: "red.600" };
+      case "G": return { bg: "gray.100", color: "gray.600" };
+      default: return { bg: "gray.100", color: "gray.500" };
+    }
+  };
+
+  const valueStyle = getValueColor(kpi.ElementValue);
+
   return (
     <Box
-      bg={cardBackgroundColor}
-      p="2"
-      borderBottomWidth="1"
-      borderColor={borderColor}
+      px="4"
+      py="3"
+      borderBottomWidth={isLast ? 0 : 1}
+      borderColor="gray.100"
     >
-      <VStack space={2}>
-        <Text fontWeight="bold" color={textColor}>
-          {kpi.ElementLabel}
-        </Text>
-        <HStack space={2} alignItems="center" flex={1}>
+      <HStack alignItems="center" space={3}>
+        <VStack flex={1}>
+          <Text fontSize="sm" fontWeight="medium" color="coolGray.800">
+            {kpi.ElementLabel}
+          </Text>
+        </VStack>
+        <HStack alignItems="center" space={2}>
           <Select
-            borderColor={borderColor}
             selectedValue={kpi.ElementValue}
-            flex={1}
+            minWidth="80"
             accessibilityLabel="Kies waarde"
-            placeholder="Kies waarde"
+            placeholder="Kies"
+            bg={valueStyle.bg}
+            borderWidth={0}
+            rounded="lg"
             _selectedItem={{
-              endIcon: <CheckIcon size="5" />,
+              bg: valueStyle.bg,
+              endIcon: <CheckIcon size="4" />,
             }}
             onValueChange={value => onChange(kpi, kpi.elements_auditId, value)}
-            placeholderTextColor={useColorModeValue("gray.400", "gray.50")}
-            color={textColor}
-            dropdownIcon={<CheckIcon size="5" color={textColor} />}
+            fontSize="sm"
+            fontWeight="bold"
+            color={valueStyle.color}
           >
-            <Select.Item label="V" value="V" />
-            <Select.Item label="O" value="O" />
-            <Select.Item label="N" value="N" />
-            <Select.Item label="G" value="G" />
+            <Select.Item label="V - Voldoende" value="V" />
+            <Select.Item label="O - Onvoldoende" value="O" />
+            <Select.Item label="N - Niet van toepassing" value="N" />
+            <Select.Item label="G - Geen" value="G" />
           </Select>
           {kpi.ElementValue === "O" && (
             <Pressable onPress={openRemarkModal}>
-              <Image
-                source={require("../assets/images/baseline_note_black_24dp.png")}
-                alt="Comment"
-                size="xs"
-              />
+              {({ isPressed }) => (
+                <Center
+                  bg={isPressed ? "orange.200" : "orange.100"}
+                  size="10"
+                  rounded="lg"
+                  style={{ transform: [{ scale: isPressed ? 0.95 : 1 }] }}
+                >
+                  <Icon as={MaterialIcons} name="edit-note" size="sm" color="orange.600" />
+                </Center>
+              )}
             </Pressable>
           )}
         </HStack>
-      </VStack>
+      </HStack>
     </Box>
   );
 };
