@@ -39,7 +39,7 @@ const Audits = ({ route, navigation }) => {
     useCallback(() => {
       const updateList = async () => {
         try {
-          const auditsData = await database.getAuditsOfClient(clientName);
+          const auditsData = await database.getAuditsOfClientWithStatus(clientName);
           const userData = await userManager.getCurrentUser();
           const failedAudits = await database.getFailedAudits();
           setAuditsList(auditsData);
@@ -97,23 +97,26 @@ const Audits = ({ route, navigation }) => {
     (audit.LocationClient && audit.LocationClient.toLowerCase().includes(searchText.toLowerCase()))
   );
 
-  // Get status info for audit
+  // Get status info for audit based on signature and form progress
   const getAuditStatus = audit => {
-    if (audit.isComplete) {
+    // Completed = has signature
+    if (audit.hasSignature === 1) {
       return { label: 'Completed', bg: 'green.100', color: 'green.700' };
     }
-    if (audit.isUnSaved === '*') {
+    // In Progress = has forms filled but no signature
+    if (audit.hasProgress === 1) {
       return { label: 'In Progress', bg: 'orange.100', color: 'orange.700' };
     }
+    // Draft = nothing filled yet
     return { label: 'Draft', bg: 'gray.200', color: 'gray.600' };
   };
 
   // Get icon and color based on status
   const getAuditIcon = audit => {
-    if (audit.isComplete) {
+    if (audit.hasSignature === 1) {
       return { name: 'check-circle', bg: 'green.100', color: 'green.600' };
     }
-    if (audit.isUnSaved === '*') {
+    if (audit.hasProgress === 1) {
       return { name: 'edit', bg: 'orange.100', color: 'orange.600' };
     }
     return { name: 'description', bg: 'blue.100', color: 'blue.600' };

@@ -557,6 +557,32 @@ const getAuditsOfClient = async NameClient => {
   }
 };
 
+// Get audits with status info (hasSignature, hasProgress)
+const getAuditsOfClientWithStatus = async NameClient => {
+  const sqlQuery = `
+    SELECT 
+      a.*,
+      CASE WHEN s.Signature IS NOT NULL THEN 1 ELSE 0 END as hasSignature,
+      CASE WHEN f.FormCount > 0 THEN 1 ELSE 0 END as hasProgress
+    FROM tb_audits a
+    LEFT JOIN tb_audit_signature s ON s.AuditCode = a.AuditCode
+    LEFT JOIN (
+      SELECT AuditId, COUNT(*) as FormCount 
+      FROM tb_form 
+      GROUP BY AuditId
+    ) f ON f.AuditId = a.Id
+    WHERE a.NameClient = ?
+  `;
+  try {
+    const results = await executeSelect(sqlQuery, [NameClient]);
+    console.log(`Audits with status retrieved for client ${NameClient}:`, results);
+    return results;
+  } catch (error) {
+    console.error("Error fetching audits with status for client:", NameClient, error);
+    throw error;
+  }
+};
+
 const getAuditDate = async AuditId => {
   const query = "SELECT * FROM tb_audits WHERE Id = ?";
   const params = [AuditId];
@@ -2052,6 +2078,7 @@ export {
   //getters
   getClients,
   getAuditsOfClient,
+  getAuditsOfClientWithStatus,
   getAuditById,
   getFailedAudits,
   getCompletedAudits,
