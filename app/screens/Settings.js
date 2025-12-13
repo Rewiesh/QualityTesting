@@ -183,7 +183,7 @@ const Settings = ({navigation}) => {
                   App Versie
                 </Text>
                 <Text fontSize="sm" color="coolGray.500">
-                  v1.0.0
+                  v1.3.0
                 </Text>
               </VStack>
             </HStack>
