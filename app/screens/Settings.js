@@ -3,43 +3,36 @@
 /* eslint-disable no-alert */
 /* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
-import {
-  TouchableOpacity,
-  SafeAreaView,
-  Alert,
-} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {Alert} from 'react-native';
 import {
   useTheme,
   Box,
   VStack,
   Text,
-  Image,
   Button,
   Icon,
   ScrollView,
-  useColorMode,
-  Switch,
   useColorModeValue,
+  HStack,
+  Center,
+  Pressable,
 } from 'native-base';
-import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
-import api from '../services/api/Api';
-// import {fetchUserActivity} from '../services/api/Api1';
 import { fetchUserActivity } from "../services/api/newAPI";
 import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-
 const Settings = ({navigation}) => {
   const theme = useTheme();
   const [userName, setUserName] = useState('--');
-  const [performedAuditsCount, setPerformedAuditsCount] = useState('');
-  const [lastClientName, setLastClientName] = useState('');
-  const [lastLocationName, setLastLocationName] = useState('');
-  const [picture, setPicture] = useState('');
-  const [selectedPicture, setSelectedPicture] = useState('');
-  const {colorMode, toggleColorMode} = useColorMode();
+  const [performedAuditsCount, setPerformedAuditsCount] = useState('0');
+  const [lastClientName, setLastClientName] = useState('-');
+  const [lastLocationName, setLastLocationName] = useState('-');
+
+  // Modern UI Colors
+  const bgMain = useColorModeValue('coolGray.100', 'gray.900');
+  const cardBg = useColorModeValue('white', 'gray.800');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -53,234 +46,215 @@ const Settings = ({navigation}) => {
           activity.data.lastClientLocationName,
         );
         const settings = await database.getSettings();
-        setPerformedAuditsCount(settings.auditExecuted);
-        setLastClientName(settings.lastClient);
-        setLastLocationName(settings.lastLocationVisited);
-        setPicture(settings.picture);
-        setSelectedPicture(getImageSource());
-        console.log('getImageSource() ' + getImageSource());
+        setPerformedAuditsCount(settings.auditExecuted || '0');
+        setLastClientName(settings.lastClient || '-');
+        setLastLocationName(settings.lastLocationVisited || '-');
       } catch (error) {
         console.log(error);
       }
-
-      console.log('performedAuditsCount => ' + performedAuditsCount);
-      console.log('performedAuditsCount => ' + lastClientName);
-      console.log('performedAuditsCount => ' + lastLocationName);
-      console.log('picture' + picture);
     };
 
     fetchUserData();
-  }, [picture]);
-
-
-  const getImageSource = () => {
-    console.log(' getImageSource ' + picture);
-    console.log(' {uri: picture} ' + {uri: picture});
-
-    if (picture != null) {
-      return {uri: picture};
-    } else {
-      return require('../assets/images/photo.png');
-    }
-  };  
-
-  const onSelectPicture = async picture => {
-    console.log('Selected file path:', picture);
-    await database.insertPicture(picture); // Update database
-    setPicture(picture); // Update local state to reflect new picture
-    setSelectedPicture(getImageSource);
-  };  
-
-  const updateUserSettings = async () => {
-    const userSettings = await database.getSettings();
-    const savedUserSettings = {
-      auditExecuted: '10',
-      lastClient: 'rew',
-      lastLocationVisited: 'rewiesh',
-      picture: 'null',
-    };
-    await database.insertSettings(
-      savedUserSettings.auditExecuted,
-      savedUserSettings.lastClient,
-      savedUserSettings.lastLocationVisited,
-    );
-    const settings = await database.getSettings();   
-    console.log('picture' + picture);
-
-    console.log(settings);
-  };
+  }, []);
 
   const logOffUser = () => {
-    Promise.all([userManager.logout(), database.clearSettings()]).then(() => {
-      navigation.navigate('Login');
-    });
-  };  
-  
+    Alert.alert(
+      'Uitloggen',
+      'Weet u zeker dat u wilt uitloggen?',
+      [
+        { text: 'Annuleren', style: 'cancel' },
+        {
+          text: 'Uitloggen',
+          style: 'destructive',
+          onPress: () => {
+            Promise.all([userManager.logout(), database.clearSettings()]).then(() => {
+              navigation.navigate('Login');
+            });
+          },
+        },
+      ],
+    );
+  };
+
+  // Get initials from username
+  const getInitials = (name) => {
+    if (!name || name === '--') return '?';
+    return name.substring(0, 2).toUpperCase();
+  };
+
   return (
-    <ScrollView bg={useColorModeValue('white', theme.colors.fdis[800])}>
-      <VStack space={5} alignItems="center" mt="4" mb="6">
-        {/* <PicturePicker
-          userName={userName}
-          onSelectPicture={onSelectPicture}
-          selectedPicture={selectedPicture}
-        /> */}
-        {/* <ThemeToggle
-          colorMode={colorMode}
-          toggleColorMode={toggleColorMode}
-          updateUserSettings={updateUserSettings}
-        /> */}
-        <SettingsOption
-          title="Uitgevoerde Audits"
-          description={`Totaal uitgevoerde audits: ${performedAuditsCount}`}
-        />
-        <SettingsOption
-          title="Laatste Klant"
-          description={`Meest recente klant: ${lastClientName}`}
-        />
-        <SettingsOption
-          title="Laatste Locatie"
-          description={`Laatst bezochte locatie: ${lastLocationName}`}
-        />
-        <Button
-          colorScheme="coolGray"
-          onPress={logOffUser}
-          startIcon={<Icon as={MaterialIcons} name="logout" size="sm" />}
-          bg={useColorModeValue(theme.colors.fdis[400], theme.colors.fdis[600])}
-          _text={{color: 'white'}}>
-          Log Out
-        </Button>
-      </VStack>
+    <ScrollView flex={1} bg={bgMain} _contentContainerStyle={{ paddingBottom: 120 }}>
+      {/* Profile Section */}
+      <Box px="4" pt="6" pb="4">
+        <Center>
+          {/* Avatar */}
+          <Center
+            bg="fdis.500"
+            size="24"
+            rounded="full"
+            shadow={3}
+          >
+            <Text color="white" fontSize="2xl" fontWeight="bold">
+              {getInitials(userName)}
+            </Text>
+          </Center>
+          <Text fontSize="xl" fontWeight="bold" color="coolGray.800" mt="3">
+            {userName}
+          </Text>
+          <Text fontSize="sm" color="coolGray.500">
+            Auditor
+          </Text>
+        </Center>
+      </Box>
+
+      {/* Stats Section */}
+      <Box px="4" py="2">
+        <Text fontSize="xs" fontWeight="bold" color="gray.500" letterSpacing="lg" mb="3">
+          STATISTIEKEN
+        </Text>
+        <Box bg={cardBg} rounded="2xl" shadow={2} p="4">
+          <HStack justifyContent="space-around">
+            <StatItem
+              icon="assignment-turned-in"
+              iconBg="green.100"
+              iconColor="green.600"
+              value={performedAuditsCount}
+              label="Audits"
+            />
+            <Box w="1" bg="gray.200" />
+            <StatItem
+              icon="business"
+              iconBg="blue.100"
+              iconColor="blue.600"
+              value={lastClientName ? '1' : '0'}
+              label="Klanten"
+            />
+            <Box w="1" bg="gray.200" />
+            <StatItem
+              icon="location-on"
+              iconBg="purple.100"
+              iconColor="purple.600"
+              value={lastLocationName ? '1' : '0'}
+              label="Locaties"
+            />
+          </HStack>
+        </Box>
+      </Box>
+
+      {/* Recent Activity Section */}
+      <Box px="4" py="2" mt="2">
+        <Text fontSize="xs" fontWeight="bold" color="gray.500" letterSpacing="lg" mb="3">
+          RECENTE ACTIVITEIT
+        </Text>
+        <VStack space={3}>
+          <ActivityCard
+            icon="business"
+            iconBg="blue.100"
+            iconColor="blue.600"
+            title="Laatste Klant"
+            value={lastClientName}
+            cardBg={cardBg}
+          />
+          <ActivityCard
+            icon="location-on"
+            iconBg="purple.100"
+            iconColor="purple.600"
+            title="Laatste Locatie"
+            value={lastLocationName}
+            cardBg={cardBg}
+          />
+        </VStack>
+      </Box>
+
+      {/* Account Section */}
+      <Box px="4" py="2" mt="2">
+        <Text fontSize="xs" fontWeight="bold" color="gray.500" letterSpacing="lg" mb="3">
+          ACCOUNT
+        </Text>
+        <VStack space={3}>
+          {/* App Version */}
+          <Box bg={cardBg} rounded="2xl" shadow={2} p="4">
+            <HStack alignItems="center" space={4}>
+              <Center bg="gray.100" size="12" rounded="xl">
+                <Icon as={MaterialIcons} name="info" size="md" color="gray.600" />
+              </Center>
+              <VStack flex={1}>
+                <Text fontSize="md" fontWeight="semibold" color="coolGray.800">
+                  App Versie
+                </Text>
+                <Text fontSize="sm" color="coolGray.500">
+                  v1.0.0
+                </Text>
+              </VStack>
+            </HStack>
+          </Box>
+
+          {/* Logout Button */}
+          <Pressable onPress={logOffUser}>
+            {({ isPressed }) => (
+              <Box
+                bg={isPressed ? 'red.100' : cardBg}
+                rounded="2xl"
+                shadow={2}
+                p="4"
+                style={{ transform: [{ scale: isPressed ? 0.98 : 1 }] }}
+              >
+                <HStack alignItems="center" space={4}>
+                  <Center bg="red.100" size="12" rounded="xl">
+                    <Icon as={MaterialIcons} name="logout" size="md" color="red.600" />
+                  </Center>
+                  <VStack flex={1}>
+                    <Text fontSize="md" fontWeight="semibold" color="red.600">
+                      Uitloggen
+                    </Text>
+                    <Text fontSize="sm" color="coolGray.500">
+                      Afmelden van uw account
+                    </Text>
+                  </VStack>
+                  <Icon as={MaterialIcons} name="chevron-right" size="sm" color="coolGray.300" />
+                </HStack>
+              </Box>
+            )}
+          </Pressable>
+        </VStack>
+      </Box>
     </ScrollView>
   );
 };
 
-const SettingsOption = ({title, description}) => {
-  return (
-    <VStack space={2} alignItems="center" w="90%">
-      <Text
-        fontSize="md"
-        bold
-        color={useColorModeValue('coolGray.800', 'coolGray.50')}>
-        {title}
-      </Text>
-      <Text
-        color={useColorModeValue('gray.500', 'gray.200')}
-        textAlign="center">
-        {description}
-      </Text>
-    </VStack>
-  );
-};
+// Stat Item Component
+const StatItem = ({ icon, iconBg, iconColor, value, label }) => (
+  <VStack alignItems="center" space={1}>
+    <Center bg={iconBg} size="10" rounded="full">
+      <Icon as={MaterialIcons} name={icon} size="sm" color={iconColor} />
+    </Center>
+    <Text fontSize="xl" fontWeight="bold" color="coolGray.800">
+      {value}
+    </Text>
+    <Text fontSize="xs" color="coolGray.500">
+      {label}
+    </Text>
+  </VStack>
+);
 
-const ThemeToggle = ({colorMode, toggleColorMode, updateUserSettings}) => {
-  const theme = useTheme();
-
-  return (
-    <VStack space={4} alignItems="center">
-      <Text
-        fontSize="md"
-        bold
-        color={useColorModeValue('coolGray.800', 'coolGray.50')}>
-        Schakel tussen donkere/lichte thema
-      </Text>
-      <Switch
-        isChecked={colorMode === 'light'}
-        onToggle={toggleColorMode}
-        onTrackColor={theme.colors.fdis[300]}
-        offTrackColor={theme.colors.fdis[600]}
-      />
-    </VStack>
-  );
-};
-
-const PicturePicker = ({
-  userName,
-  getImageSource,
-  onSelectPicture,
-  selectedPicture,
-}) => {
-  const theme = useTheme();
-
-  const chooseFile = () => {
-    Alert.alert(
-      'Add Photo',
-      'Choose from',
-      [
-        {
-          text: 'Gallery',
-          onPress: () => launchImagePicker('gallery'),
-        },
-        {
-          text: 'Camera',
-          onPress: () => launchImagePicker('camera'),
-        },
-        {
-          text: 'Cancel',
-          onPress: () => console.log('Cancel Pressed'),
-          style: 'cancel',
-        },
-      ],
-      {cancelable: true},
-    );
-  };
-
-  const launchImagePicker = type => {
-    let options = {
-      mediaType: 'photo',
-      saveToPhotos: true,
-    };
-    if (type === 'gallery') {
-      launchImageLibrary(options, response => {
-        handleImageResponse(response);
-      });
-    } else if (type === 'camera') {
-      launchCamera(options, response => {
-        handleImageResponse(response);
-      });
-    }
-  };
-
-  const handleImageResponse = response => {
-    console.log('Response = ', response);
-
-    if (response.didCancel) {
-      console.log('User cancelled image picker');
-    } else if (response.error) {
-      console.log('ImagePicker Error: ', response.error);
-    } else if (response.assets && response.assets.length > 0) {
-      const selectedImage = response.assets[0];
-      onSelectPicture(selectedImage.uri);
-    } else {
-      console.log('No image selected');
-    }
-  };
-
-  return (
-    <SafeAreaView style={{flex: 1}}>
-      <Box flex={1} alignItems="center">
-        <TouchableOpacity activeOpacity={0.5} onPress={chooseFile}>
-          <Image
-            source={selectedPicture}
-            alt="Profile"
-            size="xl"
-            borderRadius="full"
-            borderColor={theme.colors.fdis[500]}
-            borderWidth={3}
-            width="150px"
-            height="150px"
-            resizeMode="cover"
-          />
-        </TouchableOpacity>
-        <Text
-          fontSize="xl"
-          bold
-          mt="2"
-          color={useColorModeValue('coolGray.800', 'coolGray.50')}>
-          {userName}
+// Activity Card Component
+const ActivityCard = ({ icon, iconBg, iconColor, title, value, cardBg }) => (
+  <Box bg={cardBg} rounded="2xl" shadow={2} p="4">
+    <HStack alignItems="center" space={4}>
+      <Center bg={iconBg} size="12" rounded="xl">
+        <Icon as={MaterialIcons} name={icon} size="md" color={iconColor} />
+      </Center>
+      <VStack flex={1}>
+        <Text fontSize="sm" color="coolGray.500">
+          {title}
         </Text>
-      </Box>
-    </SafeAreaView>
-  );
-};
+        <Text fontSize="md" fontWeight="semibold" color="coolGray.800" numberOfLines={1}>
+          {value || '-'}
+        </Text>
+      </VStack>
+      <Icon as={MaterialIcons} name="chevron-right" size="sm" color="coolGray.300" />
+    </HStack>
+  </Box>
+);
 
 export default Settings;
