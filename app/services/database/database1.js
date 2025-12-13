@@ -2074,6 +2074,30 @@ const deleteAudit = async auditId => {
   }
 };
 
+// Statistics functions
+const getAllAuditsForStats = async () => {
+  const query = `
+    SELECT 
+      a.*,
+      c.NameClient as ClientName,
+      CASE WHEN s.AuditCode IS NOT NULL THEN 1 ELSE 0 END as hasSignature,
+      CASE WHEN f.FormId IS NOT NULL THEN 1 ELSE 0 END as hasProgress
+    FROM tb_audits a
+    LEFT JOIN tb_clients c ON a.ClientId = c.Id
+    LEFT JOIN tb_signature s ON a.AuditCode = s.AuditCode
+    LEFT JOIN (SELECT DISTINCT AuditId, FormId FROM tb_form) f ON a.Id = f.AuditId
+  `;
+  return executeSelect(query);
+};
+
+const getAllFormsForStats = async () => {
+  return executeSelect("SELECT * FROM tb_form");
+};
+
+const getAllErrorsForStats = async () => {
+  return executeSelect("SELECT * FROM tb_error");
+};
+
 // Export your database functions to use in other files
 export {
   openDatabase,
@@ -2145,4 +2169,8 @@ export {
   upsertSignature,
   // Migration
   runUploadStatusMigration,
+  // Statistics
+  getAllAuditsForStats,
+  getAllFormsForStats,
+  getAllErrorsForStats,
 };

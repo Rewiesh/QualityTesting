@@ -19,6 +19,7 @@ import AuditErrorForm from './screens/AuditErrorForm';
 import AuditFormsList from './screens/AuditFormsList';
 import AppFooter from './screens/AppFooter';
 import FailedUploads from './screens/FailedUploads';
+import StatisticsDashboard from './screens/StatisticsDashboard';
 
 const AuditsStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -61,6 +62,7 @@ function AuditsStackScreen() {
       <AuditsStack.Screen name="Opmerkingen" component={AuditErrorForm} />
       <AuditsStack.Screen name="Aanwezig bij Audit" component={AuditPersonList} />
       <AuditsStack.Screen name="Formulieren Overzicht" component={AuditFormsList} />
+      <AuditsStack.Screen name="Statistieken" component={StatisticsDashboard} />
     </AuditsStack.Navigator>
   );
 }

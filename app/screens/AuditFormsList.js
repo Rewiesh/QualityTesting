@@ -17,7 +17,7 @@ import {
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { log, logError } from '../services/Logger';
 import { FLATLIST_CONFIG } from '../constants/theme';
-import { EmptyState } from '../components';
+import EmptyState from '../components/EmptyState';
 import * as database from '../services/database/database1';
 
 const AuditFormsList = ({ route, navigation }) => {

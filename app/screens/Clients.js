@@ -264,6 +264,8 @@ const getClientVisuals = (name, index) => {
 
 const RenderClientRow = React.memo(({ item, index, onListItemClick }) => {
   const cardBg = useColorModeValue("white", "gray.800");
+  const textColor = useColorModeValue("coolGray.800", "white");
+  const subtextColor = useColorModeValue("coolGray.400", "gray.500");
   const { bg, text, initials } = getClientVisuals(item.NameClient, index || 0);
 
   return (
@@ -294,10 +296,10 @@ const RenderClientRow = React.memo(({ item, index, onListItemClick }) => {
 
             {/* Content */}
             <VStack flex={1}>
-              <Text fontSize="md" fontWeight="bold" color="coolGray.800">
+              <Text fontSize="md" fontWeight="bold" color={textColor}>
                 {item.NameClient}
               </Text>
-              <Text fontSize="xs" color="coolGray.400">
+              <Text fontSize="xs" color={subtextColor}>
                 Tik om te openen
               </Text>
             </VStack>

@@ -204,6 +204,34 @@ const Settings = ({navigation}) => {
               />
             </HStack>
           </Box>
+
+          {/* Statistics Dashboard Link */}
+          <Pressable onPress={() => navigation.navigate('Statistieken')}>
+            {({ isPressed }) => (
+              <Box
+                bg={isPressed ? 'teal.50' : cardBg}
+                rounded="2xl"
+                shadow={2}
+                p="4"
+                style={{ transform: [{ scale: isPressed ? 0.98 : 1 }] }}
+              >
+                <HStack alignItems="center" space={4}>
+                  <Center bg="teal.100" size="12" rounded="xl">
+                    <Icon as={MaterialIcons} name="bar-chart" size="md" color="teal.600" />
+                  </Center>
+                  <VStack flex={1}>
+                    <Text fontSize="md" fontWeight="semibold" color={textColor}>
+                      Statistieken
+                    </Text>
+                    <Text fontSize="sm" color={subtextColor}>
+                      Bekijk audit overzicht
+                    </Text>
+                  </VStack>
+                  <Icon as={MaterialIcons} name="chevron-right" size="sm" color="coolGray.300" />
+                </HStack>
+              </Box>
+            )}
+          </Pressable>
         </VStack>
       </Box>
 

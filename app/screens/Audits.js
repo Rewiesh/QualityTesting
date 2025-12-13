@@ -31,6 +31,8 @@ const Audits = ({ route, navigation }) => {
   const bgMain = useColorModeValue('coolGray.100', 'gray.900');
   const inputBg = useColorModeValue('white', 'gray.800');
   const cardBg = useColorModeValue('white', 'gray.800');
+  const textColor = useColorModeValue('coolGray.800', 'white');
+  const subtextColor = useColorModeValue('coolGray.500', 'gray.400');
 
   useFocusEffect(
     useCallback(() => {
@@ -166,10 +168,10 @@ const Audits = ({ route, navigation }) => {
 
               {/* Content */}
               <VStack flex={1} space={1}>
-                <Text fontSize="md" fontWeight="bold" color="coolGray.800">
+                <Text fontSize="md" fontWeight="bold" color={textColor}>
                   {item.isUnSaved === '*' ? '* ' : ''}{String(item.AuditCode)}
                 </Text>
-                <Text fontSize="sm" color="coolGray.500" numberOfLines={1}>
+                <Text fontSize="sm" color={subtextColor} numberOfLines={1}>
                   {item.LocationClient}
                 </Text>
                 <HStack alignItems="center" space={2} mt="1">
@@ -198,7 +200,7 @@ const Audits = ({ route, navigation }) => {
         )}
       </Pressable>
     );
-  }, [getAuditStatus, getAuditIcon, onAuditClick]);
+  }, [getAuditStatus, getAuditIcon, onAuditClick, cardBg, textColor, subtextColor]);
 
   // Empty state
   const renderEmpty = () => (
