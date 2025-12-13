@@ -392,7 +392,8 @@ const AuditDetails = ({ route, navigation }) => {
       ref={scrollViewRef}
       flex={1}
       bg={bgMain}
-      _contentContainerStyle={{ p: "4", pb: "32" }}
+      _contentContainerStyle={{ p: "4", pb: "6" }}
+      nestedScrollEnabled={true}
     >
       <AuditInfoSection
         audit={audit}
