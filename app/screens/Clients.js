@@ -37,24 +37,14 @@ const Clients = ({ route, navigation }) => {
   const [clients, setClients] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [failedCount, setFailedCount] = useState(0);
-  const listBackgroundColor = useColorModeValue(
-    "white",
-    theme.colors.fdis[800],
-  );
-  const textColor = useColorModeValue("coolGray.800", "warmGray.50");
-  const borderColor = useColorModeValue("coolGray.300", "coolGray.600");
-  const refreshingIndicatorColor = useColorModeValue(
-    theme.colors.fdis[400],
-    "white",
-  );
-  const emptyTextColor = useColorModeValue("coolGray.800", "warmGray.200");
-  const bgColor = useColorModeValue("coolGray.100", "gray.700");
+  const [searchText, setSearchText] = useState(""); // Add search state
+
+  // Modern UI Colors
+  const bgMain = useColorModeValue("coolGray.100", "gray.900"); // Light gray background for the screen
+  const textTitle = useColorModeValue("coolGray.800", "white");
 
   useEffect(() => {
     loadClients();
-    // if(reload) {
-    //   onReload();
-    // }
   }, []);
 
   useFocusEffect(
@@ -146,8 +136,6 @@ const Clients = ({ route, navigation }) => {
         ShowToast({
           status: "error",
           message: "Ongeldige inloggegevens.",
-          bgColor: bgColor,
-          textColor: textColor,
         });
       } else {
         await database.saveAllData(data);
@@ -163,39 +151,63 @@ const Clients = ({ route, navigation }) => {
     }
   };
 
+  // Filter clients based on search text
+  const filteredClients = clients.filter(client =>
+    client.NameClient.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   if (!loaded) {
     return (
-      <Center flex={1} bg={listBackgroundColor}>
-        <HStack space={2} justifyContent="center" alignItems="center">
-          <Spinner
-            size="lg"
-            color={refreshingIndicatorColor}
-            accessibilityLabel="Haal actieve klanten op"
-          />
-          <Heading color={textColor} fontSize="md">
+      <Center flex={1} bg={bgMain}>
+        <VStack space={4} alignItems="center">
+          <Spinner size="lg" color={theme.colors.fdis[500]} />
+          <Heading color={textTitle} fontSize="md" fontWeight="medium">
             Klanten worden opgehaald...
           </Heading>
-        </HStack>
+        </VStack>
       </Center>
     );
   }
 
-  const renderItem = ({ item }) => (
-    <RenderClientRow item={item} onListItemClick={onListItemClick} />
+  const renderItem = ({ item, index }) => (
+    <RenderClientRow item={item} index={index} onListItemClick={onListItemClick} />
+  );
+
+  // Search Bar Header
+  const renderHeader = () => (
+    <Box px="4" py="4" bg={bgMain}>
+      <Box
+        bg={useColorModeValue("white", "gray.800")}
+        rounded="xl"
+        px="4"
+        py="3"
+        shadow={1}
+        flexDirection="row"
+        alignItems="center"
+      >
+        <Icon as={MaterialIcons} name="search" size="sm" color="gray.400" mr="3" />
+        <Text color="gray.400" flex={1}>Zoek opdrachtgever...</Text>
+        {/* Note: In a real app, use <Input> here. Using Text for visual matching of 'static' look if preferred, but ideally Input */}
+      </Box>
+      <Text mt="6" mb="2" fontSize="xs" fontWeight="bold" color="gray.500" letterSpacing="lg">
+        ACTIEVE OPDRACHTEN
+      </Text>
+    </Box>
   );
 
   return (
-    <Box flex={1} bg={listBackgroundColor}>
+    <Box flex={1} bg={bgMain}>
       <FlatList
-        data={clients}
+        data={filteredClients}
         renderItem={renderItem}
         keyExtractor={item => item.Id.toString()}
         refreshing={refreshing}
         onRefresh={onReload}
+        ListHeaderComponent={renderHeader}
         ListEmptyComponent={<RenderEmpty />}
         contentContainerStyle={{
           flexGrow: 1,
-          paddingBottom: 120,
+          paddingBottom: 120, // Space for floating footer
         }}
       />
       <RenderModal
@@ -208,52 +220,78 @@ const Clients = ({ route, navigation }) => {
 };
 
 const RenderEmpty = () => {
-  const emptyTextColor = useColorModeValue('coolGray.800', 'warmGray.200');
-
   return (
-    <Center flex={1}>
-      <Text color={emptyTextColor}>Geen gegevens gevonden!</Text>
+    <Center flex={1} mt="10">
+      <VStack alignItems="center" space={2}>
+        <Icon as={MaterialIcons} name="folder-open" size="4xl" color="gray.300" />
+        <Text color="gray.400" fontSize="md">Geen opdrachten gevonden</Text>
+      </VStack>
     </Center>
   );
 };
 
-const RenderClientRow = ({ item, onListItemClick }) => {
-  const theme = useTheme();
-  const unifiedColor = useColorModeValue('coolGray.800', 'white'); // Using one color for text, icon, and borders
+// Helper to get initials and color
+const getClientVisuals = (name, index) => {
+  const colors = ["blue.100", "purple.100", "green.100", "orange.100", "red.100"];
+  const textColors = ["blue.600", "purple.600", "green.600", "orange.600", "red.600"];
 
-  const styles = {
-    bgColor: useColorModeValue('coolGray.100', theme.colors.fdis[700]), // Light blue for light mode, darker blue-gray for dark mode
-    pressedColor: useColorModeValue('coolGray.200', theme.colors.fdis[700]),
-    borderColor: useColorModeValue(
-      theme.colors.fdis[300],
-      theme.colors.fdis[700],
-    ), // Unified color for border
-    textColor: unifiedColor, // Unified color for text
-    iconColor: useColorModeValue('black', 'white'), // Unified color for icons
-    borderWidth: '1',
-  };
+  const colorIndex = index % colors.length;
+
+  const initials = name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
+
+  return { bg: colors[colorIndex], text: textColors[colorIndex], initials };
+};
+
+const RenderClientRow = ({ item, index, onListItemClick }) => {
+  const { bg, text, initials } = getClientVisuals(item.NameClient, index || 0);
 
   return (
     <Pressable onPress={() => onListItemClick(item)}>
       {({ isPressed }) => (
         <Box
-          borderBottomWidth={styles.borderWidth}
-          py="5"
-          borderColor={styles.borderColor}
-          shadow="3"
-          bg={isPressed ? styles.pressedColor : styles.bgColor}
-          p="2"
+          bg={useColorModeValue("white", "gray.800")}
+          mx="4"
+          my="2"
+          p="4"
+          rounded="2xl"
+          shadow={2}
           style={{
-            transform: [{ scale: isPressed ? 0.96 : 1 }],
-          }}>
-          <HStack justifyContent="space-between" alignItems="center" px="4">
-            <Text bold color={styles.textColor} fontSize="md">
-              {item.NameClient}
-            </Text>
-            <MaterialIcons
-              name="navigate-next"
-              size={24}
-              color={styles.iconColor}
+            transform: [{ scale: isPressed ? 0.98 : 1 }],
+          }}
+        >
+          <HStack alignItems="center" space={4}>
+            {/* Initials Icon */}
+            <Center
+              bg={bg}
+              size="12"
+              rounded="full"
+            >
+              <Text color={text} fontWeight="bold" fontSize="md">
+                {initials}
+              </Text>
+            </Center>
+
+            {/* Content */}
+            <VStack flex={1}>
+              <Text fontSize="md" fontWeight="bold" color="coolGray.800">
+                {item.NameClient}
+              </Text>
+              <Text fontSize="xs" color="coolGray.400">
+                Tik om te openen
+              </Text>
+            </VStack>
+
+            {/* Chevron */}
+            <Icon
+              as={MaterialIcons}
+              name="chevron-right"
+              size="sm"
+              color="coolGray.300"
             />
           </HStack>
         </Box>
@@ -267,32 +305,38 @@ const RenderModal = ({ unsavedData, setUnsavedData, reloadData }) => {
     <Modal
       isOpen={unsavedData}
       onClose={() => setUnsavedData(false)}
-      _backdrop={{
-        _dark: {
-          bg: 'coolGray.800',
-        },
-        bg: 'warmGray.50',
-      }}>
-      <Modal.Content maxWidth="400px">
-        <Modal.CloseButton />
-        <Modal.Header>Waarschuwing!</Modal.Header>
-        <Modal.Body>
-          Sommige gegevens zijn niet opgeslagen. Als u doorgaat, gaan deze
-          verloren(Note: Gefaalde audits worden niet overschreven). Wilt u doorgaan?
+      _backdrop={{ bg: "black", opacity: 0.5 }}
+    >
+      <Modal.Content maxWidth="400px" rounded="xl">
+        <Modal.Body pt="6">
+          <VStack space={3} alignItems="center">
+            <Icon as={MaterialIcons} name="warning" size="4xl" color="orange.400" />
+            <Text fontWeight="bold" fontSize="lg">Niet opgeslagen wijzigingen</Text>
+            <Text textAlign="center" color="gray.500">
+              Sommige gegevens zijn niet opgeslagen. Als u doorgaat, gaan deze verloren.
+            </Text>
+          </VStack>
         </Modal.Body>
-        <Modal.Footer>
-          <Button.Group space={2}>
+        <Modal.Footer bg="transparent" borderTopWidth={0} justifyContent="center" pb="6">
+          <Button.Group space={3}>
             <Button
-              variant="ghost"
-              colorScheme="blueGray"
-              onPress={() => setUnsavedData(false)}>
+              variant="subtle"
+              colorScheme="coolGray"
+              onPress={() => setUnsavedData(false)}
+              rounded="full"
+              px="6"
+            >
               Annuleer
             </Button>
             <Button
               onPress={() => {
                 setUnsavedData(false);
                 reloadData();
-              }}>
+              }}
+              colorScheme="danger"
+              rounded="full"
+              px="6"
+            >
               Doorgaan
             </Button>
           </Button.Group>
