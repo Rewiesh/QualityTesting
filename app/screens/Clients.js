@@ -1,12 +1,7 @@
-/* eslint-disable react/self-closing-comp */
-/* eslint-disable react/no-unstable-nested-components */
-/* eslint-disable no-alert */
-/* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
-  Image,
   Modal,
   Text,
   Spinner,
@@ -17,7 +12,6 @@ import {
   HStack,
   Heading,
   Center,
-  IconButton,
   Pressable,
   useTheme,
   useColorModeValue,
@@ -26,7 +20,8 @@ import {
 } from 'native-base';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { ShowToast } from '../services/Util';
-import { fetchData } from '../services/api/Api1';
+import { log, logError } from '../services/Logger';
+import { FLATLIST_CONFIG } from '../constants/theme';
 import { fetchAuditData } from '../services/api/newAPI';
 import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
@@ -90,30 +85,26 @@ const Clients = ({ route, navigation }) => {
     });
   }, [navigation, failedCount]);
 
-  const loadClients = async () => {
+  const loadClients = useCallback(async () => {
     setUnsavedData(false);
     try {
-      const clients = await database.getClients();
-      console.log('clients', clients)
-      setClients(clients);
-      clients.forEach(client => {
-        console.log(client.NameClient);
-      });
+      const fetchedClients = await database.getClients();
+      log('Clients loaded:', fetchedClients.length);
+      setClients(fetchedClients);
     } catch (error) {
       alert(error);
-      console.log(error);
+      logError('Error loading clients:', error);
     }
-  };
+  }, []);
 
-  const onListItemClick = client => {
+  const onListItemClick = useCallback((client) => {
     navigation.navigate("Audits", { clientName: client.NameClient });
-  };
+  }, [navigation]);
 
-  const onReload = () => {
+  const onReload = useCallback(() => {
     database
       .existUnSaveData()
       .then(exist => {
-        console.log(exist);
         if (exist) {
           setUnsavedData(true);
         } else {
@@ -121,17 +112,16 @@ const Clients = ({ route, navigation }) => {
         }
       })
       .catch(error => {
-        console.error("Error checking unsaved data:", error);
+        logError("Error checking unsaved data:", error);
       });
-  };
+  }, [reloadData]);
 
-  const reloadData = async () => {
+  const reloadData = useCallback(async () => {
     setLoaded(false);
-    setRefreshing(true); // Activate the loading indicator
+    setRefreshing(true);
 
     try {
       const user = await userManager.getCurrentUser();
-      // const {data, error} = await fetchData(user.username, user.password);
       const { data, error } = await fetchAuditData(user.username, user.password);
 
       if (error) {
@@ -146,17 +136,23 @@ const Clients = ({ route, navigation }) => {
       await loadClients();
       setLoaded(true);
     } catch (error) {
-      console.log(error);
+      logError('Reload data error:', error);
       alert("Check your internet connection");
     } finally {
-      setRefreshing(false); // Reset the refreshing state
+      setRefreshing(false);
     }
-  };
+  }, [loadClients]);
 
-  // Filter clients based on search text
-  const filteredClients = clients.filter(client =>
-    client.NameClient.toLowerCase().includes(searchText.toLowerCase())
-  );
+  // Filter clients based on search text - memoized
+  const filteredClients = useMemo(() => 
+    clients.filter(client =>
+      client.NameClient.toLowerCase().includes(searchText.toLowerCase())
+    ), [clients, searchText]);
+
+  // IMPORTANT: All hooks must be called before any early return
+  const renderItem = useCallback(({ item, index }) => (
+    <RenderClientRow item={item} index={index} onListItemClick={onListItemClick} />
+  ), [onListItemClick]);
 
   if (!loaded) {
     return (
@@ -170,10 +166,6 @@ const Clients = ({ route, navigation }) => {
       </Center>
     );
   }
-
-  const renderItem = ({ item, index }) => (
-    <RenderClientRow item={item} index={index} onListItemClick={onListItemClick} />
-  );
 
   // Section Header (no hooks, static)
   const renderSectionHeader = () => (
@@ -228,9 +220,10 @@ const Clients = ({ route, navigation }) => {
         ListEmptyComponent={<RenderEmpty />}
         contentContainerStyle={{
           flexGrow: 1,
-          paddingBottom: 120, // Space for floating footer
+          paddingBottom: 120,
         }}
         keyboardShouldPersistTaps="handled"
+        {...FLATLIST_CONFIG}
       />
       <RenderModal
         unsavedData={unsavedData}
@@ -269,14 +262,15 @@ const getClientVisuals = (name, index) => {
   return { bg: colors[colorIndex], text: textColors[colorIndex], initials };
 };
 
-const RenderClientRow = ({ item, index, onListItemClick }) => {
+const RenderClientRow = React.memo(({ item, index, onListItemClick }) => {
+  const cardBg = useColorModeValue("white", "gray.800");
   const { bg, text, initials } = getClientVisuals(item.NameClient, index || 0);
 
   return (
     <Pressable onPress={() => onListItemClick(item)}>
       {({ isPressed }) => (
         <Box
-          bg={useColorModeValue("white", "gray.800")}
+          bg={cardBg}
           mx="4"
           my="2"
           p="4"
@@ -320,7 +314,7 @@ const RenderClientRow = ({ item, index, onListItemClick }) => {
       )}
     </Pressable>
   );
-};
+});
 
 const RenderModal = ({ unsavedData, setUnsavedData, reloadData }) => {
   return (

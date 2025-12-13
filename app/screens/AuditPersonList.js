@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { Alert } from 'react-native';
 import {
@@ -12,18 +12,18 @@ import {
   FlatList,
   VStack,
   Center,
-  useTheme,
   useColorModeValue,
   Modal,
   Input,
 } from 'native-base';
 import { ShowToast } from '../services/Util';
+import { log, logError } from '../services/Logger';
+import { FLATLIST_CONFIG } from '../constants/theme';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import * as database from '../services/database/database1';
 
 const AuditPersonList = ({ route, navigation }) => {
   const isFocused = useIsFocused();
-  const theme = useTheme();
   const { AuditId } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
   const [clients, setClients] = useState([]);
@@ -38,7 +38,6 @@ const AuditPersonList = ({ route, navigation }) => {
     if (isFocused) {
       renderAddPersonButton();
       fetchClients();
-      console.log('PresentClients : ' + JSON.stringify(clients));
     }
   }, [isFocused, fetchClients]);
 
@@ -47,13 +46,12 @@ const AuditPersonList = ({ route, navigation }) => {
       .getAllPresentClient(AuditId)
       .then(fetchedClients => setClients(fetchedClients))
       .catch(error => {
-        console.error('Failed to fetch clients:', error);
+        logError('Failed to fetch clients:', error);
         Alert.alert('Failed to load clients.', error.message);
       });
   }, [AuditId]);
 
-  const saveClient = () => {
-    console.log('PresentClients : ' + JSON.stringify(clients));
+  const saveClient = useCallback(() => {
     const promise = changingClient
       ? database.updatePresentClient(changingClient.id, nameClient)
       : database.savePresentClient(nameClient, AuditId);
@@ -67,29 +65,28 @@ const AuditPersonList = ({ route, navigation }) => {
       })
       .then(fetchClients)
       .catch(error => {
-        console.error('Error saving client:', error);
+        logError('Error saving client:', error);
         Alert.alert('Error', error.message);
       });
-  };
+  }, [changingClient, nameClient, AuditId, fetchClients]);
 
-  const editClient = client => {
+  const editClient = useCallback((client) => {
     setModalVisible(true);
     setChangingClient(client);
     setNameClient(client.name);
-  };
+  }, []);
 
-  const deletePresentClient = client => {
+  const deletePresentClient = useCallback((client) => {
     Alert.alert(
       'Bevestig Verwijdering',
       'Weet u zeker dat u deze klant wilt verwijderen?',
       [
         {
-          text: 'Annuleren', // Cancel
-          onPress: () => console.log('Deletion cancelled'),
+          text: 'Annuleren',
           style: 'cancel',
         },
         {
-          text: 'Verwijderen', // Delete
+          text: 'Verwijderen',
           onPress: async () => {
             try {
               setClients(currentClients =>
@@ -102,7 +99,7 @@ const AuditPersonList = ({ route, navigation }) => {
                 message: 'Klant succesvol verwijderd.',
               });
             } catch (error) {
-              console.error('Error deleting client:', error);
+              logError('Error deleting client:', error);
               ShowToast({
                 status: 'error',
                 message: 'Fout bij het verwijderen van de klant.',
@@ -114,7 +111,7 @@ const AuditPersonList = ({ route, navigation }) => {
       ],
       { cancelable: false },
     );
-  };
+  }, [AuditId]);
 
   const renderAddPersonButton = () => {
     navigation.setOptions({
@@ -230,6 +227,7 @@ const AuditPersonList = ({ route, navigation }) => {
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
+        {...FLATLIST_CONFIG}
       />
       <RenderClientModal
         isOpen={modalVisible}

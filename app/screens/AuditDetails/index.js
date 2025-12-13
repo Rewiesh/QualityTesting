@@ -48,7 +48,8 @@ const AuditDetails = ({ route, navigation }) => {
   const { AuditId, clientName, user } = route.params;
 
   // State
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with loading true for initial load
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [loadingText, setLoadingText] = useState("Gegevens worden geladen");
   const [audit, setAudit] = useState({});
   const [categories, setCategories] = useState([]);
@@ -62,6 +63,7 @@ const AuditDetails = ({ route, navigation }) => {
   const [uploadErrorInfo, setUploadErrorInfo] = useState({});
   const [currentKPI, setCurrentKPI] = useState({});
   const [remark, setRemark] = useState("");
+  const [formsCount, setFormsCount] = useState(0);
 
   // Modern UI Colors
   const bgMain = useColorModeValue("coolGray.100", "gray.900");
@@ -80,7 +82,10 @@ const AuditDetails = ({ route, navigation }) => {
   }, [isFocused, AuditId]);
 
   const fetchAuditData = useCallback(async () => {
-    setLoading(true);
+    // Only show loading spinner on initial load, not on subsequent refreshes
+    if (!initialLoadDone) {
+      setLoading(true);
+    }
     try {
       const auditData = await database.getAuditById(AuditId);
       setAudit(auditData);
@@ -104,15 +109,23 @@ const AuditDetails = ({ route, navigation }) => {
         setReady(true);
       }
 
-      const elements = await database.getAllElements(AuditId);
+      const [elements, forms] = await Promise.all([
+        database.getAllElements(AuditId),
+        database.getFormsByAuditId(AuditId),
+      ]);
       setKpiElements(elements);
+      setFormsCount(forms.length);
     } catch (error) {
       console.error("Error fetching audit data:", error);
-      alert("Fout bij laden: " + error.message);
+      // Only show alert on initial load failure
+      if (!initialLoadDone) {
+        alert("Fout bij laden: " + error.message);
+      }
     } finally {
       setLoading(false);
+      setInitialLoadDone(true);
     }
-  }, [AuditId]);
+  }, [AuditId, initialLoadDone]);
 
   // Signature handlers
   const handleSignature = useCallback(async (sig) => {
@@ -388,75 +401,91 @@ const AuditDetails = ({ route, navigation }) => {
   }
 
   return (
-    <ScrollView
-      ref={scrollViewRef}
-      flex={1}
-      bg={bgMain}
-      _contentContainerStyle={{ p: "4", pb: "6" }}
-      nestedScrollEnabled={true}
-    >
-      <AuditInfoSection
-        audit={audit}
-        cardBg={cardBg}
-        headingTextColor={headingTextColor}
-        textColor={textColor}
-      />
-
-      <CategoriesSection
-        categories={categories}
-        cardBg={cardBg}
-        headingTextColor={headingTextColor}
-      />
-
-      <KpiSection
-        kpiElements={kpiElements}
-        onChange={handleKpiValueChange}
-        openRemarkModal={openRemarkModal}
-        cardBg={cardBg}
-        headingTextColor={headingTextColor}
-      />
-
-      {/* Start/Resume Button */}
-      <Button
-        mt="4"
-        size="lg"
-        bg="fdis.500"
-        _pressed={{ bg: "fdis.600" }}
-        _text={{ color: "white", fontWeight: "bold" }}
-        rounded="xl"
-        leftIcon={<Icon as={MaterialIcons} name="play-arrow" size="md" color="white" />}
-        onPress={onStartResume}
+    <Box flex={1} bg={bgMain}>
+      <ScrollView
+        ref={scrollViewRef}
+        flex={1}
+        _contentContainerStyle={{ p: "4", pb: "4" }}
+        nestedScrollEnabled={true}
       >
-        Starten/Hervatten
-      </Button>
+        <AuditInfoSection
+          audit={audit}
+          cardBg={cardBg}
+          headingTextColor={headingTextColor}
+          textColor={textColor}
+        />
 
-      <SignatureSection
-        signature={signature}
-        signatureSaved={signatureSaved}
-        signatureRef={signatureRef}
-        handleSignature={handleSignature}
-        handleClearSignature={handleClearSignature}
-        saveSignature={saveSignature}
-        disableScroll={disableScroll}
-        enableScroll={enableScroll}
-        cardBg={cardBg}
-        headingTextColor={headingTextColor}
-      />
+        <CategoriesSection
+          categories={categories}
+          cardBg={cardBg}
+          headingTextColor={headingTextColor}
+        />
 
-      {/* Upload Button */}
-      <Button
-        mt="4"
-        size="lg"
-        bg={isUploadReady ? "green.500" : "gray.300"}
-        _pressed={{ bg: isUploadReady ? "green.600" : "gray.300" }}
-        _text={{ color: "white", fontWeight: "bold" }}
-        rounded="xl"
-        leftIcon={<Icon as={MaterialIcons} name="cloud-upload" size="md" color="white" />}
-        isDisabled={!isUploadReady}
-        onPress={handleUpload}
-      >
-        Uploaden
-      </Button>
+        <KpiSection
+          kpiElements={kpiElements}
+          onChange={handleKpiValueChange}
+          openRemarkModal={openRemarkModal}
+          cardBg={cardBg}
+          headingTextColor={headingTextColor}
+        />
+
+        <SignatureSection
+          signature={signature}
+          signatureSaved={signatureSaved}
+          signatureRef={signatureRef}
+          handleSignature={handleSignature}
+          handleClearSignature={handleClearSignature}
+          saveSignature={saveSignature}
+          disableScroll={disableScroll}
+          enableScroll={enableScroll}
+          cardBg={cardBg}
+          headingTextColor={headingTextColor}
+        />
+      </ScrollView>
+
+      {/* Sticky Footer Buttons */}
+      <Box px="4" py="3" bg={bgMain} safeAreaBottom shadow={3}>
+        <HStack space={2}>
+          <Button
+            flex={1}
+            size="md"
+            bg={formsCount > 0 ? "purple.500" : "gray.300"}
+            _pressed={{ bg: formsCount > 0 ? "purple.600" : "gray.300" }}
+            _text={{ color: "white", fontWeight: "bold", fontSize: "sm" }}
+            rounded="xl"
+            leftIcon={<Icon as={MaterialIcons} name="list-alt" size="sm" color="white" />}
+            isDisabled={formsCount === 0}
+            onPress={() => navigation.navigate("Formulieren Overzicht", { AuditId, auditCode: audit.AuditCode })}
+          >
+            Formulieren
+          </Button>
+          <Button
+            flex={1}
+            size="md"
+            bg={isUploadReady ? "green.500" : "gray.300"}
+            _pressed={{ bg: isUploadReady ? "green.600" : "gray.300" }}
+            _text={{ color: "white", fontWeight: "bold", fontSize: "sm" }}
+            rounded="xl"
+            leftIcon={<Icon as={MaterialIcons} name="cloud-upload" size="sm" color="white" />}
+            isDisabled={!isUploadReady}
+            onPress={handleUpload}
+          >
+            Upload
+          </Button>
+          <Button
+            flex={1}
+            size="md"
+            bg="fdis.500"
+            _pressed={{ bg: "fdis.600" }}
+            _text={{ color: "white", fontWeight: "bold", fontSize: "sm" }}
+            rounded="xl"
+            leftIcon={<Icon as={MaterialIcons} name="play-arrow" size="sm" color="white" />}
+            onPress={onStartResume}
+          >
+            Starten
+          </Button>
+        </HStack>
+      </Box>
 
       {/* Modals */}
       <RemarkModal2
@@ -479,7 +508,7 @@ const AuditDetails = ({ route, navigation }) => {
         onRetry={getFormsToSubmit}
         onClose={() => setUploadErrorDialogVisible(false)}
       />
-    </ScrollView>
+    </Box>
   );
 };
 

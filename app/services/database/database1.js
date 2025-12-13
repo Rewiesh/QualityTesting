@@ -848,6 +848,25 @@ const getFormsByAuditId = async auditId => {
   return executeSelect(query, [auditId]);
 };
 
+// Get forms with category, floor and area details for display
+const getFormsWithDetails = async auditId => {
+  const query = `
+    SELECT 
+      f.*,
+      c.CategoryValue,
+      fl.FloorValue,
+      a.AreaValue,
+      (SELECT COALESCE(SUM(CountError), 0) FROM tb_error WHERE FormId = f.FormId) as ErrorCount
+    FROM tb_form f
+    LEFT JOIN tb_category c ON f.CategoryId = c.Id
+    LEFT JOIN tb_floor fl ON f.FloorId = fl.Id
+    LEFT JOIN tb_area a ON f.AreaCode = a.Id
+    WHERE f.AuditId = ?
+    ORDER BY f.Date DESC
+  `;
+  return executeSelect(query, [auditId]);
+};
+
 const getCompletedForms = async auditId => {
   const forms = await getFormsByAuditId(auditId);
   return forms.filter(form => form.Completed === 1);
@@ -2096,6 +2115,7 @@ export {
   getSettings,
   getFormById,
   getFormsByAuditId,
+  getFormsWithDetails,
   getAllErrorByFormId,
   getAllErrorType,
   getCompletedForms,

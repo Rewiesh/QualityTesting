@@ -96,78 +96,80 @@ const AuditForm = ({ navigation, route }) => {
   ];
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-    >
-      <ScrollView
-        flex={1}
-        bg={bgMain}
-        _contentContainerStyle={{ p: '3', pb: '3' }}
+    <Box flex={1} bg={bgMain}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        {/* Info Card */}
-        <Box bg={cardBg} rounded="xl" shadow={1} overflow="hidden" mb="3">
-          <HStack px="3" py="2" alignItems="center" space={2} borderBottomWidth={1} borderColor="gray.100">
-            <Center bg="fdis.100" size="6" rounded="md">
-              <Icon as={MaterialIcons} name="info" size="xs" color="fdis.600" />
-            </Center>
-            <Text fontSize="sm" fontWeight="bold" color={textColor}>
-              Formulier Informatie
-            </Text>
-          </HStack>
-          <VStack>
-            {infoItems.map((item, index) => (
-              <HStack
-                key={index}
-                px="3"
-                py="2"
-                alignItems="center"
-                justifyContent="space-between"
-                borderBottomWidth={index < infoItems.length - 1 ? 1 : 0}
-                borderColor="gray.50"
-              >
-                <HStack alignItems="center" space={2}>
-                  <Center bg={`${item.color}.100`} size="6" rounded="md">
-                    <Icon as={MaterialIcons} name={item.icon} size="2xs" color={`${item.color}.600`} />
-                  </Center>
-                  <Text fontSize="xs" color="gray.500">{item.label}</Text>
+        <ScrollView
+          flex={1}
+          _contentContainerStyle={{ p: '3', pb: '20' }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Info Card */}
+          <Box bg={cardBg} rounded="xl" shadow={1} overflow="hidden" mb="3">
+            <HStack px="3" py="2" alignItems="center" space={2} borderBottomWidth={1} borderColor="gray.100">
+              <Center bg="fdis.100" size="6" rounded="md">
+                <Icon as={MaterialIcons} name="info" size="xs" color="fdis.600" />
+              </Center>
+              <Text fontSize="sm" fontWeight="bold" color={textColor}>
+                Formulier Informatie
+              </Text>
+            </HStack>
+            <VStack>
+              {infoItems.map((item, index) => (
+                <HStack
+                  key={index}
+                  px="3"
+                  py="2"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  borderBottomWidth={index < infoItems.length - 1 ? 1 : 0}
+                  borderColor="gray.50"
+                >
+                  <HStack alignItems="center" space={2}>
+                    <Center bg={`${item.color}.100`} size="6" rounded="md">
+                      <Icon as={MaterialIcons} name={item.icon} size="2xs" color={`${item.color}.600`} />
+                    </Center>
+                    <Text fontSize="xs" color="gray.500">{item.label}</Text>
+                  </HStack>
+                  <Text fontSize="xs" fontWeight="semibold" color={textColor}>
+                    {item.value || '-'}
+                  </Text>
                 </HStack>
-                <Text fontSize="xs" fontWeight="semibold" color={textColor}>
-                  {item.value || '-'}
-                </Text>
-              </HStack>
-            ))}
-          </VStack>
-        </Box>
-
-        {/* Opmerkingen Card */}
-        <Box bg={cardBg} rounded="xl" shadow={1} overflow="hidden">
-          <HStack px="3" py="2" alignItems="center" space={2} borderBottomWidth={1} borderColor="gray.100">
-            <Center bg="orange.100" size="6" rounded="md">
-              <Icon as={MaterialIcons} name="edit-note" size="xs" color="orange.600" />
-            </Center>
-            <Text fontSize="sm" fontWeight="bold" color={textColor}>
-              Opmerkingen
-            </Text>
-          </HStack>
-          <Box p="3">
-            <TextArea
-              placeholder="Voeg opmerking toe..."
-              value={opmerkingen}
-              onChangeText={onChangeOpmerking}
-              bg="gray.50"
-              borderWidth={0}
-              rounded="lg"
-              fontSize="sm"
-              h="24"
-            />
+              ))}
+            </VStack>
           </Box>
-        </Box>
-      </ScrollView>
 
-      {/* Sticky Footer Buttons */}
-      <Box px="3" py="2" bg={bgMain} safeAreaBottom>
+          {/* Opmerkingen Card */}
+          <Box bg={cardBg} rounded="xl" shadow={1} overflow="hidden">
+            <HStack px="3" py="2" alignItems="center" space={2} borderBottomWidth={1} borderColor="gray.100">
+              <Center bg="orange.100" size="6" rounded="md">
+                <Icon as={MaterialIcons} name="edit-note" size="xs" color="orange.600" />
+              </Center>
+              <Text fontSize="sm" fontWeight="bold" color={textColor}>
+                Opmerkingen
+              </Text>
+            </HStack>
+            <Box p="3">
+              <TextArea
+                placeholder="Voeg opmerking toe..."
+                value={opmerkingen}
+                onChangeText={onChangeOpmerking}
+                bg="gray.50"
+                borderWidth={0}
+                rounded="lg"
+                fontSize="sm"
+                h="24"
+              />
+            </Box>
+          </Box>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {/* Sticky Footer Buttons - Outside KeyboardAvoidingView */}
+      <Box px="3" py="3" bg={cardBg} safeAreaBottom shadow={3}>
         <HStack space={2}>
           <Button
             flex={1}
@@ -195,7 +197,7 @@ const AuditForm = ({ navigation, route }) => {
           </Button>
         </HStack>
       </Box>
-    </KeyboardAvoidingView>
+    </Box>
   );
 };
 

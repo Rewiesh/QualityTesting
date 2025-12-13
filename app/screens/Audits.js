@@ -1,9 +1,5 @@
-/* eslint-disable react/self-closing-comp */
-/* eslint-disable react/no-unstable-nested-components */
-/* eslint-disable no-alert */
-/* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Box,
@@ -12,7 +8,6 @@ import {
   Pressable,
   FlatList,
   VStack,
-  useTheme,
   useColorModeValue,
   Button,
   Icon,
@@ -20,11 +15,12 @@ import {
   Input,
 } from 'native-base';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { log, logError } from '../services/Logger';
+import { FLATLIST_CONFIG } from '../constants/theme';
 import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
 
 const Audits = ({ route, navigation }) => {
-  const theme = useTheme();
   const [auditsList, setAuditsList] = useState([]);
   const [user, setUser] = useState({});
   const [failedCount, setFailedCount] = useState(0);
@@ -34,21 +30,23 @@ const Audits = ({ route, navigation }) => {
   // Modern UI Colors
   const bgMain = useColorModeValue('coolGray.100', 'gray.900');
   const inputBg = useColorModeValue('white', 'gray.800');
+  const cardBg = useColorModeValue('white', 'gray.800');
 
   useFocusEffect(
     useCallback(() => {
       const updateList = async () => {
         try {
-          const auditsData = await database.getAuditsOfClientWithStatus(clientName);
-          const userData = await userManager.getCurrentUser();
-          const failedAudits = await database.getFailedAudits();
+          const [auditsData, userData, failedAudits] = await Promise.all([
+            database.getAuditsOfClientWithStatus(clientName),
+            userManager.getCurrentUser(),
+            database.getFailedAudits(),
+          ]);
           setAuditsList(auditsData);
           setUser(userData);
           setFailedCount(failedAudits.length);
-          console.log(userData);
-          console.log('auditdata:', auditsData);
+          log('Audits loaded:', auditsData.length);
         } catch (error) {
-          console.error('Failed to fetch audits:', error);
+          logError('Failed to fetch audits:', error);
           alert('Failed to load audits. Error: ' + error.message);
         }
       };
@@ -57,13 +55,13 @@ const Audits = ({ route, navigation }) => {
     }, [clientName]),
   );
 
-  const onAuditClick = audit => {
+  const onAuditClick = useCallback((audit) => {
     navigation.navigate('Audit Details', {
       AuditId: audit.Id,
       clientName: clientName,
       user: user,
     });
-  };
+  }, [navigation, clientName, user]);
 
   // Header button voor failed uploads
   useEffect(() => {
@@ -91,14 +89,15 @@ const Audits = ({ route, navigation }) => {
     });
   }, [navigation, failedCount]);
 
-  // Filter audits based on search
-  const filteredAudits = auditsList.filter(audit =>
-    String(audit.AuditCode).toLowerCase().includes(searchText.toLowerCase()) ||
-    (audit.LocationClient && audit.LocationClient.toLowerCase().includes(searchText.toLowerCase()))
-  );
+  // Filter audits based on search - memoized
+  const filteredAudits = useMemo(() => 
+    auditsList.filter(audit =>
+      String(audit.AuditCode).toLowerCase().includes(searchText.toLowerCase()) ||
+      (audit.LocationClient && audit.LocationClient.toLowerCase().includes(searchText.toLowerCase()))
+    ), [auditsList, searchText]);
 
   // Get status info for audit based on signature and form progress
-  const getAuditStatus = audit => {
+  const getAuditStatus = useCallback((audit) => {
     // Completed = has signature
     if (audit.hasSignature === 1) {
       return { label: 'Completed', bg: 'green.100', color: 'green.700' };
@@ -109,10 +108,10 @@ const Audits = ({ route, navigation }) => {
     }
     // Draft = nothing filled yet
     return { label: 'Draft', bg: 'gray.200', color: 'gray.600' };
-  };
+  }, []);
 
   // Get icon and color based on status
-  const getAuditIcon = audit => {
+  const getAuditIcon = useCallback((audit) => {
     if (audit.hasSignature === 1) {
       return { name: 'check-circle', bg: 'green.100', color: 'green.600' };
     }
@@ -120,7 +119,7 @@ const Audits = ({ route, navigation }) => {
       return { name: 'edit', bg: 'orange.100', color: 'orange.600' };
     }
     return { name: 'description', bg: 'blue.100', color: 'blue.600' };
-  };
+  }, []);
 
   // Section Header
   const renderSectionHeader = () => (
@@ -136,7 +135,7 @@ const Audits = ({ route, navigation }) => {
     </Box>
   );
 
-  const renderAuditRow = ({ item, index }) => {
+  const renderAuditRow = useCallback(({ item }) => {
     const status = getAuditStatus(item);
     const iconInfo = getAuditIcon(item);
 
@@ -144,7 +143,7 @@ const Audits = ({ route, navigation }) => {
       <Pressable onPress={() => onAuditClick(item)}>
         {({ isPressed }) => (
           <Box
-            bg={useColorModeValue('white', 'gray.800')}
+            bg={cardBg}
             mx="4"
             my="2"
             p="4"
@@ -199,7 +198,7 @@ const Audits = ({ route, navigation }) => {
         )}
       </Pressable>
     );
-  };
+  }, [getAuditStatus, getAuditIcon, onAuditClick]);
 
   // Empty state
   const renderEmpty = () => (
@@ -253,9 +252,10 @@ const Audits = ({ route, navigation }) => {
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={{
           flexGrow: 1,
-          paddingBottom: 120,
+          paddingBottom: 20,
         }}
         keyboardShouldPersistTaps="handled"
+        {...FLATLIST_CONFIG}
       />
     </Box>
   );
