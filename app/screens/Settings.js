@@ -103,10 +103,10 @@ const Settings = ({navigation}) => {
               {getInitials(userName)}
             </Text>
           </Center>
-          <Text fontSize="xl" fontWeight="bold" color="coolGray.800" mt="3">
+          <Text fontSize="xl" fontWeight="bold" color={textColor} mt="3">
             {userName}
           </Text>
-          <Text fontSize="sm" color="coolGray.500">
+          <Text fontSize="sm" color={subtextColor}>
             Auditor
           </Text>
         </Center>
@@ -199,7 +199,10 @@ const Settings = ({navigation}) => {
               <Switch
                 isChecked={colorMode === 'dark'}
                 onToggle={toggleColorMode}
-                colorScheme="fdis"
+                onTrackColor="fdis.500"
+                offTrackColor="gray.300"
+                onThumbColor="white"
+                offThumbColor="white"
                 size="lg"
               />
             </HStack>
@@ -292,38 +295,48 @@ const Settings = ({navigation}) => {
 };
 
 // Stat Item Component
-const StatItem = ({ icon, iconBg, iconColor, value, label }) => (
-  <VStack alignItems="center" space={1}>
-    <Center bg={iconBg} size="10" rounded="full">
-      <Icon as={MaterialIcons} name={icon} size="sm" color={iconColor} />
-    </Center>
-    <Text fontSize="xl" fontWeight="bold" color="coolGray.800">
-      {value}
-    </Text>
-    <Text fontSize="xs" color="coolGray.500">
-      {label}
-    </Text>
-  </VStack>
-);
+const StatItem = ({ icon, iconBg, iconColor, value, label }) => {
+  const textColor = useColorModeValue('coolGray.800', 'white');
+  const subtextColor = useColorModeValue('coolGray.500', 'gray.400');
+  
+  return (
+    <VStack alignItems="center" space={1}>
+      <Center bg={iconBg} size="10" rounded="full">
+        <Icon as={MaterialIcons} name={icon} size="sm" color={iconColor} />
+      </Center>
+      <Text fontSize="xl" fontWeight="bold" color={textColor}>
+        {value}
+      </Text>
+      <Text fontSize="xs" color={subtextColor}>
+        {label}
+      </Text>
+    </VStack>
+  );
+};
 
 // Activity Card Component
-const ActivityCard = ({ icon, iconBg, iconColor, title, value, cardBg }) => (
-  <Box bg={cardBg} rounded="2xl" shadow={2} p="4">
-    <HStack alignItems="center" space={4}>
-      <Center bg={iconBg} size="12" rounded="xl">
-        <Icon as={MaterialIcons} name={icon} size="md" color={iconColor} />
-      </Center>
-      <VStack flex={1}>
-        <Text fontSize="sm" color="coolGray.500">
-          {title}
-        </Text>
-        <Text fontSize="md" fontWeight="semibold" color="coolGray.800" numberOfLines={1}>
-          {value || '-'}
-        </Text>
-      </VStack>
-      <Icon as={MaterialIcons} name="chevron-right" size="sm" color="coolGray.300" />
-    </HStack>
-  </Box>
-);
+const ActivityCard = ({ icon, iconBg, iconColor, title, value, cardBg }) => {
+  const textColor = useColorModeValue('coolGray.800', 'white');
+  const subtextColor = useColorModeValue('coolGray.500', 'gray.400');
+  
+  return (
+    <Box bg={cardBg} rounded="2xl" shadow={2} p="4">
+      <HStack alignItems="center" space={4}>
+        <Center bg={iconBg} size="12" rounded="xl">
+          <Icon as={MaterialIcons} name={icon} size="md" color={iconColor} />
+        </Center>
+        <VStack flex={1}>
+          <Text fontSize="sm" color={subtextColor}>
+            {title}
+          </Text>
+          <Text fontSize="md" fontWeight="semibold" color={textColor} numberOfLines={1}>
+            {value || '-'}
+          </Text>
+        </VStack>
+        <Icon as={MaterialIcons} name="chevron-right" size="sm" color="coolGray.300" />
+      </HStack>
+    </Box>
+  );
+};
 
 export default Settings;

@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import React from 'react';
-import { Center, Text, Icon, Button, VStack } from 'native-base';
+import { Center, Text, Icon, Button, VStack, useColorModeValue } from 'native-base';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 /**
@@ -16,16 +16,19 @@ const EmptyState = ({
   onAction,
   ...props
 }) => {
+  const textColor = useColorModeValue('coolGray.700', 'white');
+  const subtextColor = useColorModeValue('gray.500', 'gray.400');
+
   return (
     <Center flex={1} py="16" {...props}>
       <Center bg={iconBg} size="20" rounded="full" mb="4">
         <Icon as={MaterialIcons} name={icon} size="4xl" color={iconColor} />
       </Center>
-      <Text fontSize="lg" fontWeight="bold" color="coolGray.700" mb="1">
+      <Text fontSize="lg" fontWeight="bold" color={textColor} mb="1">
         {title}
       </Text>
       {description && (
-        <Text fontSize="sm" color="gray.500" textAlign="center" px="8" mb="4">
+        <Text fontSize="sm" color={subtextColor} textAlign="center" px="8" mb="4">
           {description}
         </Text>
       )}

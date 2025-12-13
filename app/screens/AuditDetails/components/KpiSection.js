@@ -1,9 +1,14 @@
 /* eslint-disable prettier/prettier */
 import React, { useCallback, memo } from "react";
-import { Box, VStack, Text, HStack, Center, Icon, Select, CheckIcon, Pressable } from "native-base";
+import { Box, VStack, Text, HStack, Center, Icon, Select, CheckIcon, Pressable, useColorModeValue } from "native-base";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
 const KpiCard = memo(({ kpi, onChange, openRemarkModal }) => {
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const textColor = useColorModeValue('coolGray.800', 'white');
+  const selectBg = useColorModeValue('gray.100', 'gray.700');
+  const selectTextColor = useColorModeValue('coolGray.700', 'white');
+
   const handleValueChange = useCallback((value) => {
     onChange(kpi, kpi.elements_auditId, value);
   }, [kpi, onChange]);
@@ -13,9 +18,9 @@ const KpiCard = memo(({ kpi, onChange, openRemarkModal }) => {
   }, [openRemarkModal]);
 
   return (
-    <Box bg="white" rounded="2xl" shadow={1} p="4" mb="3">
+    <Box bg={cardBg} rounded="2xl" shadow={1} p="4" mb="3">
       <VStack space={2}>
-        <Text fontSize="sm" fontWeight="bold" color="coolGray.800">
+        <Text fontSize="sm" fontWeight="bold" color={textColor}>
           {kpi.ElementLabel}
         </Text>
         <HStack alignItems="center" space={2}>
@@ -24,7 +29,7 @@ const KpiCard = memo(({ kpi, onChange, openRemarkModal }) => {
             selectedValue={kpi.ElementValue}
             accessibilityLabel="Kies waarde"
             placeholder="Kies waarde"
-            bg="gray.100"
+            bg={selectBg}
             borderWidth={0}
             rounded="xl"
             py="3"
@@ -34,7 +39,7 @@ const KpiCard = memo(({ kpi, onChange, openRemarkModal }) => {
             }}
             onValueChange={handleValueChange}
             fontSize="sm"
-            color="coolGray.700"
+            color={selectTextColor}
           >
             <Select.Item label="V - Voldoende" value="V" />
             <Select.Item label="O - Onvoldoende" value="O" />

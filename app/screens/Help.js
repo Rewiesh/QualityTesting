@@ -4,11 +4,13 @@
 /* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
 import React, {useRef} from 'react';
-import {View, Button, StyleSheet} from 'react-native';
+import {View} from 'react-native';
 import {WebView} from 'react-native-webview';
+import { Box, HStack, Button, useColorModeValue } from 'native-base';
 
 const Help = () => {
   const webViewRef = useRef(null);
+  const bgMain = useColorModeValue('coolGray.100', 'gray.900');
 
   const onNavigationStateChange = state => {
     // Handle navigation state changes here if needed
@@ -23,37 +25,22 @@ const Help = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <WebView
-        ref={webViewRef}
-        onNavigationStateChange={onNavigationStateChange}
-        source={{
-          uri: 'https://backend-quality.iccaadvies.eu/',
-        }}
-      />
-      <View style={styles.navigationContainer}>
-        <Button title="Prev" onPress={onPrev} style={styles.button} />
-        <Button title="Next" onPress={onNext} style={styles.button} />
+    <Box flex={1} bg={bgMain}>
+      <View style={{ flex: 1 }}>
+        <WebView
+          ref={webViewRef}
+          onNavigationStateChange={onNavigationStateChange}
+          source={{
+            uri: 'https://backend-quality.iccaadvies.eu/',
+          }}
+        />
       </View>
-    </View>
+      <HStack h="12" justifyContent="flex-end" alignItems="center" px="4" space={2}>
+        <Button size="sm" variant="outline" onPress={onPrev}>Vorige</Button>
+        <Button size="sm" variant="outline" onPress={onNext}>Volgende</Button>
+      </HStack>
+    </Box>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    flex: 1,
-    flexDirection: 'column',
-  },
-  navigationContainer: {
-    height: 50,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  button: {
-    flex: 1,
-  },
-});
 
 export default Help;

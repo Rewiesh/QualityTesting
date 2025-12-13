@@ -2076,26 +2076,49 @@ const deleteAudit = async auditId => {
 
 // Statistics functions
 const getAllAuditsForStats = async () => {
-  const query = `
-    SELECT 
-      a.*,
-      c.NameClient as ClientName,
-      CASE WHEN s.AuditCode IS NOT NULL THEN 1 ELSE 0 END as hasSignature,
-      CASE WHEN f.FormId IS NOT NULL THEN 1 ELSE 0 END as hasProgress
-    FROM tb_audits a
-    LEFT JOIN tb_clients c ON a.ClientId = c.Id
-    LEFT JOIN tb_signature s ON a.AuditCode = s.AuditCode
-    LEFT JOIN (SELECT DISTINCT AuditId, FormId FROM tb_form) f ON a.Id = f.AuditId
-  `;
-  return executeSelect(query);
+  try {
+    // Simple query first to get all audits
+    const audits = await executeSelect("SELECT * FROM tb_audits");
+    
+    // Get signatures and forms separately
+    const signatures = await executeSelect("SELECT DISTINCT AuditCode FROM tb_signature");
+    const forms = await executeSelect("SELECT DISTINCT AuditId FROM tb_form");
+    const clients = await executeSelect("SELECT Id, NameClient FROM tb_clients");
+    
+    const signatureCodes = new Set(signatures.map(s => s.AuditCode));
+    const formAuditIds = new Set(forms.map(f => f.AuditId));
+    const clientMap = {};
+    clients.forEach(c => { clientMap[c.Id] = c.NameClient; });
+    
+    // Enrich audits with status info
+    return audits.map(audit => ({
+      ...audit,
+      ClientName: clientMap[audit.ClientId] || 'Onbekend',
+      hasSignature: signatureCodes.has(audit.AuditCode) ? 1 : 0,
+      hasProgress: formAuditIds.has(audit.Id) ? 1 : 0,
+    }));
+  } catch (error) {
+    console.error("Error in getAllAuditsForStats:", error);
+    return [];
+  }
 };
 
 const getAllFormsForStats = async () => {
-  return executeSelect("SELECT * FROM tb_form");
+  try {
+    return await executeSelect("SELECT * FROM tb_form");
+  } catch (error) {
+    console.error("Error in getAllFormsForStats:", error);
+    return [];
+  }
 };
 
 const getAllErrorsForStats = async () => {
-  return executeSelect("SELECT * FROM tb_error");
+  try {
+    return await executeSelect("SELECT * FROM tb_error");
+  } catch (error) {
+    console.error("Error in getAllErrorsForStats:", error);
+    return [];
+  }
 };
 
 // Export your database functions to use in other files

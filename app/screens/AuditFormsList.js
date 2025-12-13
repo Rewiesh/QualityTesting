@@ -34,6 +34,9 @@ const AuditFormsList = ({ route, navigation }) => {
   const bgMain = useColorModeValue('coolGray.100', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.800');
   const inputBg = useColorModeValue('white', 'gray.800');
+  const textColor = useColorModeValue('coolGray.800', 'white');
+  const subtextColor = useColorModeValue('gray.500', 'gray.400');
+  const borderColor = useColorModeValue('gray.100', 'gray.700');
 
   useFocusEffect(
     useCallback(() => {
@@ -110,11 +113,11 @@ const AuditFormsList = ({ route, navigation }) => {
             style={{ transform: [{ scale: isPressed ? 0.98 : 1 }] }}
           >
             {/* Header */}
-            <HStack px="3" py="2" alignItems="center" space={2} borderBottomWidth={1} borderColor="gray.100">
+            <HStack px="3" py="2" alignItems="center" space={2} borderBottomWidth={1} borderColor={borderColor}>
               <Center bg="fdis.100" size="6" rounded="md">
                 <Icon as={MaterialIcons} name="description" size="xs" color="fdis.600" />
               </Center>
-              <Text fontSize="sm" fontWeight="bold" color="coolGray.800" flex={1}>
+              <Text fontSize="sm" fontWeight="bold" color={textColor} flex={1}>
                 Formulier Informatie
               </Text>
               <Center bg="gray.100" size="6" rounded="md">
@@ -138,9 +141,9 @@ const AuditFormsList = ({ route, navigation }) => {
                     <Center bg={`${info.color}.100`} size="6" rounded="md">
                       <Icon as={MaterialIcons} name={info.icon} size="2xs" color={`${info.color}.600`} />
                     </Center>
-                    <Text fontSize="xs" color="gray.500">{info.label}</Text>
+                    <Text fontSize="xs" color={subtextColor}>{info.label}</Text>
                   </HStack>
-                  <Text fontSize="xs" fontWeight="semibold" color="coolGray.800">
+                  <Text fontSize="xs" fontWeight="semibold" color={textColor}>
                     {info.value || '-'}
                   </Text>
                 </HStack>
@@ -150,7 +153,7 @@ const AuditFormsList = ({ route, navigation }) => {
         )}
       </Pressable>
     );
-  }, [cardBg, onFormClick, infoItems]);
+  }, [cardBg, onFormClick, infoItems, textColor, subtextColor, borderColor]);
 
   const renderHeader = useCallback(() => (
     <VStack px="4" py="3" space={2}>
@@ -162,8 +165,8 @@ const AuditFormsList = ({ route, navigation }) => {
               <Icon as={MaterialIcons} name="description" size="xs" color="blue.600" />
             </Center>
             <VStack>
-              <Text fontSize="lg" fontWeight="bold" color="coolGray.800">{stats.total}</Text>
-              <Text fontSize="2xs" color="gray.500">Formulieren</Text>
+              <Text fontSize="lg" fontWeight="bold" color={textColor}>{stats.total}</Text>
+              <Text fontSize="2xs" color={subtextColor}>Formulieren</Text>
             </VStack>
           </HStack>
         </Box>
@@ -173,8 +176,8 @@ const AuditFormsList = ({ route, navigation }) => {
               <Icon as={MaterialIcons} name="check-circle" size="xs" color="green.600" />
             </Center>
             <VStack>
-              <Text fontSize="lg" fontWeight="bold" color="coolGray.800">{stats.completed}</Text>
-              <Text fontSize="2xs" color="gray.500">Voltooid</Text>
+              <Text fontSize="lg" fontWeight="bold" color={textColor}>{stats.completed}</Text>
+              <Text fontSize="2xs" color={subtextColor}>Voltooid</Text>
             </VStack>
           </HStack>
         </Box>
@@ -184,8 +187,8 @@ const AuditFormsList = ({ route, navigation }) => {
               <Icon as={MaterialIcons} name="error-outline" size="xs" color="red.600" />
             </Center>
             <VStack>
-              <Text fontSize="lg" fontWeight="bold" color="coolGray.800">{stats.totalErrors}</Text>
-              <Text fontSize="2xs" color="gray.500">Fouten</Text>
+              <Text fontSize="lg" fontWeight="bold" color={textColor}>{stats.totalErrors}</Text>
+              <Text fontSize="2xs" color={subtextColor}>Fouten</Text>
             </VStack>
           </HStack>
         </Box>
@@ -196,7 +199,7 @@ const AuditFormsList = ({ route, navigation }) => {
         ALLE FORMULIEREN
       </Text>
     </VStack>
-  ), [cardBg, stats]);
+  ), [cardBg, stats, textColor, subtextColor]);
 
   const renderEmpty = useCallback(() => (
     <EmptyState

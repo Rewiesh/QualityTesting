@@ -1,4 +1,4 @@
-/* eslint-disable prettier/prettier */
+"/* eslint-disable prettier/prettier */
 /**
  * SkeletonLoader - Shimmer loading placeholders
  */
