@@ -140,7 +140,7 @@ const Login = ({ navigation }) => {
         </Box>
 
         {/* Floating Login Card */}
-        <Center flex={1} px={6} pt="20%">
+        <Center flex={1} px={6} pt="20%" zIndex={2}>
           <Box
             bg={cardBg}
             width="100%"
