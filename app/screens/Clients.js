@@ -21,7 +21,8 @@ import {
   Pressable,
   useTheme,
   useColorModeValue,
-  Icon
+  Icon,
+  Input
 } from 'native-base';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { ShowToast } from '../services/Util';
@@ -42,6 +43,7 @@ const Clients = ({ route, navigation }) => {
   // Modern UI Colors
   const bgMain = useColorModeValue("coolGray.100", "gray.900"); // Light gray background for the screen
   const textTitle = useColorModeValue("coolGray.800", "white");
+  const inputBg = useColorModeValue("white", "gray.800");
 
   useEffect(() => {
     loadClients();
@@ -173,23 +175,10 @@ const Clients = ({ route, navigation }) => {
     <RenderClientRow item={item} index={index} onListItemClick={onListItemClick} />
   );
 
-  // Search Bar Header
-  const renderHeader = () => (
-    <Box px="4" py="4" bg={bgMain}>
-      <Box
-        bg={useColorModeValue("white", "gray.800")}
-        rounded="xl"
-        px="4"
-        py="3"
-        shadow={1}
-        flexDirection="row"
-        alignItems="center"
-      >
-        <Icon as={MaterialIcons} name="search" size="sm" color="gray.400" mr="3" />
-        <Text color="gray.400" flex={1}>Zoek opdrachtgever...</Text>
-        {/* Note: In a real app, use <Input> here. Using Text for visual matching of 'static' look if preferred, but ideally Input */}
-      </Box>
-      <Text mt="6" mb="2" fontSize="xs" fontWeight="bold" color="gray.500" letterSpacing="lg">
+  // Section Header (no hooks, static)
+  const renderSectionHeader = () => (
+    <Box px="4" pt="2">
+      <Text mt="4" mb="2" fontSize="xs" fontWeight="bold" color="gray.500" letterSpacing="lg">
         ACTIEVE OPDRACHTEN
       </Text>
     </Box>
@@ -197,18 +186,51 @@ const Clients = ({ route, navigation }) => {
 
   return (
     <Box flex={1} bg={bgMain}>
+      {/* Search Bar - Outside FlatList to prevent keyboard issues */}
+      <Box px="4" pt="4" pb="2" bg={bgMain}>
+        <Input
+          placeholder="Zoek opdrachtgever..."
+          value={searchText}
+          onChangeText={setSearchText}
+          bg={inputBg}
+          rounded="xl"
+          px="4"
+          py="3"
+          shadow={1}
+          borderWidth={0}
+          fontSize="md"
+          placeholderTextColor="gray.400"
+          InputLeftElement={
+            <Icon as={MaterialIcons} name="search" size="sm" color="gray.400" ml="3" />
+          }
+          InputRightElement={
+            searchText.length > 0 ? (
+              <Pressable onPress={() => setSearchText("")} mr="3" p="1">
+                <Icon as={MaterialIcons} name="close" size="sm" color="gray.400" />
+              </Pressable>
+            ) : null
+          }
+          _focus={{
+            bg: inputBg,
+            borderColor: "fdis.500",
+            borderWidth: 1,
+          }}
+        />
+      </Box>
+
       <FlatList
         data={filteredClients}
         renderItem={renderItem}
         keyExtractor={item => item.Id.toString()}
         refreshing={refreshing}
         onRefresh={onReload}
-        ListHeaderComponent={renderHeader}
+        ListHeaderComponent={renderSectionHeader}
         ListEmptyComponent={<RenderEmpty />}
         contentContainerStyle={{
           flexGrow: 1,
           paddingBottom: 120, // Space for floating footer
         }}
+        keyboardShouldPersistTaps="handled"
       />
       <RenderModal
         unsavedData={unsavedData}
