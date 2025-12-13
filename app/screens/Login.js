@@ -133,9 +133,9 @@ const Login = ({ navigation }) => {
             <Heading color="white" fontSize="3xl" fontWeight="bold">
               Quality Check
             </Heading>
-            {/* <Text color="white" fontSize="md" opacity={0.9}>
+            <Text color="white" fontSize="md" opacity={0.9}>
               Audits
-            </Text> */}
+            </Text>
           </Center>
         </Box>
 
