@@ -3,14 +3,12 @@
 /* eslint-disable no-alert */
 /* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from "react";
 import {
   useTheme,
-  colorMode,
   Box,
   Center,
   Heading,
-  Spinner,
   VStack,
   FormControl,
   Input,
@@ -18,207 +16,276 @@ import {
   Image,
   useColorModeValue,
   Text,
-} from 'native-base';
-import {ShowToast} from '../services/Util';
-import {StyleSheet} from 'react-native';
-import userManager from '../services/UserManager';
-import {fetchData} from '../services/api/Api1';
-import {isLoginValid, fetchToken, fetchAuditData} from '../services/api/newAPI';
-import * as database from '../services/database/database1';
+  Icon,
+  Pressable,
+  KeyboardAvoidingView,
+  HStack,
+  StatusBar,
+} from "native-base";
+import { ShowToast } from "../services/Util";
+import { StyleSheet, Platform, Dimensions } from "react-native";
+import userManager from "../services/UserManager";
+import { fetchAuditData } from "../services/api/newAPI";
+import * as database from "../services/database/database1";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
-const Login = ({navigation}) => {
+const { width } = Dimensions.get("window");
+
+const Login = ({ navigation }) => {
   const theme = useTheme();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const bgColor = useColorModeValue('coolGray.100', 'gray.700');
-  const textColor = useColorModeValue('darkText', 'lightText');
+
+  // Colors
+  const primaryColor = theme.colors.fdis[500]; // Brand Blue
+  const primaryDark = theme.colors.fdis[700];
+  const bgColor = useColorModeValue("coolGray.50", "gray.900");
+  const cardBg = useColorModeValue("white", "gray.800");
+  const textColor = useColorModeValue("coolGray.800", "white");
+  const mutedText = useColorModeValue("coolGray.500", "gray.400");
+  const inputBg = useColorModeValue("coolGray.50", "gray.700");
+  const borderColor = useColorModeValue("coolGray.200", "gray.600");
 
   useEffect(() => {
     const redirectUser = async () => {
       try {
         const isLoggedIn = await userManager.isLoggedIn();
         if (isLoggedIn) {
-          navigation.replace('MyTabs');
+          navigation.replace("MyTabs");
         }
       } catch (error) {
-        console.error('Error Occurred: ', error);
+        console.error("Error Occurred: ", error);
       }
     };
 
     redirectUser();
   }, []);
 
-  // const loginUser = async () => {
-  //   setIsLoading(true);
-  //   try {
-  //     const {data, error} = await fetchData(username, password);
-  //     if (error) {
-  //       // Using NativeBase Toast to show error
-  //       ShowToast({
-  //         status: 'error',
-  //         message: 'Ongeldige inloggegevens.',
-  //         bgColor: bgColor,
-  //         textColor: textColor,
-  //       });
-  //     } else {
-  //       await database.InitializeDatabase(); // Ensure database is initialized before proceeding
-  //       await database.saveAllData(data); // Save all data to the database
-  //       userManager.setCurrentUser(username, password); // Set the current user
-  //       navigation.replace('MyTabs'); // Navigate to 'MyTabs'
-  //     }
-  //   } catch (error) {
-  //     console.error('Error during login:', error);
-  //   } finally {
-  //     setIsLoading(false); // Reset loading state irrespective of success/failure
-  //   }
-  // };
-
   const loginUser = async () => {
+    if (!username || !password) {
+      ShowToast({
+        status: "warning",
+        message: "Vul alstublieft uw gebruikersnaam en wachtwoord in.",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      console.log('username', username);
-      console.log('password', password);
-  
+      console.log("username", username);
+
       const { data, error } = await fetchAuditData(username, password);
-  
+
       if (error) {
-        console.log('Login error:', error);
+        console.log("Login error:", error);
         ShowToast({
-          status: 'error',
-          message: 'Ongeldige inloggegevens.',
-          bgColor,
-          textColor,
+          status: "error",
+          message: "Ongeldige inloggegevens.",
         });
-        return; // Stop verder uitvoeren
+        return;
       }
-  
-      console.log('Login successful!');
-  
+
+      console.log("Login successful!");
       await database.InitializeDatabase();
-  
-      if (data && Array.isArray(data) ? data.length > 0 : Object.keys(data).length > 0) {
+
+      if (data && (Array.isArray(data) ? data.length > 0 : Object.keys(data).length > 0)) {
         await database.saveAllData(data);
       } else {
-        console.log('Geen data om op te slaan.');
+        console.log("Geen data om op te slaan.");
       }
-  
+
       userManager.setCurrentUser(username, password);
-      navigation.replace('MyTabs');
+      navigation.replace("MyTabs");
     } catch (error) {
-      console.error('Error during login:', error);
+      console.error("Error during login:", error);
       ShowToast({
-        status: 'error',
-        message: 'Er ging iets mis tijdens het inloggen.',
-        bgColor,
-        textColor,
+        status: "error",
+        message: "Er ging iets mis tijdens het inloggen.",
       });
     } finally {
       setIsLoading(false);
     }
   };
-  
-
-  if (isLoading) {
-    return (
-      <Center flex={1} bg={useColorModeValue('white', theme.colors.fdis[900])}>
-        <Spinner
-          size="lg"
-          color={useColorModeValue(theme.colors.fdis[400], 'white')}
-          accessibilityLabel="Klanten worden opgehaald"
-        />
-        <Text
-          color={useColorModeValue(theme.colors.fdis[400], 'white')}
-          fontSize="md">
-          Klanten worden opgehaald...
-        </Text>
-      </Center>
-    );
-  }
 
   return (
-    <Center
-      w="100%"
-      h="100%"
-      bg={useColorModeValue('white', theme.colors.fdis[900])}>
-      <Box safeArea p="5" w="90%" maxW="350">
-        <Heading
-          size="xl"
-          fontWeight="600"
-          color={useColorModeValue(theme.colors.fdis[400], 'white')}>
-          Inloggen
-        </Heading>
-        <Text
-          fontSize="md"
-          mt="1"
-          color={useColorModeValue('black', 'white')}
-          fontWeight="medium">
-          Welkom terug, log alstublieft in om verder te gaan.
-        </Text>
-        <Image
-          source={require('../assets/images/image_login.jpg')}
-          alt="Login Image"
-          size="2xl"
-          resizeMode="contain"
-          style={styles.headerImage}
-        />
-        <VStack space={4} mt="5">
-          <FormControl>
-            <FormControl.Label color={useColorModeValue('black', 'white')}>
-              Gebruikersnaam
-            </FormControl.Label>
-            <Input
-              bg={useColorModeValue('white', 'gray.700')}
-              placeholder="Gebruikersnaam invoeren"
-              placeholderTextColor={useColorModeValue('black', 'white')}
-              value={username}
-              onChangeText={setUsername}
-              color={useColorModeValue('black', 'white')}
-              borderColor={useColorModeValue(theme.colors.fdis[100], 'white')}
-              _focus={{
-                borderColor: 'fdis.500',
-              }}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      flex={1}
+    >
+      <StatusBar barStyle="light-content" backgroundColor={primaryColor} />
+      <Box flex={1} bg={bgColor}>
+        {/* Top Blue Background with Curve */}
+        <Box
+          bg={primaryColor}
+          height="35%"
+          width="100%"
+          borderBottomLeftRadius="3xl"
+          borderBottomRightRadius="3xl"
+          position="absolute"
+          top={0}
+          shadow={5}
+          zIndex={1}
+        >
+          <Center flex={1} pb={10}>
+            {/* Optional: Add Logo here later if needed, or keep clean */}
+            <Heading color="white" fontSize="3xl" fontWeight="bold">
+              Quality Check
+            </Heading>
+            {/* <Text color="white" fontSize="md" opacity={0.9}>
+              Audits
+            </Text> */}
+          </Center>
+        </Box>
+
+        {/* Floating Login Card */}
+        <Center flex={1} px={6} pt="10%">
+          <Box
+            bg={cardBg}
+            width="100%"
+            rounded="2xl"
+            shadow={7} // Deep shadow for premium feel
+            zIndex={2}
+          >
+            {/* Image Header */}
+            <Image
+              source={require("../assets/images/image_login.jpg")}
+              alt="Login Header"
+              height={140}
+              width="100%"
+              borderTopLeftRadius="2xl"
+              borderTopRightRadius="2xl"
+              resizeMode="cover"
             />
-          </FormControl>
-          <FormControl>
-            <FormControl.Label color={useColorModeValue('black', 'white')}>
-              Wachtwoord
-            </FormControl.Label>
-            <Input
-              bg={useColorModeValue('white', 'gray.700')}
-              placeholder="Wachtwoord invoeren"
-              placeholderTextColor={useColorModeValue('black', 'white')}
-              color={useColorModeValue('black', 'white')}
-              borderColor={useColorModeValue(theme.colors.fdis[100], 'white')}
-              type="password"
-              value={password}
-              onChangeText={setPassword}
-              _focus={{borderColor: theme.colors.fdis[500]}}
-            />
-          </FormControl>
-          <Button
-            mt="2"
-            onPress={loginUser}
-            bg={useColorModeValue(
-              theme.colors.fdis[400],
-              theme.colors.fdis[600],
-            )}
-            _text={{color: 'white'}}>
-            Inloggen
-          </Button>
-        </VStack>
+
+            {/* Content Container */}
+            <Box p={8}>
+              <VStack space={6}>
+                <Box alignItems="center">
+                  <Text fontSize="2xl" fontWeight="bold" color={textColor}>
+                    Welkom Terug
+                  </Text>
+                  <Text fontSize="sm" color={mutedText} mt={1}>
+                    Log in om toegang te krijgen tot uw audits
+                  </Text>
+                </Box>
+
+                <VStack space={4}>
+                  <FormControl>
+                    <FormControl.Label _text={{ color: mutedText, fontSize: "xs", fontWeight: "bold", letterSpacing: 1 }}>
+                      GEBRUIKERSNAAM
+                    </FormControl.Label>
+                    <Input
+                      InputLeftElement={
+                        <Icon
+                          as={<MaterialIcons name="person-outline" />}
+                          size={5}
+                          ml="3"
+                          color="coolGray.400"
+                        />
+                      }
+                      bg={useColorModeValue("white", "gray.700")}
+                      variant="outline"
+                      borderColor={borderColor}
+                      borderWidth={1}
+                      placeholder="Voer uw gebruikersnaam in"
+                      placeholderTextColor="coolGray.400"
+                      value={username}
+                      onChangeText={setUsername}
+                      color={textColor}
+                      py="3"
+                      fontSize="sm"
+                      rounded="lg"
+                      _focus={{
+                        borderColor: primaryColor,
+                        bg: useColorModeValue("white", "gray.700"),
+                        _android: { selectionColor: primaryColor },
+                        _ios: { selectionColor: primaryColor }
+                      }}
+                    />
+                  </FormControl>
+
+                  <FormControl>
+                    <FormControl.Label _text={{ color: mutedText, fontSize: "xs", fontWeight: "bold", letterSpacing: 1 }}>
+                      WACHTWOORD
+                    </FormControl.Label>
+                    <Input
+                      InputLeftElement={
+                        <Icon
+                          as={<MaterialIcons name="lock-outline" />}
+                          size={5}
+                          ml="3"
+                          color="coolGray.400"
+                        />
+                      }
+                      InputRightElement={
+                        <Pressable onPress={() => setShowPassword(!showPassword)} p={2}>
+                          <Icon
+                            as={<MaterialIcons name={showPassword ? "visibility" : "visibility-off"} />}
+                            size={5}
+                            mr="2"
+                            color="coolGray.400"
+                          />
+                        </Pressable>
+                      }
+                      bg={useColorModeValue("white", "gray.700")}
+                      variant="outline"
+                      borderColor={borderColor}
+                      borderWidth={1}
+                      placeholder="Voer uw wachtwoord in"
+                      placeholderTextColor="coolGray.400"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChangeText={setPassword}
+                      color={textColor}
+                      py="3"
+                      fontSize="sm"
+                      rounded="lg"
+                      _focus={{
+                        borderColor: primaryColor,
+                        bg: useColorModeValue("white", "gray.700"),
+                        _android: { selectionColor: primaryColor },
+                        _ios: { selectionColor: primaryColor }
+                      }}
+                    />
+                  </FormControl>
+
+                  <Button
+                    mt="2"
+                    onPress={loginUser}
+                    isLoading={isLoading}
+                    isLoadingText="Bezig met inloggen..."
+                    bg={primaryColor}
+                    rounded="full" // Pill shape
+                    shadow={4}
+                    py="3"
+                    _pressed={{
+                      bg: primaryDark,
+                      transform: [{ scale: 0.98 }]
+                    }}
+                    _text={{
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "md",
+                      textTransform: "uppercase",
+                      letterSpacing: 1
+                    }}
+                  >
+                    Inloggen
+                  </Button>
+                </VStack>
+              </VStack>
+            </Box>
+          </Box>
+        </Center>
       </Box>
-    </Center>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  headerImage: {
-    alignSelf: 'center',
-    width: 280,
-    height: 150,
-    marginTop: 20,
-  },
+  // Kept for backward compatibility if needed, but styling moved to NativeBase props
 });
 
 export default Login;
