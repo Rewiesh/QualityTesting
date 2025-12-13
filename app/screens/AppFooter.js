@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Text,
@@ -10,9 +10,9 @@ import {
   useTheme,
 } from 'native-base';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {Keyboard} from 'react-native';
+import { Keyboard, Platform } from 'react-native';
 
-const AppFooter = ({navigation}) => {
+const AppFooter = ({ navigation }) => {
   const theme = useTheme();
   const [selected, setSelected] = useState(0);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -24,19 +24,10 @@ const AppFooter = ({navigation}) => {
     // Hulp: 'help-outline',
   };
 
-  const footerBackground = useColorModeValue(
-    theme.colors.fdis[400], // Darker shade for light mode
-    theme.colors.fdis[900], // Dark background for dark mode
-  );
-  const activeIconColor = useColorModeValue(
-    'black', 
-    'white'
-  );
-  const inactiveIconColor = useColorModeValue(
-    'black', // Black color for inactive icon in light mode
-    theme.colors.fdis[600], // Dark color for inactive icon in dark mode
-  );
-
+  // Modern Floating Bar Colors
+  const footerBg = useColorModeValue('white', 'gray.800');
+  const activeColor = theme.colors.fdis[500]; // Brand Blue for active
+  const inactiveColor = useColorModeValue('gray.400', 'gray.500');
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -66,41 +57,51 @@ const AppFooter = ({navigation}) => {
 
   if (keyboardVisible) {
     return null;
-  }    
+  }
 
   return (
     <Box
-      bg={footerBackground}
-      safeAreaBottom
+      bg={footerBg}
       width="100%"
-      position="absolute"
-      bottom="0"
-      alignSelf="center"
-      shadow={2}>
-      <HStack alignItems="center" justifyContent="space-around" py="2">
-        {Object.keys(iconMap).map((tab, index) => (
-          <Pressable key={tab} flex={1} onPress={() => navigateToScreen(index)}>
-            <Center>
-              <VStack space={1} alignItems="center">
-                <MaterialIcons
-                  name={iconMap[tab]}
-                  size={selected === index ? 24 : 20}
-                  color={
-                    selected === index ? activeIconColor : inactiveIconColor
-                  }
+      safeAreaBottom
+      shadow={3} // Subtle shadow for separation from content
+      borderTopWidth={1}
+      borderColor={useColorModeValue('gray.100', 'gray.200')}
+    >
+      <HStack alignItems="center" justifyContent="space-around" pt={0} pb={2}>
+        {Object.keys(iconMap).map((tab, index) => {
+          const isSelected = selected === index;
+          return (
+            <Pressable key={tab} flex={1} onPress={() => navigateToScreen(index)}>
+              <Center>
+                {/* Active Indicator Line */}
+                <Box
+                  height="3px"
+                  width="50%" // Width of the indicator line
+                  bg={isSelected ? activeColor : 'transparent'}
+                  roundedBottom="full"
+                  mb={3} // Spacing between line and icon
                 />
-                <Text
-                  fontSize="sm"
-                  color={
-                    selected === index ? activeIconColor : inactiveIconColor
-                  }
-                  fontWeight={selected === index ? 'bold' : 'normal'}>
-                  {tab}
-                </Text>
-              </VStack>
-            </Center>
-          </Pressable>
-        ))}
+
+                <VStack space={1} alignItems="center">
+                  <MaterialIcons
+                    name={iconMap[tab]}
+                    size={26}
+                    color={isSelected ? activeColor : inactiveColor}
+                  />
+                  <Text
+                    fontSize="10px"
+                    color={
+                      isSelected ? activeColor : inactiveColor
+                    }
+                    fontWeight={isSelected ? 'bold' : 'medium'}>
+                    {tab}
+                  </Text>
+                </VStack>
+              </Center>
+            </Pressable>
+          );
+        })}
       </HStack>
     </Box>
   );
