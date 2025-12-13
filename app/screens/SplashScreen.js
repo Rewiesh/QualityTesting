@@ -1,48 +1,36 @@
-/* eslint-disable react/self-closing-comp */
-/* eslint-disable react/no-unstable-nested-components */
-/* eslint-disable no-alert */
-/* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
 import React from 'react';
-import {Dimensions} from 'react-native';
-import {
-  Box,
-  Text,
-  Image,
-  useColorModeValue,
-  useTheme,
-} from 'native-base';
+import { Dimensions } from 'react-native';
+import { Box, Text, Image, Spinner, VStack } from 'native-base';
 
 const SplashScreen = () => {
-  const screenWidth = Dimensions.get('window').width; 
+  const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
-  
+
   return (
-    <Box
-      flex={1}
-      bg={'white'}
-      alignItems="center"
-      justifyContent="center"
-      padding={1}
-      position="relative">
+    <Box flex={1} bg="white" alignItems="center" justifyContent="center">
       <Image
         source={require('../assets/images/logo/image_login.jpg')}
         alt="Loading logo"
         resizeMode="contain"
-        width={`${screenWidth}px`}
-        height={`${screenHeight}px`}
+        width={screenWidth}
+        height={screenHeight}
         position="absolute"
         top={0}
         left={0}
       />
-      <Text
-        fontSize="xl"
-        color="black"
+      <VStack
         position="absolute"
-        bottom="175px"
-        zIndex={1}>
-        Laden...
-      </Text>
+        bottom="150px"
+        alignItems="center"
+        space={3}
+        zIndex={1}
+      >
+        <Spinner size="lg" color="fdis.500" />
+        <Text fontSize="md" fontWeight="medium" color="coolGray.600">
+          Laden...
+        </Text>
+      </VStack>
     </Box>
   );
 };

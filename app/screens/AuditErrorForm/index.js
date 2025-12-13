@@ -133,7 +133,7 @@ const AuditErrorForm = ({ navigation, route }) => {
     <Box flex={1} bg={bgMain}>
       <ScrollView
         flex={1}
-        _contentContainerStyle={{ p: '4', pb: '6' }}
+        _contentContainerStyle={{ p: '4', pb: '4' }}
         nestedScrollEnabled={true}
       >
         <ElementPicker
@@ -173,22 +173,26 @@ const AuditErrorForm = ({ navigation, route }) => {
               onDeleteImage={onDeleteTechnicalAspectImage}
               cardBg={cardBg}
             />
-
-            <Button
-              mt="2"
-              size="lg"
-              bg="fdis.500"
-              _pressed={{ bg: 'fdis.600' }}
-              _text={{ color: 'white', fontWeight: 'bold' }}
-              rounded="xl"
-              leftIcon={<Icon as={MaterialIcons} name="save" size="md" color="white" />}
-              onPress={saveError}
-            >
-              Opmerking opslaan
-            </Button>
           </>
         )}
       </ScrollView>
+
+      {/* Sticky Footer Button */}
+      {countError > 0 && (
+        <Box px="4" py="3" bg={bgMain} safeAreaBottom>
+          <Button
+            size="lg"
+            bg="fdis.500"
+            _pressed={{ bg: 'fdis.600' }}
+            _text={{ color: 'white', fontWeight: 'bold' }}
+            rounded="xl"
+            leftIcon={<Icon as={MaterialIcons} name="save" size="md" color="white" />}
+            onPress={saveError}
+          >
+            Opmerking opslaan
+          </Button>
+        </Box>
+      )}
 
       {/* Image Picker Modals */}
       <ImagePickerModal

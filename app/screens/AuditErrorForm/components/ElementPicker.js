@@ -5,23 +5,24 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const ElementPicker = ({ selectedElement, elements, onElementChange, cardBg }) => {
   return (
-    <Box bg={cardBg} rounded="2xl" shadow={1} p="4" mb="3">
-      <HStack alignItems="center" space={2} mb="3">
-        <Center bg="blue.100" size="8" rounded="lg">
-          <Icon as={MaterialIcons} name="category" size="sm" color="blue.600" />
+    <Box bg={cardBg} rounded="xl" shadow={1} px="3" py="2" mb="2">
+      <HStack alignItems="center" space={2}>
+        <Center bg="blue.100" size="6" rounded="md">
+          <Icon as={MaterialIcons} name="category" size="xs" color="blue.600" />
         </Center>
-        <Text fontSize="md" fontWeight="bold" color="coolGray.800">
+        <Text fontSize="sm" fontWeight="bold" color="coolGray.800" flex={1}>
           Element
         </Text>
       </HStack>
       <Select
+        mt="1"
         selectedValue={selectedElement}
         accessibilityLabel="Kies Element"
         placeholder="Kies Element"
-        bg="gray.100"
+        bg="gray.50"
         borderWidth={0}
-        rounded="xl"
-        py="3"
+        rounded="lg"
+        py="2"
         _selectedItem={{
           bg: 'fdis.100',
           endIcon: <CheckIcon size="4" />,

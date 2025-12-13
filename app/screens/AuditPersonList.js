@@ -1,7 +1,3 @@
-/* eslint-disable react/self-closing-comp */
-/* eslint-disable react/no-unstable-nested-components */
-/* eslint-disable no-alert */
-/* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useIsFocused } from '@react-navigation/native';
@@ -15,17 +11,15 @@ import {
   Pressable,
   FlatList,
   VStack,
+  Center,
   useTheme,
   useColorModeValue,
   Modal,
   Input,
-  FormControl,
 } from 'native-base';
 import { ShowToast } from '../services/Util';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import * as database from '../services/database/database1';
-
 
 const AuditPersonList = ({ route, navigation }) => {
   const isFocused = useIsFocused();
@@ -36,20 +30,9 @@ const AuditPersonList = ({ route, navigation }) => {
   const [nameClient, setNameClient] = useState('');
   const [changingClient, setChangingClient] = useState(null);
 
-  const backgroundColor = useColorModeValue(
-    'coolGray.50',
-    theme.colors.fdis[1100],
-  ); // Adjust for light and dark modes
-  const cardBackgroundColor = useColorModeValue(
-    'gray.100',
-    theme.colors.fdis[900],
-  );
-  const headingTextColor = useColorModeValue('coolGray.800', 'black');
-  const textColor = useColorModeValue('coolGray.800', 'black');
-  const btnColor = useColorModeValue(
-    theme.colors.fdis[400],
-    theme.colors.fdis[600],
-  );
+  // Colors
+  const bgMain = useColorModeValue('coolGray.100', 'gray.900');
+  const cardBg = useColorModeValue('white', 'gray.800');
 
   useEffect(() => {
     if (isFocused) {
@@ -156,56 +139,105 @@ const AuditPersonList = ({ route, navigation }) => {
     });
   };
 
-  const renderPresentClientRow = ({ item }) => (
+  const renderPresentClientRow = useCallback(({ item }) => (
     <Pressable onPress={() => editClient(item)}>
-      {({ isHovered, isPressed }) => (
+      {({ isPressed }) => (
         <Box
-          borderBottomWidth="1"
-          py="3"
-          borderColor="coolGray.300"
-          bg={isPressed ? 'coolGray.200' : 'coolGray.100'}
-          px="4"
-          rounded="md"
-          style={{ transform: [{ scale: isPressed ? 0.96 : 1 }] }}>
-          <HStack justifyContent="space-between" alignItems="center">
-            <VStack space={1}>
-              <Text
-                bold
-                color="coolGray.800"
-                fontSize="md"
-                _dark={{ color: 'warmGray.200' }}>
+          bg={cardBg}
+          mx="4"
+          my="1.5"
+          rounded="2xl"
+          shadow={1}
+          overflow="hidden"
+          style={{ transform: [{ scale: isPressed ? 0.98 : 1 }] }}
+        >
+          <HStack alignItems="center" p="4">
+            <Center bg="blue.100" size="12" rounded="xl" mr="3">
+              <Icon as={MaterialIcons} name="person" size="md" color="blue.600" />
+            </Center>
+            <VStack flex={1}>
+              <Text fontSize="md" fontWeight="bold" color="coolGray.800">
                 {item.name}
               </Text>
             </VStack>
-            <Pressable onPress={() => deletePresentClient(item)}>
-              <Icon
-                as={MaterialIcons}
-                name="delete"
-                color="red.500"
-                size="xl"
-              />
-            </Pressable>
+            <HStack space={2}>
+              <Pressable onPress={() => deletePresentClient(item)}>
+                {({ isPressed: delPressed }) => (
+                  <Center
+                    bg={delPressed ? 'red.100' : 'red.50'}
+                    size="10"
+                    rounded="xl"
+                  >
+                    <Icon as={MaterialIcons} name="delete" size="sm" color="red.500" />
+                  </Center>
+                )}
+              </Pressable>
+              <Center bg="gray.100" size="10" rounded="xl">
+                <Icon as={MaterialIcons} name="edit" size="sm" color="gray.500" />
+              </Center>
+            </HStack>
           </HStack>
         </Box>
       )}
     </Pressable>
-  );
+  ), [cardBg, editClient, deletePresentClient]);
+
+  const renderEmptyState = useCallback(() => (
+    <Center flex={1} py="20">
+      <Center bg="blue.100" size="20" rounded="full" mb="4">
+        <Icon as={MaterialIcons} name="people" size="4xl" color="blue.500" />
+      </Center>
+      <Text fontSize="lg" fontWeight="bold" color="coolGray.700" mb="1">
+        Geen aanwezigen
+      </Text>
+      <Text fontSize="sm" color="gray.500" textAlign="center" px="8" mb="4">
+        Voeg personen toe die aanwezig zijn bij deze audit.
+      </Text>
+      <Button
+        bg="fdis.500"
+        _pressed={{ bg: 'fdis.600' }}
+        rounded="xl"
+        leftIcon={<Icon as={MaterialIcons} name="person-add" size="sm" color="white" />}
+        onPress={() => setModalVisible(true)}
+      >
+        Persoon Toevoegen
+      </Button>
+    </Center>
+  ), []);
+
+  const renderHeader = useCallback(() => (
+    clients.length > 0 ? (
+      <HStack px="4" py="3" alignItems="center" justifyContent="space-between">
+        <Text fontSize="sm" color="gray.500">
+          Aanwezige personen
+        </Text>
+        <Box bg="blue.100" px="3" py="1" rounded="full">
+          <Text fontSize="xs" fontWeight="bold" color="blue.600">
+            {clients.length} persoon/personen
+          </Text>
+        </Box>
+      </HStack>
+    ) : null
+  ), [clients.length]);
 
   return (
-    <Box flex={1}>
+    <Box flex={1} bg={bgMain}>
       <FlatList
         data={clients}
         renderItem={renderPresentClientRow}
         keyExtractor={item => item.id.toString()}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmptyState}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+        showsVerticalScrollIndicator={false}
       />
       <RenderClientModal
         isOpen={modalVisible}
         onClose={() => setModalVisible(false)}
-        btnColor={btnColor}
         value={nameClient}
         onChangeText={setNameClient}
         save={saveClient}
+        isEditing={!!changingClient}
       />
     </Box>
   );
@@ -214,39 +246,56 @@ const AuditPersonList = ({ route, navigation }) => {
 const RenderClientModal = ({
   isOpen,
   onClose,
-  btnColor,
   value,
   onChangeText,
   save,
+  isEditing,
 }) => (
   <Modal isOpen={isOpen} onClose={onClose}>
-    <Modal.Content maxWidth="400px">
+    <Modal.Content maxWidth="400px" rounded="2xl">
       <Modal.CloseButton />
-      <Modal.Header>
-        Voeg/Wijzig Persoon
+      <Modal.Header borderBottomWidth={0}>
+        <HStack alignItems="center" space={2}>
+          <Center bg="blue.100" size="8" rounded="lg">
+            <Icon as={MaterialIcons} name={isEditing ? 'edit' : 'person-add'} size="sm" color="blue.600" />
+          </Center>
+          <Text fontWeight="bold">{isEditing ? 'Persoon Wijzigen' : 'Persoon Toevoegen'}</Text>
+        </HStack>
       </Modal.Header>
       <Modal.Body>
-        <FormControl>
-          <Input
-            placeholder="Type hier de naam in..."
-            value={value}
-            onChangeText={onChangeText}
-          />
-        </FormControl>
+        <Input
+          placeholder="Type hier de naam in..."
+          value={value}
+          onChangeText={onChangeText}
+          bg="gray.50"
+          borderWidth={0}
+          rounded="xl"
+          fontSize="md"
+          py="3"
+        />
       </Modal.Body>
-      <Modal.Footer>
-        <Button.Group space={2}>
-          <Button variant="ghost" onPress={onClose}>
+      <Modal.Footer borderTopWidth={0} pt="0">
+        <HStack space={2} flex={1}>
+          <Button
+            flex={1}
+            variant="outline"
+            borderColor="gray.300"
+            rounded="xl"
+            onPress={onClose}
+          >
             Annuleren
           </Button>
           <Button
+            flex={1}
+            bg="fdis.500"
+            _pressed={{ bg: 'fdis.600' }}
+            rounded="xl"
             onPress={save}
-            bg={btnColor}
-            _text={{ color: 'white' }}
-            isDisabled={!value.trim()}>
+            isDisabled={!value.trim()}
+          >
             Opslaan
           </Button>
-        </Button.Group>
+        </HStack>
       </Modal.Footer>
     </Modal.Content>
   </Modal>
