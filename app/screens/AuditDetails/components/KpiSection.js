@@ -1,9 +1,17 @@
 /* eslint-disable prettier/prettier */
-import React from "react";
+import React, { useCallback, memo } from "react";
 import { Box, VStack, Text, HStack, Center, Icon, Select, CheckIcon, Pressable } from "native-base";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
-const KpiCard = ({ kpi, onChange, openRemarkModal }) => {
+const KpiCard = memo(({ kpi, onChange, openRemarkModal }) => {
+  const handleValueChange = useCallback((value) => {
+    onChange(kpi, kpi.elements_auditId, value);
+  }, [kpi, onChange]);
+
+  const handleOpenRemarkModal = useCallback(() => {
+    openRemarkModal();
+  }, [openRemarkModal]);
+
   return (
     <Box bg="white" rounded="2xl" shadow={1} p="4" mb="3">
       <VStack space={2}>
@@ -24,7 +32,7 @@ const KpiCard = ({ kpi, onChange, openRemarkModal }) => {
               bg: "gray.200",
               endIcon: <CheckIcon size="4" />,
             }}
-            onValueChange={value => onChange(kpi, kpi.elements_auditId, value)}
+            onValueChange={handleValueChange}
             fontSize="sm"
             color="coolGray.700"
           >
@@ -34,7 +42,7 @@ const KpiCard = ({ kpi, onChange, openRemarkModal }) => {
             <Select.Item label="G - Goed" value="G" />
           </Select>
           {kpi.ElementValue === "O" && (
-            <Pressable onPress={openRemarkModal}>
+            <Pressable onPress={handleOpenRemarkModal}>
               {({ isPressed }) => (
                 <Center
                   bg={isPressed ? "orange.200" : "orange.100"}
@@ -51,7 +59,7 @@ const KpiCard = ({ kpi, onChange, openRemarkModal }) => {
       </VStack>
     </Box>
   );
-};
+});
 
 const KpiSection = ({ kpiElements, onChange, openRemarkModal, cardBg, headingTextColor }) => {
   if (!kpiElements || kpiElements.length === 0) {

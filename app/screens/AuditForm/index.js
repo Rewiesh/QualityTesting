@@ -169,7 +169,7 @@ const AuditForm = ({ navigation, route }) => {
       </KeyboardAvoidingView>
 
       {/* Sticky Footer Buttons - Outside KeyboardAvoidingView */}
-      <Box px="3" py="3" bg={cardBg} safeAreaBottom shadow={3}>
+      <Box px="3" py="3" pb="6" bg={cardBg} shadow={3}>
         <HStack space={2}>
           <Button
             flex={1}

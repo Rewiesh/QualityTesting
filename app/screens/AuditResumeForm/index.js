@@ -222,7 +222,7 @@ const AuditResumeForm = ({ route, navigation }) => {
         </ScrollView>
 
         {/* Sticky Footer Button */}
-        <Box px="3" py="2" bg={bgMain} safeAreaBottom>
+        <Box px="3" py="3" pb="6" bg={bgMain} shadow={3}>
           <Button
             size="md"
             bg={isFormCompleted() ? 'fdis.500' : 'gray.300'}

@@ -21,6 +21,9 @@ import * as database from '../services/database/database1';
 
 const AuditFormsList = ({ route, navigation }) => {
   const { AuditId, auditCode } = route.params;
+  // Parse AuditId to ensure it's a number (handles "17903.0" string from iOS)
+  const parsedAuditId = typeof AuditId === 'string' ? parseInt(AuditId, 10) : AuditId;
+  
   const [forms, setForms] = useState([]);
   const [audit, setAudit] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -34,9 +37,10 @@ const AuditFormsList = ({ route, navigation }) => {
       const fetchData = async () => {
         try {
           setLoading(true);
+          log('Fetching forms for AuditId:', parsedAuditId);
           const [formsData, auditData] = await Promise.all([
-            database.getFormsWithDetails(AuditId),
-            database.getAuditById(AuditId),
+            database.getFormsWithDetails(parsedAuditId),
+            database.getAuditById(parsedAuditId),
           ]);
           setForms(formsData);
           setAudit(auditData);
@@ -50,7 +54,7 @@ const AuditFormsList = ({ route, navigation }) => {
       };
 
       fetchData();
-    }, [AuditId])
+    }, [parsedAuditId])
   );
 
   const onFormClick = useCallback((form) => {

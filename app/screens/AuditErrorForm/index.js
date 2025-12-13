@@ -179,7 +179,7 @@ const AuditErrorForm = ({ navigation, route }) => {
 
       {/* Sticky Footer Button */}
       {countError > 0 && (
-        <Box px="4" py="3" bg={bgMain} safeAreaBottom>
+        <Box px="4" py="3" pb="6" bg={bgMain} shadow={3}>
           <Button
             size="lg"
             bg="fdis.500"

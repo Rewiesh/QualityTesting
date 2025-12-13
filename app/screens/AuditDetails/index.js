@@ -444,7 +444,7 @@ const AuditDetails = ({ route, navigation }) => {
       </ScrollView>
 
       {/* Sticky Footer Buttons */}
-      <Box px="4" py="3" bg={bgMain} safeAreaBottom shadow={3}>
+      <Box px="4" py="3" pb="6" bg={bgMain} shadow={3}>
         <HStack space={2}>
           <Button
             flex={1}
@@ -513,6 +513,20 @@ const AuditDetails = ({ route, navigation }) => {
 };
 
 // Remark Modal Component (kept inline for state access)
+const remarkModalStyles = StyleSheet.create({
+  input: {
+    height: 100,
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+    borderRadius: 12,
+    padding: 12,
+    color: "black",
+    backgroundColor: "#f9f9f9",
+    textAlignVertical: "top",
+  },
+});
+
 const RemarkModal2 = React.memo(({ isOpen, onClose, currentKPI, saveRemark, btnColor }) => {
   const [localRemark, setLocalRemark] = useState("");
 
@@ -522,21 +536,18 @@ const RemarkModal2 = React.memo(({ isOpen, onClose, currentKPI, saveRemark, btnC
     }
   }, [isOpen, currentKPI]);
 
-  const styles = StyleSheet.create({
-    input: {
-      height: 100,
-      fontSize: 14,
-      borderWidth: 1,
-      borderColor: "#e5e5e5",
-      borderRadius: 12,
-      padding: 12,
-      color: "black",
-      backgroundColor: "#f9f9f9",
-    },
-  });
+  const handleSave = useCallback(() => {
+    saveRemark(localRemark);
+  }, [localRemark, saveRemark]);
+
+  const handleTextChange = useCallback((text) => {
+    setLocalRemark(text);
+  }, []);
+
+  if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} avoidKeyboard>
       <Modal.Content maxWidth="400px" rounded="2xl">
         <Modal.CloseButton />
         <Modal.Header borderBottomWidth={0}>
@@ -553,10 +564,11 @@ const RemarkModal2 = React.memo(({ isOpen, onClose, currentKPI, saveRemark, btnC
             <TextInput
               placeholder="Type hier uw opmerking..."
               value={localRemark}
-              onChangeText={setLocalRemark}
+              onChangeText={handleTextChange}
               numberOfLines={4}
-              style={styles.input}
+              style={remarkModalStyles.input}
               multiline
+              autoFocus={false}
             />
           </FormControl>
         </Modal.Body>
@@ -566,7 +578,7 @@ const RemarkModal2 = React.memo(({ isOpen, onClose, currentKPI, saveRemark, btnC
               Annuleren
             </Button>
             <Button
-              onPress={() => saveRemark(localRemark)}
+              onPress={handleSave}
               bg="fdis.500"
               _pressed={{ bg: "fdis.600" }}
               rounded="xl"
