@@ -8,3 +8,14 @@ export {
   SkeletonList,
   LoadingOverlay,
 } from './LoadingState';
+
+// New UX components
+export { default as OfflineBanner } from './OfflineBanner';
+export { default as AuditProgressBar } from './AuditProgressBar';
+export { default as ConfirmDialog, useConfirmDialog } from './ConfirmDialog';
+export {
+  SkeletonAuditCard,
+  SkeletonFormCard,
+  SkeletonStats,
+  SkeletonProgressBar,
+} from './SkeletonLoader';

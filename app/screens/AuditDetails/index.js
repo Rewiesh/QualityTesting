@@ -529,6 +529,7 @@ const remarkModalStyles = StyleSheet.create({
 
 const RemarkModal2 = React.memo(({ isOpen, onClose, currentKPI, saveRemark, btnColor }) => {
   const [localRemark, setLocalRemark] = useState("");
+  const inputRef = React.useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -540,14 +541,15 @@ const RemarkModal2 = React.memo(({ isOpen, onClose, currentKPI, saveRemark, btnC
     saveRemark(localRemark);
   }, [localRemark, saveRemark]);
 
-  const handleTextChange = useCallback((text) => {
-    setLocalRemark(text);
-  }, []);
-
   if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} avoidKeyboard>
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      avoidKeyboard
+      _overlay={{ useRNModal: true }}
+    >
       <Modal.Content maxWidth="400px" rounded="2xl">
         <Modal.CloseButton />
         <Modal.Header borderBottomWidth={0}>
@@ -562,13 +564,15 @@ const RemarkModal2 = React.memo(({ isOpen, onClose, currentKPI, saveRemark, btnC
           <FormControl>
             <FormControl.Label>{currentKPI?.ElementLabel}</FormControl.Label>
             <TextInput
+              ref={inputRef}
               placeholder="Type hier uw opmerking..."
               value={localRemark}
-              onChangeText={handleTextChange}
+              onChangeText={setLocalRemark}
               numberOfLines={4}
               style={remarkModalStyles.input}
               multiline
-              autoFocus={false}
+              blurOnSubmit={false}
+              returnKeyType="default"
             />
           </FormControl>
         </Modal.Body>

@@ -12,6 +12,7 @@ import {
   useColorModeValue,
   Icon,
   Center,
+  Input,
 } from 'native-base';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { log, logError } from '../services/Logger';
@@ -27,10 +28,12 @@ const AuditFormsList = ({ route, navigation }) => {
   const [forms, setForms] = useState([]);
   const [audit, setAudit] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState('');
 
   // Colors
   const bgMain = useColorModeValue('coolGray.100', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.800');
+  const inputBg = useColorModeValue('white', 'gray.800');
 
   useFocusEffect(
     useCallback(() => {
@@ -62,13 +65,25 @@ const AuditFormsList = ({ route, navigation }) => {
     navigation.navigate('Fouten Lijst', { form });
   }, [navigation]);
 
+  // Filter forms based on search
+  const filteredForms = useMemo(() => {
+    if (!searchText.trim()) return forms;
+    const search = searchText.toLowerCase();
+    return forms.filter(f => 
+      (f.CategoryValue?.toLowerCase().includes(search)) ||
+      (f.FloorValue?.toLowerCase().includes(search)) ||
+      (f.AreaValue?.toLowerCase().includes(search)) ||
+      (f.AreaNumber?.toString().includes(search))
+    );
+  }, [forms, searchText]);
+
   // Stats
   const stats = useMemo(() => {
-    const total = forms.length;
-    const completed = forms.filter(f => f.Completed === 1).length;
-    const totalErrors = forms.reduce((sum, f) => sum + (f.ErrorCount || 0), 0);
+    const total = filteredForms.length;
+    const completed = filteredForms.filter(f => f.Completed === 1).length;
+    const totalErrors = filteredForms.reduce((sum, f) => sum + (f.ErrorCount || 0), 0);
     return { total, completed, totalErrors };
-  }, [forms]);
+  }, [filteredForms]);
 
   const infoItems = useCallback((item) => [
     { label: 'Categorie', value: item.CategoryValue, icon: 'category', color: 'blue' },
@@ -197,8 +212,37 @@ const AuditFormsList = ({ route, navigation }) => {
 
   return (
     <Box flex={1} bg={bgMain}>
+      {/* Search Bar */}
+      {forms.length > 0 && (
+        <Box px="4" pt="3" pb="1" bg={bgMain}>
+          <Input
+            placeholder="Zoek formulier..."
+            value={searchText}
+            onChangeText={setSearchText}
+            bg={inputBg}
+            rounded="xl"
+            px="4"
+            py="2"
+            shadow={1}
+            borderWidth={0}
+            fontSize="sm"
+            placeholderTextColor="gray.400"
+            InputLeftElement={
+              <Icon as={MaterialIcons} name="search" size="sm" color="gray.400" ml="3" />
+            }
+            InputRightElement={
+              searchText.length > 0 ? (
+                <Pressable onPress={() => setSearchText('')} mr="3" p="1">
+                  <Icon as={MaterialIcons} name="close" size="sm" color="gray.400" />
+                </Pressable>
+              ) : null
+            }
+          />
+        </Box>
+      )}
+
       <FlatList
-        data={forms}
+        data={filteredForms}
         renderItem={renderFormRow}
         keyExtractor={item => item.FormId.toString()}
         ListHeaderComponent={forms.length > 0 ? renderHeader : null}

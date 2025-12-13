@@ -14,9 +14,11 @@ import {
   Icon,
   ScrollView,
   useColorModeValue,
+  useColorMode,
   HStack,
   Center,
   Pressable,
+  Switch,
 } from 'native-base';
 import { fetchUserActivity } from "../services/api/newAPI";
 import * as database from '../services/database/database1';
@@ -25,6 +27,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const Settings = ({navigation}) => {
   const theme = useTheme();
+  const { colorMode, toggleColorMode } = useColorMode();
   const [userName, setUserName] = useState('--');
   const [performedAuditsCount, setPerformedAuditsCount] = useState('0');
   const [lastClientName, setLastClientName] = useState('-');
@@ -33,6 +36,8 @@ const Settings = ({navigation}) => {
   // Modern UI Colors
   const bgMain = useColorModeValue('coolGray.100', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.800');
+  const textColor = useColorModeValue('coolGray.800', 'white');
+  const subtextColor = useColorModeValue('coolGray.500', 'gray.400');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -166,6 +171,42 @@ const Settings = ({navigation}) => {
         </VStack>
       </Box>
 
+      {/* Settings Section */}
+      <Box px="4" py="2" mt="2">
+        <Text fontSize="xs" fontWeight="bold" color="gray.500" letterSpacing="lg" mb="3">
+          INSTELLINGEN
+        </Text>
+        <VStack space={3}>
+          {/* Dark Mode Toggle */}
+          <Box bg={cardBg} rounded="2xl" shadow={2} p="4">
+            <HStack alignItems="center" space={4}>
+              <Center bg={colorMode === 'dark' ? 'purple.100' : 'yellow.100'} size="12" rounded="xl">
+                <Icon 
+                  as={MaterialIcons} 
+                  name={colorMode === 'dark' ? 'dark-mode' : 'light-mode'} 
+                  size="md" 
+                  color={colorMode === 'dark' ? 'purple.600' : 'yellow.600'} 
+                />
+              </Center>
+              <VStack flex={1}>
+                <Text fontSize="md" fontWeight="semibold" color={textColor}>
+                  Donkere Modus
+                </Text>
+                <Text fontSize="sm" color={subtextColor}>
+                  {colorMode === 'dark' ? 'Aan' : 'Uit'}
+                </Text>
+              </VStack>
+              <Switch
+                isChecked={colorMode === 'dark'}
+                onToggle={toggleColorMode}
+                colorScheme="fdis"
+                size="lg"
+              />
+            </HStack>
+          </Box>
+        </VStack>
+      </Box>
+
       {/* Account Section */}
       <Box px="4" py="2" mt="2">
         <Text fontSize="xs" fontWeight="bold" color="gray.500" letterSpacing="lg" mb="3">
@@ -179,10 +220,10 @@ const Settings = ({navigation}) => {
                 <Icon as={MaterialIcons} name="info" size="md" color="gray.600" />
               </Center>
               <VStack flex={1}>
-                <Text fontSize="md" fontWeight="semibold" color="coolGray.800">
+                <Text fontSize="md" fontWeight="semibold" color={textColor}>
                   App Versie
                 </Text>
-                <Text fontSize="sm" color="coolGray.500">
+                <Text fontSize="sm" color={subtextColor}>
                   v1.3.0
                 </Text>
               </VStack>
