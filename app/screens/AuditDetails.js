@@ -842,7 +842,12 @@ const AuditDetails = ({ route, navigation }) => {
             }}
           />
         ) : (
-          <View style={{ height: 120, marginTop: 5, overflow: "hidden" }}>
+          <View
+            style={{ height: 120, marginTop: 5, overflow: "hidden" }}
+            onTouchStart={() => disableScroll()}
+            onTouchEnd={() => enableScroll()}
+            onTouchCancel={() => enableScroll()}
+          >
             <Signature
               ref={signatureRef}
               onOK={handleSignature}
