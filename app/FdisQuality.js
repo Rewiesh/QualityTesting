@@ -29,22 +29,22 @@ function AuditsStackScreen() {
     theme.colors.fdis[900], // Dark background for dark mode
   );
 
-  const headerTintColor = useColorModeValue(
-    'black', // Black color for text and icons in light mode
-    'white', // White color for text and icons in dark mode
-  );
+  const headerTintColor = 'white';
 
   return (
     <AuditsStack.Navigator
       screenOptions={{
         animation: 'slide_from_right',
         headerShown: true,
+        headerShadowVisible: false, // Remove shadow for flat look
+        headerTitleAlign: 'center', // Center title for premium feel
         headerStyle: {
           backgroundColor: headerBackground, // Using theme color based on light/dark mode
         },
         headerTintColor: headerTintColor, // Text and icon color based on light/dark mode
         headerTitleStyle: {
-          fontWeight: 'bold', // Keeping the bold font style for the title
+          fontWeight: '700', // Slightly bolder but cleaner
+          fontSize: 20,
         },
       }}>
       <AuditsStack.Screen name="Opdrachtgever" component={Clients} />
@@ -71,10 +71,22 @@ function MyTabs() {
     theme.colors.fdis[900], // Dark background for dark mode
   );
 
-  const headerTintColor = useColorModeValue(
-    'black', // Black color for text and icons in light mode
-    'white', // White color for text and icons in dark mode
-  );
+  const headerTintColor = 'white';
+
+  const commonHeaderOptions = {
+    animation: 'slide_from_right',
+    headerShown: true,
+    headerShadowVisible: false,
+    headerTitleAlign: 'center',
+    headerStyle: {
+      backgroundColor: headerBackground,
+    },
+    headerTintColor: headerTintColor,
+    headerTitleStyle: {
+      fontWeight: '700',
+      fontSize: 20, // Increased font size slightly to match SS1
+    },
+  };
 
   return (
     <Tab.Navigator tabBar={props => <AppFooter {...props} />}>
@@ -86,32 +98,12 @@ function MyTabs() {
       <Tab.Screen
         name="Instellingen"
         component={Settings}
-        options={{
-          animation: 'slide_from_right',
-          headerShown: true,
-          headerStyle: {
-            backgroundColor: headerBackground, // Using theme color based on light/dark mode
-          },
-          headerTintColor: headerTintColor, // Text and icon color based on light/dark mode
-          headerTitleStyle: {
-            fontWeight: 'bold', // Keeping the bold font style for the title
-          },
-        }}
+        options={commonHeaderOptions}
       />
       <Tab.Screen
         name="Hulp"
         component={Help}
-        options={{
-          animation: 'slide_from_right',
-          headerShown: true,
-          headerStyle: {
-            backgroundColor: headerBackground, // Using theme color based on light/dark mode
-          },
-          headerTintColor: headerTintColor, // Text and icon color based on light/dark mode
-          headerTitleStyle: {
-            fontWeight: 'bold', // Keeping the bold font style for the title
-          },
-        }}
+        options={commonHeaderOptions}
       />
     </Tab.Navigator>
   );
