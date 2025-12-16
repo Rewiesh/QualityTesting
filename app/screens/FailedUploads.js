@@ -286,6 +286,40 @@ const FailedUploads = ({ navigation }) => {
         );
     };
 
+    // Info Box
+    const renderInfoBox = () => (
+        <Box mx="4" mt="4" bg="blue.50" p="4" rounded="xl" borderLeftWidth={4} borderLeftColor="blue.500">
+            <HStack space={3} alignItems="flex-start">
+                <Icon as={MaterialIcons} name="info" size="md" color="blue.500" mt="0.5" />
+                <VStack flex={1} space={2}>
+                    <Text fontWeight="bold" color="blue.700" fontSize="md">
+                        Hulp bij mislukte uploads
+                    </Text>
+                    <Text fontSize="sm" color="blue.600">
+                        Uploads kunnen mislukken door een slechte internetverbinding of serverproblemen. Volg deze stappen om het op te lossen:
+                    </Text>
+
+                    <VStack space={1} mt="1">
+                        <HStack space={2} alignItems="flex-start">
+                            <Text fontSize="sm" color="blue.600" fontWeight="bold">1.</Text>
+                            <Text fontSize="sm" color="blue.600">Controleer uw internetverbinding (WiFi of 4G).</Text>
+                        </HStack>
+                        <HStack space={2} alignItems="flex-start">
+                            <Text fontSize="sm" color="blue.600" fontWeight="bold">2.</Text>
+                            <Text fontSize="sm" color="blue.600">Druk op <Text fontWeight="bold">"Opnieuw"</Text> om de upload nogmaals te proberen.</Text>
+                        </HStack>
+                        <HStack space={2} alignItems="flex-start">
+                            <Text fontSize="sm" color="blue.600" fontWeight="bold">3.</Text>
+                            <Text fontSize="sm" color="blue.600">
+                                Blijft het mislukken? Gebruik <Text fontWeight="bold">"Export"</Text> om de audit op te slaan en handmatig te delen (bijv. via E-mail of WhatsApp) met kantoor.
+                            </Text>
+                        </HStack>
+                    </VStack>
+                </VStack>
+            </HStack>
+        </Box>
+    );
+
     // Section Header
     const renderHeader = () => (
         <Box px="4" pt="4" pb="2">
@@ -420,13 +454,14 @@ const FailedUploads = ({ navigation }) => {
         <ScrollView
             flex={1}
             bg={bgMain}
-            _contentContainerStyle={{ 
+            _contentContainerStyle={{
                 flexGrow: 1,
-                paddingBottom: 120 
+                paddingBottom: 120
             }}
         >
+            {failedAudits.length > 0 && renderInfoBox()}
             {renderHeader()}
-            
+
             {failedAudits.length === 0 ? (
                 renderEmptyState()
             ) : (

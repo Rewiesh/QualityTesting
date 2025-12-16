@@ -92,7 +92,7 @@ const Audits = ({ route, navigation }) => {
   }, [navigation, failedCount]);
 
   // Filter audits based on search - memoized
-  const filteredAudits = useMemo(() => 
+  const filteredAudits = useMemo(() =>
     auditsList.filter(audit =>
       String(audit.AuditCode).toLowerCase().includes(searchText.toLowerCase()) ||
       (audit.LocationClient && audit.LocationClient.toLowerCase().includes(searchText.toLowerCase()))
@@ -102,19 +102,31 @@ const Audits = ({ route, navigation }) => {
   const getAuditStatus = useCallback((audit) => {
     // Completed = has signature
     if (audit.hasSignature === 1) {
-      return { label: 'Completed', bg: 'green.100', color: 'green.700' };
+      if (audit.upload_status === 'uploaded') {
+        return { label: 'Geüpload', bg: 'blue.100', color: 'blue.700' };
+      }
+      if (audit.upload_status === 'failed') {
+        return { label: 'Upload mislukt', bg: 'red.100', color: 'red.700' };
+      }
+      return { label: 'Klaar voor upload', bg: 'green.100', color: 'green.700' };
     }
     // In Progress = has forms filled but no signature
     if (audit.hasProgress === 1) {
-      return { label: 'In Progress', bg: 'orange.100', color: 'orange.700' };
+      return { label: 'In uitvoering', bg: 'orange.100', color: 'orange.700' };
     }
     // Draft = nothing filled yet
-    return { label: 'Draft', bg: 'gray.200', color: 'gray.600' };
+    return { label: 'Concept', bg: 'gray.200', color: 'gray.600' };
   }, []);
 
   // Get icon and color based on status
   const getAuditIcon = useCallback((audit) => {
     if (audit.hasSignature === 1) {
+      if (audit.upload_status === 'uploaded') {
+        return { name: 'cloud-done', bg: 'blue.100', color: 'blue.600' };
+      }
+      if (audit.upload_status === 'failed') {
+        return { name: 'error', bg: 'red.100', color: 'red.600' };
+      }
       return { name: 'check-circle', bg: 'green.100', color: 'green.600' };
     }
     if (audit.hasProgress === 1) {
