@@ -315,46 +315,58 @@ const FailedUploads = ({ navigation }) => {
                 <Modal.Body pt={0}>
                     <VStack space={4}>
                         <Text fontSize="sm" color="coolGray.600">
-                            Hier ziet u audits die niet naar de server zijn verstuurd. Dit komt vaak door een slechte internetverbinding.
+                            In dit overzicht ziet u de audits die nog niet naar de data server zijn verzonden. Dit gebeurt meestal door een tijdelijke of slechte internetverbinding.
                         </Text>
 
                         <Box bg="blue.50" p="3" rounded="xl">
-                            <Text fontWeight="bold" color="blue.700" mb="2">Wat betekenen de knoppen?</Text>
+                            <Text fontWeight="bold" color="blue.700" mb="2">Betekenis van de knoppen</Text>
 
-                            <HStack space={3} mb="2" alignItems="center">
-                                <Center bg="fdis.500" size="6" rounded="full">
+                            <HStack space={3} mb="3" alignItems="flex-start">
+                                <Center bg="fdis.500" size="6" rounded="full" mt="1">
                                     <Icon as={MaterialIcons} name="refresh" size="xs" color="white" />
                                 </Center>
                                 <VStack flex={1}>
                                     <Text fontSize="sm" fontWeight="bold">Opnieuw</Text>
-                                    <Text fontSize="xs" color="coolGray.500">Probeer de upload nogmaals. Zorg voor goede WiFi of 4G.</Text>
+                                    <Text fontSize="xs" color="coolGray.600">
+                                        Probeer de audit opnieuw te uploaden. Zorg ervoor dat u beschikt over een stabiele internetverbinding (bij voorkeur wifi of 4G/5G).
+                                    </Text>
                                 </VStack>
                             </HStack>
 
-                            <HStack space={3} mb="2" alignItems="center">
-                                <Center bg="orange.100" size="6" rounded="full">
+                            <HStack space={3} mb="3" alignItems="flex-start">
+                                <Center bg="orange.100" size="6" rounded="full" mt="1">
                                     <Icon as={MaterialIcons} name="share" size="xs" color="orange.500" />
                                 </Center>
                                 <VStack flex={1}>
-                                    <Text fontSize="sm" fontWeight="bold">Export</Text>
-                                    <Text fontSize="xs" color="coolGray.500">Maak een bestand om handmatig te delen (Email/WhatsApp) als uploaden niet lukt.</Text>
+                                    <Text fontSize="sm" fontWeight="bold">Exporteren</Text>
+                                    <Text fontSize="xs" color="coolGray.600">
+                                        Maak een bestand aan om de audit handmatig te delen, bijvoorbeeld via e-mail of WhatsApp. Gebruik deze optie wanneer uploaden niet mogelijk is.
+                                    </Text>
                                 </VStack>
                             </HStack>
 
-                            <HStack space={3} alignItems="center">
-                                <Center bg="red.100" size="6" rounded="full">
+                            <HStack space={3} alignItems="flex-start">
+                                <Center bg="red.100" size="6" rounded="full" mt="1">
                                     <Icon as={MaterialIcons} name="delete-outline" size="xs" color="red.500" />
                                 </Center>
                                 <VStack flex={1}>
                                     <Text fontSize="sm" fontWeight="bold">Verwijderen</Text>
-                                    <Text fontSize="xs" color="coolGray.500">Verwijder de audit van dit apparaat. Pas op: dit is definitief!</Text>
+                                    <Text fontSize="xs" color="coolGray.600">
+                                        Verwijder de audit van dit apparaat. Let op: deze actie is definitief en kan niet ongedaan worden gemaakt.
+                                    </Text>
                                 </VStack>
                             </HStack>
                         </Box>
 
-                        <Text fontSize="xs" color="coolGray.500" fontStyle="italic">
-                            Tip: Probeer altijd eerst "Opnieuw" met een goede verbinding. Gebruik "Export" als noodoplossing.
-                        </Text>
+                        <Box>
+                            <Text fontSize="sm" fontWeight="bold" color="coolGray.700" mb="1">Advies:</Text>
+                            <Text fontSize="xs" color="coolGray.500" mb="2">
+                                Probeer altijd eerst de optie ‘Opnieuw’ met een goede internetverbinding. Gebruik ‘Exporteren’ alleen als noodoplossing wanneer uploaden niet lukt.
+                            </Text>
+                            <Text fontSize="xs" color="coolGray.500">
+                                Heeft u de audit geëxporteerd en is deze succesvol geïmporteerd in de data-applicatie? Verwijder de audit daarna van dit apparaat om opslagruimte vrij te houden.
+                            </Text>
+                        </Box>
                     </VStack>
                 </Modal.Body>
                 <Modal.Footer bg="coolGray.50" borderTopWidth={0}>
