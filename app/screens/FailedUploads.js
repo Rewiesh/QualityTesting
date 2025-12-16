@@ -16,6 +16,7 @@ import {
     Center,
     Icon,
     Pressable,
+    Modal,
 } from 'native-base';
 import RNFS from 'react-native-fs';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -26,6 +27,7 @@ import { uploadAuditData, uploadAuditImage } from '../services/api/newAPI';
 const FailedUploads = ({ navigation }) => {
     const [failedAudits, setFailedAudits] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [showInfo, setShowInfo] = useState(false);
 
     // Modern UI Colors
     const bgMain = useColorModeValue('coolGray.100', 'gray.900');
@@ -36,6 +38,22 @@ const FailedUploads = ({ navigation }) => {
             loadFailedAudits();
         }, []),
     );
+
+    // Header Button for Help
+    React.useLayoutEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <Pressable onPress={() => setShowInfo(prev => !prev)} p="2" mr="2">
+                    <Icon
+                        as={MaterialIcons}
+                        name="help-outline"
+                        size="md"
+                        color="white"
+                    />
+                </Pressable>
+            ),
+        });
+    }, [navigation]);
 
     const loadFailedAudits = async () => {
         try {
@@ -286,38 +304,72 @@ const FailedUploads = ({ navigation }) => {
         );
     };
 
-    // Info Box
-    const renderInfoBox = () => (
-        <Box mx="4" mt="4" bg="blue.50" p="4" rounded="xl" borderLeftWidth={4} borderLeftColor="blue.500">
-            <HStack space={3} alignItems="flex-start">
-                <Icon as={MaterialIcons} name="info" size="md" color="blue.500" mt="0.5" />
-                <VStack flex={1} space={2}>
-                    <Text fontWeight="bold" color="blue.700" fontSize="md">
-                        Hulp bij mislukte uploads
-                    </Text>
-                    <Text fontSize="sm" color="blue.600">
-                        Uploads kunnen mislukken door een slechte internetverbinding of serverproblemen. Volg deze stappen om het op te lossen:
-                    </Text>
+    // Help Modal
+    const renderHelpModal = () => (
+        <Modal isOpen={showInfo} onClose={() => setShowInfo(false)} size="lg">
+            <Modal.Content maxWidth="400px" rounded="2xl">
+                <Modal.CloseButton />
+                <Modal.Header borderBottomWidth={0} _text={{ fontWeight: 'bold', fontSize: 'md' }}>
+                    Handleiding Mislukte Uploads
+                </Modal.Header>
+                <Modal.Body pt={0}>
+                    <VStack space={4}>
+                        <Text fontSize="sm" color="coolGray.600">
+                            Hier ziet u audits die niet naar de server zijn verstuurd. Dit komt vaak door een slechte internetverbinding.
+                        </Text>
 
-                    <VStack space={1} mt="1">
-                        <HStack space={2} alignItems="flex-start">
-                            <Text fontSize="sm" color="blue.600" fontWeight="bold">1.</Text>
-                            <Text fontSize="sm" color="blue.600">Controleer uw internetverbinding (WiFi of 4G).</Text>
-                        </HStack>
-                        <HStack space={2} alignItems="flex-start">
-                            <Text fontSize="sm" color="blue.600" fontWeight="bold">2.</Text>
-                            <Text fontSize="sm" color="blue.600">Druk op <Text fontWeight="bold">"Opnieuw"</Text> om de upload nogmaals te proberen.</Text>
-                        </HStack>
-                        <HStack space={2} alignItems="flex-start">
-                            <Text fontSize="sm" color="blue.600" fontWeight="bold">3.</Text>
-                            <Text fontSize="sm" color="blue.600">
-                                Blijft het mislukken? Gebruik <Text fontWeight="bold">"Export"</Text> om de audit op te slaan en handmatig te delen (bijv. via E-mail of WhatsApp) met kantoor.
-                            </Text>
-                        </HStack>
+                        <Box bg="blue.50" p="3" rounded="xl">
+                            <Text fontWeight="bold" color="blue.700" mb="2">Wat betekenen de knoppen?</Text>
+
+                            <HStack space={3} mb="2" alignItems="center">
+                                <Center bg="fdis.500" size="6" rounded="full">
+                                    <Icon as={MaterialIcons} name="refresh" size="xs" color="white" />
+                                </Center>
+                                <VStack flex={1}>
+                                    <Text fontSize="sm" fontWeight="bold">Opnieuw</Text>
+                                    <Text fontSize="xs" color="coolGray.500">Probeer de upload nogmaals. Zorg voor goede WiFi of 4G.</Text>
+                                </VStack>
+                            </HStack>
+
+                            <HStack space={3} mb="2" alignItems="center">
+                                <Center bg="orange.100" size="6" rounded="full">
+                                    <Icon as={MaterialIcons} name="share" size="xs" color="orange.500" />
+                                </Center>
+                                <VStack flex={1}>
+                                    <Text fontSize="sm" fontWeight="bold">Export</Text>
+                                    <Text fontSize="xs" color="coolGray.500">Maak een bestand om handmatig te delen (Email/WhatsApp) als uploaden niet lukt.</Text>
+                                </VStack>
+                            </HStack>
+
+                            <HStack space={3} alignItems="center">
+                                <Center bg="red.100" size="6" rounded="full">
+                                    <Icon as={MaterialIcons} name="delete-outline" size="xs" color="red.500" />
+                                </Center>
+                                <VStack flex={1}>
+                                    <Text fontSize="sm" fontWeight="bold">Verwijderen</Text>
+                                    <Text fontSize="xs" color="coolGray.500">Verwijder de audit van dit apparaat. Pas op: dit is definitief!</Text>
+                                </VStack>
+                            </HStack>
+                        </Box>
+
+                        <Text fontSize="xs" color="coolGray.500" fontStyle="italic">
+                            Tip: Probeer altijd eerst "Opnieuw" met een goede verbinding. Gebruik "Export" als noodoplossing.
+                        </Text>
                     </VStack>
-                </VStack>
-            </HStack>
-        </Box>
+                </Modal.Body>
+                <Modal.Footer bg="coolGray.50" borderTopWidth={0}>
+                    <Button
+                        flex={1}
+                        onPress={() => setShowInfo(false)}
+                        bg="fdis.500"
+                        rounded="xl"
+                        _text={{ fontWeight: 'bold' }}
+                    >
+                        Begrepen
+                    </Button>
+                </Modal.Footer>
+            </Modal.Content>
+        </Modal>
     );
 
     // Section Header
@@ -459,7 +511,7 @@ const FailedUploads = ({ navigation }) => {
                 paddingBottom: 120
             }}
         >
-            {failedAudits.length > 0 && renderInfoBox()}
+            {renderHelpModal()}
             {renderHeader()}
 
             {failedAudits.length === 0 ? (
