@@ -37,6 +37,7 @@ import {
   SignatureSection,
   UploadModal,
   UploadErrorDialog,
+  UploadProgressModal,
 } from "./components";
 
 const AuditDetails = ({ route, navigation }) => {
@@ -59,11 +60,23 @@ const AuditDetails = ({ route, navigation }) => {
   const [ready, setReady] = useState(false);
   const [remarkModalVisible, setRemarkModalVisible] = useState(false);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
+
   const [uploadErrorDialogVisible, setUploadErrorDialogVisible] = useState(false);
   const [uploadErrorInfo, setUploadErrorInfo] = useState({});
   const [currentKPI, setCurrentKPI] = useState({});
   const [remark, setRemark] = useState("");
   const [formsCount, setFormsCount] = useState(0);
+
+  // Smart Upload State
+  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [uploadState, setUploadState] = useState({
+    status: 'idle',
+    currentAuditIndex: 0,
+    totalAudits: 0,
+    auditCode: '',
+    currentStep: 'validating', // validating, photos, signature, finishing
+    photoProgress: { current: 0, total: 0 }
+  });
 
   // Modern UI Colors
   const bgMain = useColorModeValue("coolGray.100", "gray.900");
@@ -103,7 +116,7 @@ const AuditDetails = ({ route, navigation }) => {
 
       setCategories(mergedCategories);
       setSignature(signatureData);
-      
+
       if (signatureData) {
         setSignatureSaved(true);
         setReady(true);
@@ -134,10 +147,10 @@ const AuditDetails = ({ route, navigation }) => {
       const base64Signature = sig.replace(/^data:image\/png;base64,/, "");
       const filename = `signature_${audit.AuditCode}.png`;
       const path = `file://${RNFS.DocumentDirectoryPath}/${filename}`;
-      
+
       await RNFS.writeFile(path, base64Signature, "base64");
       await database.upsertSignature(audit.AuditCode, path);
-      
+
       setSignatureSaved(true);
       setReady(true);
     } catch (error) {
@@ -176,7 +189,7 @@ const AuditDetails = ({ route, navigation }) => {
   // KPI handlers
   const handleKpiValueChange = useCallback((kpi, elements_auditId, newValue) => {
     database.setKpiElementValue(elements_auditId, newValue);
-    setKpiElements(prev => 
+    setKpiElements(prev =>
       prev.map(k => k.elements_auditId === elements_auditId ? { ...k, ElementValue: newValue } : k)
     );
     if (newValue === "O") {
@@ -204,7 +217,7 @@ const AuditDetails = ({ route, navigation }) => {
   const isUploadReady = useMemo(() => ready && signatureSaved, [ready, signatureSaved]);
 
   const handleUpload = useCallback(() => {
-    const hasIncomplete = categories.some(cat => 
+    const hasIncomplete = categories.some(cat =>
       parseInt(cat.CounterElements, 10) < parseInt(cat.Min, 10)
     );
     if (hasIncomplete) {
@@ -215,29 +228,59 @@ const AuditDetails = ({ route, navigation }) => {
   }, [categories]);
 
   const getFormsToSubmit = async () => {
-    // ... upload logic (keeping existing implementation)
     try {
       setUploadModalVisible(false);
-      setLoading(true);
-      setLoadingText("Voorbereiden op uploaden ...");
-      
+      // Don't use global Spinner anymore, use Smart Modal
+      setShowProgressModal(true);
+
       const allReadyAudits = await database.getCompletedAudits();
-      setLoadingText(`${allReadyAudits.length} voltooide audits gevonden.`);
-      
+      const totalAudits = allReadyAudits.length;
+
+      // Init State
+      setUploadState({
+        status: 'preparing',
+        currentAuditIndex: 0,
+        totalAudits: totalAudits,
+        auditCode: '...',
+        currentStep: 'validating',
+        photoProgress: { current: 0, total: 0 },
+        successCount: 0,
+        failCount: 0
+      });
+
       const failedAudits = [];
 
       for (let i = 0; i < allReadyAudits.length; i++) {
         const uploadAuditId = allReadyAudits[i].Id;
         const uploadAuditCode = allReadyAudits[i].AuditCode;
-        const progressText = `Audit: ${uploadAuditCode} (${i + 1}/${allReadyAudits.length})`;
-        setLoadingText(progressText);
+
+        // Update State: New Audit Started (Preserve counts)
+        setUploadState(prev => ({
+          ...prev,
+          status: 'uploading',
+          currentAuditIndex: i + 1,
+          auditCode: uploadAuditCode,
+          currentStep: 'validating',
+          photoProgress: { current: 0, total: 0 }
+        }));
 
         try {
           await database.setAuditUploadStatus(uploadAuditId, 'uploading', null);
-          
-          // Upload images
-          const uploadResults = await uploadImages(progressText, uploadAuditId, uploadAuditCode);
-          
+
+          // 1. Validating done, move to Photos
+          setUploadState(prev => ({ ...prev, currentStep: 'photos' }));
+
+          // Upload images with progress callback
+          const uploadResults = await uploadImagesWithProgress(uploadAuditId, uploadAuditCode, (current, total) => {
+            setUploadState(prev => ({
+              ...prev,
+              photoProgress: { current, total }
+            }));
+          });
+
+          // 2. Photos done, move to Signature
+          setUploadState(prev => ({ ...prev, currentStep: 'signature' }));
+
           // Get all data
           const [currentUser, forms, auditElements, auditSignature, dateString, clients] = await Promise.all([
             userManager.getCurrentUser(),
@@ -259,6 +302,9 @@ const AuditDetails = ({ route, navigation }) => {
           if (!signatureId || signatureId.error) {
             throw new Error(signatureId?.error || "Signature upload failed");
           }
+
+          // 3. Signature done, move to Finishing
+          setUploadState(prev => ({ ...prev, currentStep: 'finishing' }));
 
           // Build request
           const date = new Date(dateString);
@@ -291,7 +337,7 @@ const AuditDetails = ({ route, navigation }) => {
 
           // Upload audit
           const response = await uploadAuditData(currentUser.username, currentUser.password, request);
-          
+
           if (!response || response.error) {
             throw new Error(response?.error || "Upload failed");
           }
@@ -299,39 +345,57 @@ const AuditDetails = ({ route, navigation }) => {
           // Success - cleanup
           await database.removeAllFromAudit(uploadAuditId);
           await database.deleteAudit(uploadAuditId);
+
+          // Highlight Success
+          setUploadState(prev => ({ ...prev, successCount: prev.successCount + 1 }));
+
         } catch (error) {
           console.error(`Upload failed for ${uploadAuditCode}:`, error);
           await database.setAuditUploadStatus(uploadAuditId, 'failed', error.message);
           failedAudits.push({ auditCode: uploadAuditCode, auditId: uploadAuditId, errorMessage: error.message });
+
+          // Highlight Failure
+          setUploadState(prev => ({ ...prev, failCount: prev.failCount + 1 }));
         }
       }
 
-      setLoading(false);
-      
       if (failedAudits.length > 0) {
-        setUploadErrorInfo({ failedAudits });
-        setUploadErrorDialogVisible(true);
+        // Switch Modal to Error State (Don't close it)
+        setUploadState(prev => ({
+          ...prev,
+          status: 'failed',
+          failures: failedAudits
+        }));
       } else {
-        navigation.navigate("Opdrachtgever");
+        // Success State (Wait for user to click "Klaar")
+        setUploadState(prev => ({
+          ...prev,
+          status: 'success'
+        }));
       }
     } catch (error) {
-      setLoading(false);
+      // Global error (should be rare)
+      setShowProgressModal(false);
       console.error(error);
       alert(error.message);
     }
   };
 
-  const uploadImages = async (uploadText, auditId, auditCode) => {
-    setLoadingText(`${uploadText}\nUploaden van foto's...`);
-    
+  const uploadImagesWithProgress = async (auditId, auditCode, onProgress) => {
     try {
       const currentUser = await userManager.getCurrentUser();
       const errorImages = await database.getErrorsImages(auditId);
       const results = [];
+      const total = errorImages.length;
 
-      for (let i = 0; i < errorImages.length; i++) {
+      // Init progress
+      onProgress(0, total);
+
+      for (let i = 0; i < total; i++) {
         const item = errorImages[i];
-        setLoadingText(`${uploadText}\nFoto ${i + 1}/${errorImages.length}`);
+
+        // Update progress before start
+        onProgress(i + 1, total);
 
         const response = await uploadAuditImage(
           currentUser.username,
@@ -502,12 +566,18 @@ const AuditDetails = ({ route, navigation }) => {
         onConfirm={getFormsToSubmit}
       />
 
-      <UploadErrorDialogComponent
-        visible={uploadErrorDialogVisible}
-        info={uploadErrorInfo}
-        onRetry={getFormsToSubmit}
-        onClose={() => setUploadErrorDialogVisible(false)}
+      <UploadProgressModal
+        visible={showProgressModal}
+        uploadState={uploadState}
+        onRetry={() => getFormsToSubmit()}
+        onClose={() => setShowProgressModal(false)}
+        onFinish={() => {
+          setShowProgressModal(false);
+          navigation.navigate("Opdrachtgever");
+        }}
       />
+
+      {/* UploadErrorDialogComponent removed - merged into UploadProgressModal */}
     </Box>
   );
 };
@@ -544,9 +614,9 @@ const RemarkModal2 = React.memo(({ isOpen, onClose, currentKPI, saveRemark, btnC
   if (!isOpen) return null;
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose} 
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
       avoidKeyboard
       _overlay={{ useRNModal: true }}
     >
