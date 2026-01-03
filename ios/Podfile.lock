@@ -960,7 +960,7 @@ PODS:
     - React-Core
   - react-native-sqlite-storage (6.0.1):
     - React-Core
-  - react-native-webview (13.10.2):
+  - react-native-webview (13.16.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1280,9 +1280,30 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNShare (12.2.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNSVG (12.1.1):
     - React
-  - RNVectorIcons (10.1.0):
+  - RNVectorIcons (10.3.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1372,6 +1393,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNShare (from `../node_modules/react-native-share`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -1508,6 +1530,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNShare:
+    :path: "../node_modules/react-native-share"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   RNVectorIcons:
@@ -1549,7 +1573,7 @@ SPEC CHECKSUMS:
   react-native-image-picker: 6f7695f6e5aa43dc6275cbb3198cfa066a2f5be4
   react-native-safe-area-context: 1c298d1cee1e333d3f44ea6dc8dfca086bd06242
   react-native-sqlite-storage: 0c84826214baaa498796c7e46a5ccc9a82e114ed
-  react-native-webview: fa1d28a4b51a3828e4002ecfa3f17366a6d9ebfc
+  react-native-webview: b836f1f162b87b5b8351611b5d5299f2b699360a
   React-nativeconfig: b0073a590774e8b35192fead188a36d1dca23dec
   React-NativeModulesApple: 61b07ab32af3ea4910ba553932c0a779e853c082
   React-perflogger: 3d31e0d1e8ad891e43a09ac70b7b17a79773003a
@@ -1579,8 +1603,9 @@ SPEC CHECKSUMS:
   RNGestureHandler: 326e35460fb6c8c64a435d5d739bea90d7ed4e49
   RNReanimated: b91f99db7e41b501dd71aab52fcc620118991f65
   RNScreens: a2d8a2555b4653d7a19706eb172f855657ac30d7
+  RNShare: 9fe8bf6aa9b19f866d389273a7650fd8f47df437
   RNSVG: c1c40be8be96ff056ced81c302d356f1c490c8a0
-  RNVectorIcons: f733cb2133a8e1f7dc723b97a1d70dad681124c3
+  RNVectorIcons: 1b7e9f6a06b5572f3b4e313320b5e566def26c7f
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Yoga: 348f8b538c3ed4423eb58a8e5730feec50bce372
 
