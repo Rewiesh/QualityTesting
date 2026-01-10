@@ -4,7 +4,7 @@ rm -f Podfile.lock
 rm -rf ~/Library/Developer/Xcode/DerivedData
 
 pod cache clean --all
-
+rm .xcode.env.local
 pod install
 
 Dear Support,
