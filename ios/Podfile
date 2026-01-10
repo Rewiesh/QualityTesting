@@ -21,8 +21,8 @@ target 'QualityTesting' do
   use_react_native!(
     :path => config[:reactNativePath],
     :app_path => "#{Pod::Config.instance.installation_root}/..",
-    :hermes_enabled => false,
-    :fabric_enabled => false
+    # ✅ HERMES AANZETTEN (dit lost je btoa probleem op)
+    :hermes_enabled => true
   )
 
   target 'QualityTestingTests' do
@@ -36,16 +36,7 @@ target 'QualityTesting' do
       :mac_catalyst_enabled => false
     )
     
-    # Fix voor Hermes build script
     installer.pods_project.targets.each do |target|
-      if target.name == 'hermes-engine'
-        target.build_phases.each do |phase|
-          if phase.respond_to?(:name) && phase.name&.include?('[Hermes]')
-            phase.always_out_of_date = true
-          end
-        end
-      end
-      
       target.build_configurations.each do |config|
         config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = "i386"
       end
