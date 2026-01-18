@@ -324,13 +324,14 @@ const AuditDetails = ({ route, navigation }) => {
           if (uploadResults) {
             forms.forEach(form => {
               form.Errors?.forEach(error => {
-                const imgResult = uploadResults.find(r =>
+                const imgResults = uploadResults.filter(r =>
                   r.FormId === form.Id && r.ElementTypeId === error.ElementTypeId && r.ErrorTypeId === error.ErrorTypeId
                 );
-                if (imgResult) {
+
+                imgResults.forEach(imgResult => {
                   if (imgResult.logbookImageId) error.LogbookImageId = imgResult.logbookImageId;
                   if (imgResult.technicalAspectsImageId) error.TechnicalAspectsImageId = imgResult.technicalAspectsImageId;
-                }
+                });
               });
             });
           }
