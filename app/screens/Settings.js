@@ -3,8 +3,8 @@
 /* eslint-disable no-alert */
 /* eslint-disable no-trailing-spaces */
 /* eslint-disable prettier/prettier */
-import React, {useState, useEffect} from 'react';
-import {Alert} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Alert } from 'react-native';
 import {
   useTheme,
   Box,
@@ -25,7 +25,7 @@ import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const Settings = ({navigation}) => {
+const Settings = ({ navigation }) => {
   const theme = useTheme();
   const { colorMode, toggleColorMode } = useColorMode();
   const [userName, setUserName] = useState('--');
@@ -181,11 +181,11 @@ const Settings = ({navigation}) => {
           <Box bg={cardBg} rounded="2xl" shadow={2} p="4">
             <HStack alignItems="center" space={4}>
               <Center bg={colorMode === 'dark' ? 'purple.100' : 'yellow.100'} size="12" rounded="xl">
-                <Icon 
-                  as={MaterialIcons} 
-                  name={colorMode === 'dark' ? 'dark-mode' : 'light-mode'} 
-                  size="md" 
-                  color={colorMode === 'dark' ? 'purple.600' : 'yellow.600'} 
+                <Icon
+                  as={MaterialIcons}
+                  name={colorMode === 'dark' ? 'dark-mode' : 'light-mode'}
+                  size="md"
+                  color={colorMode === 'dark' ? 'purple.600' : 'yellow.600'}
                 />
               </Center>
               <VStack flex={1}>
@@ -255,7 +255,7 @@ const Settings = ({navigation}) => {
                   App Versie
                 </Text>
                 <Text fontSize="sm" color={subtextColor}>
-                  v1.3.0
+                  v1.3.1
                 </Text>
               </VStack>
             </HStack>
@@ -298,7 +298,7 @@ const Settings = ({navigation}) => {
 const StatItem = ({ icon, iconBg, iconColor, value, label }) => {
   const textColor = useColorModeValue('coolGray.800', 'white');
   const subtextColor = useColorModeValue('coolGray.500', 'gray.400');
-  
+
   return (
     <VStack alignItems="center" space={1}>
       <Center bg={iconBg} size="10" rounded="full">
@@ -318,7 +318,7 @@ const StatItem = ({ icon, iconBg, iconColor, value, label }) => {
 const ActivityCard = ({ icon, iconBg, iconColor, title, value, cardBg }) => {
   const textColor = useColorModeValue('coolGray.800', 'white');
   const subtextColor = useColorModeValue('coolGray.500', 'gray.400');
-  
+
   return (
     <Box bg={cardBg} rounded="2xl" shadow={2} p="4">
       <HStack alignItems="center" space={4}>
