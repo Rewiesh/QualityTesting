@@ -1,22 +1,17 @@
 /* eslint-disable prettier/prettier */
 import React, { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
-import {
-  Box,
-  HStack,
-  Text,
-  Pressable,
-  FlatList,
-  VStack,
-  Icon,
-  Center,
-  Button,
-  useColorModeValue,
-} from 'native-base';
+import { Box, HStack, Text, Pressable, VStack, Center, Button, ButtonText } from '@gluestack-ui/themed';
+import { FlatList } from 'react-native';
 import * as database from '../../services/database/database1';
 import { ShowToast } from '../../services/Util';
 import { useIsFocused } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
 
 const AuditErrorList = ({ route, navigation }) => {
   const isFocused = useIsFocused();
@@ -24,9 +19,9 @@ const AuditErrorList = ({ route, navigation }) => {
   const [errors, setErrors] = useState([]);
 
   // Colors
-  const bgMain = useColorModeValue('coolGray.100', 'gray.900');
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const textColor = useColorModeValue('coolGray.800', 'white');
+  const bgMain = '$backgroundLight100';
+  const cardBg = '$white';
+  const textColor = '$textDark800';
 
   useEffect(() => {
     if (isFocused) {
@@ -90,8 +85,8 @@ const AuditErrorList = ({ route, navigation }) => {
   const renderAddButton = useCallback(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Pressable onPress={addError} px="3" _pressed={{ opacity: 0.5 }}>
-          <Icon as={MaterialIcons} name="add" color="white" size="2xl" />
+        <Pressable onPress={addError} style={{ paddingHorizontal: 12, opacity: 1 }}>
+          <MIcon name="add" size={28} color="#fff" />
         </Pressable>
       ),
     });
@@ -99,48 +94,52 @@ const AuditErrorList = ({ route, navigation }) => {
 
   const renderErrorRow = useCallback(({ item }) => (
     <Pressable onPress={() => editError(item)}>
-      {({ isPressed }) => (
+      {({ pressed }) => (
         <Box
           bg={cardBg}
-          mx="4"
-          my="1.5"
-          rounded="2xl"
-          shadow={1}
+          mx="$4"
+          my="$1.5"
+          borderRadius="$2xl"
+          shadowColor="$black"
+          shadowOffset={{ width: 0, height: 1 }}
+          shadowOpacity={0.1}
+          shadowRadius={2}
           overflow="hidden"
-          style={{ transform: [{ scale: isPressed ? 0.98 : 1 }] }}
+          style={{ transform: [{ scale: pressed ? 0.98 : 1 }] }}
         >
-          <HStack alignItems="center" p="4">
-            <Center bg="red.100" size="12" rounded="xl" mr="3">
-              <Icon as={MaterialIcons} name="error-outline" size="md" color="red.600" />
+          <HStack alignItems="center" p="$4">
+            <Center bg="$red100" w="$12" h="$12" borderRadius="$xl" mr="$3">
+              <MIcon name="error-outline" size={20} color="#dc2626" />
             </Center>
             <VStack flex={1}>
-              <Text fontSize="md" fontWeight="bold" color="coolGray.800">
+              <Text fontSize="$md" fontWeight="$bold" color="$textDark800">
                 {item.ElementTypeText}
               </Text>
-              <Text fontSize="sm" color="gray.500">
+              <Text fontSize="$sm" color="$textLight500">
                 {item.ErrorTypeText}
               </Text>
-              <HStack alignItems="center" space={1} mt="1">
-                <Icon as={MaterialIcons} name="pin" size="xs" color="orange.500" />
-                <Text fontSize="xs" color="orange.500" fontWeight="bold">
+              <HStack alignItems="center" space="xs" mt="$1">
+                <MIcon name="pin" size={12} color="#f97316" />
+                <Text fontSize="$xs" color="$orange500" fontWeight="$bold">
                   {item.CountError} fout(en)
                 </Text>
               </HStack>
             </VStack>
-            <HStack space={2}>
+            <HStack space="sm">
               <Pressable onPress={() => deleteError(item)}>
-                {({ isPressed: delPressed }) => (
+                {({ pressed: delPressed }) => (
                   <Center
-                    bg={delPressed ? 'red.100' : 'red.50'}
-                    size="10"
-                    rounded="xl"
+                    bg={delPressed ? '$red100' : '$red50'}
+                    w="$10"
+                    h="$10"
+                    borderRadius="$xl"
                   >
-                    <Icon as={MaterialIcons} name="delete" size="sm" color="red.500" />
+                    <MIcon name="delete" size={16} color="#ef4444" />
                   </Center>
                 )}
               </Pressable>
-              <Center bg="gray.100" size="10" rounded="xl">
-                <Icon as={MaterialIcons} name="chevron-right" size="sm" color="gray.400" />
+              <Center bg="$backgroundLight100" w="$10" h="$10" borderRadius="$xl">
+                <MIcon name="chevron-right" size={16} color="#9ca3af" />
               </Center>
             </HStack>
           </HStack>
@@ -150,36 +149,36 @@ const AuditErrorList = ({ route, navigation }) => {
   ), [cardBg, editError, deleteError]);
 
   const renderEmptyState = useCallback(() => (
-    <Center flex={1} py="20">
-      <Center bg="green.100" size="20" rounded="full" mb="4">
-        <Icon as={MaterialIcons} name="check-circle" size="4xl" color="green.500" />
+    <Center flex={1} py="$20">
+      <Center bg="$green100" w="$20" h="$20" borderRadius="$full" mb="$4">
+        <MIcon name="check-circle" size={48} color="#22c55e" />
       </Center>
-      <Text fontSize="lg" fontWeight="bold" color="coolGray.700" mb="1">
+      <Text fontSize="$lg" fontWeight="$bold" color="$textDark700" mb="$1">
         Geen fouten gevonden
       </Text>
-      <Text fontSize="sm" color="gray.500" textAlign="center" px="8" mb="4">
+      <Text fontSize="$sm" color="$textLight500" textAlign="center" px="$8" mb="$4">
         Er zijn nog geen fouten geregistreerd voor dit formulier.
       </Text>
       <Button
-        bg="fdis.500"
-        _pressed={{ bg: 'fdis.600' }}
-        rounded="xl"
-        leftIcon={<Icon as={MaterialIcons} name="add" size="sm" color="white" />}
+        bg="$amber500"
+        sx={{ ':active': { bg: '$amber600' } }}
+        borderRadius="$xl"
         onPress={addError}
       >
-        Fout Toevoegen
+        <MIcon name="add" size={16} color="#fff" />
+        <ButtonText color="$white" ml="$1">Fout Toevoegen</ButtonText>
       </Button>
     </Center>
   ), [addError]);
 
   const renderHeader = useCallback(() => (
     errors.length > 0 ? (
-      <HStack px="4" py="3" alignItems="center" justifyContent="space-between">
-        <Text fontSize="sm" color="gray.500">
+      <HStack px="$4" py="$3" alignItems="center" justifyContent="space-between">
+        <Text fontSize="$sm" color="$textLight500">
           Geregistreerde fouten
         </Text>
-        <Box bg="red.100" px="3" py="1" rounded="full">
-          <Text fontSize="xs" fontWeight="bold" color="red.600">
+        <Box bg="$red100" px="$3" py="$1" borderRadius="$full">
+          <Text fontSize="$xs" fontWeight="$bold" color="$red600">
             {errors.length} fout(en)
           </Text>
         </Box>

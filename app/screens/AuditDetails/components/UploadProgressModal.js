@@ -1,7 +1,28 @@
 /* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import { Modal, Box, VStack, HStack, Text, Progress, Icon, Center, Spinner, Button } from 'native-base';
+import {
+    Modal,
+    ModalBackdrop,
+    ModalContent,
+    ModalBody,
+    Box,
+    VStack,
+    HStack,
+    Text,
+    Progress,
+    ProgressFilledTrack,
+    Icon,
+    Center,
+    Spinner,
+    Button,
+    ButtonText,
+} from '@gluestack-ui/themed';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+    <MaterialIcons name={name} size={size} color={color} />
+);
 
 // Steps definition
 // 1. validating: Gegevens controleren
@@ -10,35 +31,44 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 // 4. finishing: Audit afronden
 
 const CheckListItem = ({ activeStep, stepKey, label, subLabel }) => {
-    // Determine state based on order
     const stepsOrder = ['validating', 'photos', 'signature', 'finishing'];
     const activeIndex = stepsOrder.indexOf(activeStep);
     const myIndex = stepsOrder.indexOf(stepKey);
 
-    let status = 'pending'; // pending, current, done
+    let status = 'pending';
     if (myIndex < activeIndex) status = 'done';
     if (myIndex === activeIndex) status = 'current';
 
+    const getBgColor = () => {
+        if (status === 'done') return '$green100';
+        if (status === 'current') return '$blue100';
+        return '$backgroundLight200';
+    };
+
     return (
-        <HStack space={3} alignItems="center" height={10}>
+        <HStack space="md" alignItems="center" h={40}>
             {/* Icon */}
-            <Center size="6" rounded="full" bg={status === 'done' ? 'green.100' : status === 'current' ? 'blue.100' : 'gray.100'}>
+            <Center w="$6" h="$6" borderRadius="$full" bg={getBgColor()}>
                 {status === 'done' ? (
-                    <Icon as={MaterialIcons} name="check" size="xs" color="green.600" />
+                    <MIcon name="check" size={12} color="#16a34a" />
                 ) : status === 'current' ? (
-                    <Spinner size="sm" color="blue.600" />
+                    <Spinner size="small" color="$blue600" />
                 ) : (
-                    <Box size="2" rounded="full" bg="gray.300" />
+                    <Box w="$2" h="$2" borderRadius="$full" bg="$backgroundLight400" />
                 )}
             </Center>
 
             {/* Text */}
             <VStack flex={1}>
-                <Text fontSize="sm" fontWeight={status === 'current' ? 'bold' : 'normal'} color={status === 'pending' ? 'gray.400' : 'gray.800'}>
+                <Text
+                    fontSize="$sm"
+                    fontWeight={status === 'current' ? '$bold' : '$normal'}
+                    color={status === 'pending' ? '$textLight400' : '$textDark800'}
+                >
                     {label}
                 </Text>
                 {status === 'current' && subLabel && (
-                    <Text fontSize="xs" color="blue.600">{subLabel}</Text>
+                    <Text fontSize="$xs" color="$blue600">{subLabel}</Text>
                 )}
             </VStack>
         </HStack>
@@ -47,13 +77,13 @@ const CheckListItem = ({ activeStep, stepKey, label, subLabel }) => {
 
 const UploadProgressModal = ({ visible, uploadState, onRetry, onClose, onFinish }) => {
     const {
-        status, // 'idle', 'preparing', 'uploading', 'success', 'failed'
+        status,
         currentAuditIndex,
         totalAudits,
         auditCode,
-        currentStep, // 'validating', 'photos', 'signature', 'finishing'
-        photoProgress, // { current: 1, total: 5 }
-        failures, // Array of failed audits
+        currentStep,
+        photoProgress,
+        failures,
         successCount = 0,
         failCount = 0
     } = uploadState;
@@ -61,21 +91,20 @@ const UploadProgressModal = ({ visible, uploadState, onRetry, onClose, onFinish 
     const isFailed = status === 'failed';
     const isSuccess = status === 'success';
 
-    let headerColor = "fdis.500";
+    let headerColor = "#f59e0b";
     let headerTitle = "Audits Uploaden";
     let headerIcon = null;
 
     if (isFailed) {
-        headerColor = "red.500";
+        headerColor = "#ef4444";
         headerTitle = "Upload Mislukt";
         headerIcon = "error-outline";
     } else if (isSuccess) {
-        headerColor = "green.500";
+        headerColor = "#22c55e";
         headerTitle = "Upload Voltooid";
         headerIcon = "check-circle";
     }
 
-    // Calculate progress for the bar (approximate)
     let progress = 0;
     if (currentStep === 'validating') progress = 10;
     if (currentStep === 'photos') {
@@ -86,58 +115,52 @@ const UploadProgressModal = ({ visible, uploadState, onRetry, onClose, onFinish 
     if (currentStep === 'finishing') progress = 95;
 
     return (
-        <Modal
-            isOpen={visible}
-            onClose={() => { }}
-            avoidKeyboard
-            size="lg"
-            _backdrop={{ bg: "black", opacity: 0.5 }}
-        >
-            <Modal.Content maxWidth="400px" rounded="2xl">
-                <Box bg={headerColor} p="4" borderTopRadius="2xl">
-                    <HStack alignItems="center" space={2}>
-                        {(isFailed || isSuccess) && <Icon as={MaterialIcons} name={headerIcon} size="sm" color="white" />}
-                        <Text color="white" fontWeight="bold" fontSize="md">
+        <Modal isOpen={visible} onClose={() => { }} size="lg">
+            <ModalBackdrop bg="$black" opacity={0.5} />
+            <ModalContent maxWidth={400} borderRadius="$2xl">
+                <Box bg={headerColor} p="$4" borderTopLeftRadius="$2xl" borderTopRightRadius="$2xl">
+                    <HStack alignItems="center" space="sm">
+                        {(isFailed || isSuccess) && <MIcon name={headerIcon} size={16} color="#fff" />}
+                        <Text color="$white" fontWeight="$bold" fontSize="$md">
                             {headerTitle}
                         </Text>
                     </HStack>
                     {!isFailed && !isSuccess && (
-                        <Text color="white" fontSize="xs" opacity={0.8}>
+                        <Text color="$white" fontSize="$xs" opacity={0.8}>
                             Sluit de app niet tijdens het uploaden
                         </Text>
                     )}
                 </Box>
 
-                <Modal.Body pb="6">
+                <ModalBody pb="$6">
                     {isFailed ? (
                         // ERROR STATE UI
-                        <VStack space={4}>
-                            <Box bg="red.50" p="3" rounded="xl" borderWidth={1} borderColor="red.100">
-                                <VStack space={2}>
-                                    <Text color="red.800" fontWeight="bold">
+                        <VStack space="md">
+                            <Box bg="$red50" p="$3" borderRadius="$xl" borderWidth={1} borderColor="$red100">
+                                <VStack space="sm">
+                                    <Text color="$red800" fontWeight="$bold">
                                         {failures?.length || 0} Audit(s) niet geüpload
                                     </Text>
 
-                                    {/* Status Summary */}
-                                    <HStack space={2}>
+                                    <HStack space="sm">
                                         {successCount > 0 && (
-                                            <Box bg="green.100" px="2" py="0.5" rounded="md" flexDirection="row" alignItems="center">
-                                                <Icon as={MaterialIcons} name="check-circle" size="xs" color="green.600" mr="1" />
-                                                <Text fontSize="xs" color="green.700" fontWeight="bold">{successCount} Gelukt</Text>
+                                            <Box bg="$green100" px="$2" py="$0.5" borderRadius="$md" flexDirection="row" alignItems="center">
+                                                <MIcon name="check-circle" size={12} color="#16a34a" />
+                                                <Text fontSize="$xs" color="$green700" fontWeight="$bold" ml="$1">{successCount} Gelukt</Text>
                                             </Box>
                                         )}
-                                        <Box bg="red.100" px="2" py="0.5" rounded="md" flexDirection="row" alignItems="center">
-                                            <Icon as={MaterialIcons} name="error" size="xs" color="red.600" mr="1" />
-                                            <Text fontSize="xs" color="red.700" fontWeight="bold">{failures?.length || 0} Mislukt</Text>
+                                        <Box bg="$red100" px="$2" py="$0.5" borderRadius="$md" flexDirection="row" alignItems="center">
+                                            <MIcon name="error" size={12} color="#dc2626" />
+                                            <Text fontSize="$xs" color="$red700" fontWeight="$bold" ml="$1">{failures?.length || 0} Mislukt</Text>
                                         </Box>
                                     </HStack>
 
                                     {failures?.map((fail, index) => (
-                                        <Box key={index} ml="2" mt="2">
-                                            <Text color="red.600" fontSize="xs" fontWeight="bold">
+                                        <Box key={index} ml="$2" mt="$2">
+                                            <Text color="$red600" fontSize="$xs" fontWeight="$bold">
                                                 Audit: {fail.auditCode}
                                             </Text>
-                                            <Text color="red.500" fontSize="xs">
+                                            <Text color="$red500" fontSize="$xs">
                                                 {fail.errorMessage}
                                             </Text>
                                         </Box>
@@ -145,95 +168,96 @@ const UploadProgressModal = ({ visible, uploadState, onRetry, onClose, onFinish 
                                 </VStack>
                             </Box>
 
-                            <Text fontSize="xs" color="gray.500">
+                            <Text fontSize="$xs" color="$textLight500">
                                 Succesvolle audits zijn verwijderd. Mislukte audits zijn veilig opgeslagen.
                             </Text>
 
-                            <HStack space={3} mt="2">
+                            <HStack space="md" mt="$2">
                                 <Button
                                     flex={1}
-                                    variant="ghost"
+                                    variant="outline"
+                                    action="secondary"
                                     onPress={onClose}
-                                    _text={{ color: "gray.500" }}
-                                    rounded="xl"
+                                    borderRadius="$xl"
                                 >
-                                    Later
+                                    <ButtonText color="$textLight500">Later</ButtonText>
                                 </Button>
                                 <Button
                                     flex={1}
-                                    bg="fdis.500"
+                                    bg="$amber500"
                                     onPress={onRetry}
-                                    _pressed={{ bg: "fdis.600" }}
-                                    rounded="xl"
+                                    borderRadius="$xl"
+                                    sx={{ ":active": { bg: "$amber600" } }}
                                 >
-                                    Opnieuw Proberen
+                                    <ButtonText color="$white">Opnieuw Proberen</ButtonText>
                                 </Button>
                             </HStack>
                         </VStack>
                     ) : isSuccess ? (
                         // SUCCESS STATE UI
-                        <VStack space={6} alignItems="center" pt="4">
-                            <Center size="20" bg="green.100" rounded="full">
-                                <Icon as={MaterialIcons} name="check-circle" size="4xl" color="green.500" />
+                        <VStack space="lg" alignItems="center" pt="$4">
+                            <Center w="$20" h="$20" bg="$green100" borderRadius="$full">
+                                <MIcon name="check-circle" size={48} color="#22c55e" />
                             </Center>
 
-                            <VStack space={1} alignItems="center">
-                                <Text fontSize="lg" fontWeight="bold" color="gray.800">
+                            <VStack space="xs" alignItems="center">
+                                <Text fontSize="$lg" fontWeight="$bold" color="$textDark800">
                                     Alles is gelukt!
                                 </Text>
-                                <Text fontSize="sm" color="gray.500" textAlign="center" px="4">
+                                <Text fontSize="$sm" color="$textLight500" textAlign="center" px="$4">
                                     Alle {successCount} audits zijn succesvol geüpload en veilig opgeslagen.
                                 </Text>
                             </VStack>
 
                             <Button
-                                w="100%"
-                                bg="green.500"
+                                w="$full"
+                                bg="$green500"
                                 onPress={onFinish}
-                                _pressed={{ bg: "green.600" }}
-                                rounded="xl"
-                                mt="2"
-                                leftIcon={<Icon as={MaterialIcons} name="done" size="sm" color="white" />}
+                                borderRadius="$xl"
+                                mt="$2"
+                                sx={{ ":active": { bg: "$green600" } }}
                             >
-                                Klaar
+                                <MIcon name="done" size={16} color="#fff" />
+                                <ButtonText color="$white" ml="$1">Klaar</ButtonText>
                             </Button>
                         </VStack>
                     ) : (
                         // PROGRESS STATE UI
-                        <VStack space={4}>
+                        <VStack space="md">
                             {/* Batch Info */}
                             <HStack justifyContent="space-between" alignItems="center">
                                 <VStack>
-                                    <Text fontWeight="bold" color="gray.600">
+                                    <Text fontWeight="$bold" color="$textLight600">
                                         Audit {currentAuditIndex} van {totalAudits}
                                     </Text>
 
-                                    {/* Live Status Row */}
-                                    <HStack space={2} mt="1">
+                                    <HStack space="sm" mt="$1">
                                         {successCount > 0 && (
-                                            <Box bg="green.100" px="2" py="0.5" rounded="md" flexDirection="row" alignItems="center">
-                                                <Icon as={MaterialIcons} name="check-circle" size="xs" color="green.600" mr="1" />
-                                                <Text fontSize="xs" color="green.700" fontWeight="bold">{successCount} Gelukt</Text>
+                                            <Box bg="$green100" px="$2" py="$0.5" borderRadius="$md" flexDirection="row" alignItems="center">
+                                                <MIcon name="check-circle" size={12} color="#16a34a" />
+                                                <Text fontSize="$xs" color="$green700" fontWeight="$bold" ml="$1">{successCount} Gelukt</Text>
                                             </Box>
                                         )}
                                         {failCount > 0 && (
-                                            <Box bg="red.100" px="2" py="0.5" rounded="md" flexDirection="row" alignItems="center">
-                                                <Icon as={MaterialIcons} name="error" size="xs" color="red.600" mr="1" />
-                                                <Text fontSize="xs" color="red.700" fontWeight="bold">{failCount} Fout</Text>
+                                            <Box bg="$red100" px="$2" py="$0.5" borderRadius="$md" flexDirection="row" alignItems="center">
+                                                <MIcon name="error" size={12} color="#dc2626" />
+                                                <Text fontSize="$xs" color="$red700" fontWeight="$bold" ml="$1">{failCount} Fout</Text>
                                             </Box>
                                         )}
                                     </HStack>
                                 </VStack>
 
-                                <Box bg="blue.100" px="2" py="0.5" rounded="md">
-                                    <Text fontSize="xs" color="blue.700" fontWeight="bold">{auditCode}</Text>
+                                <Box bg="$blue100" px="$2" py="$0.5" borderRadius="$md">
+                                    <Text fontSize="$xs" color="$blue700" fontWeight="$bold">{auditCode}</Text>
                                 </Box>
                             </HStack>
 
-                            <Progress value={progress} colorScheme="blue" bg="gray.100" size="xs" rounded="full" />
+                            <Progress value={progress} size="xs" bg="$backgroundLight200" borderRadius="$full">
+                                <ProgressFilledTrack bg="$blue500" />
+                            </Progress>
 
-                            <Box bg="gray.50" p="3" rounded="xl" borderWidth={1} borderColor="gray.100">
-                                <VStack space={2}>
+                            <Box bg="$backgroundLight50" p="$3" borderRadius="$xl" borderWidth={1} borderColor="$backgroundLight200">
+                                <VStack space="sm">
                                     <CheckListItem
                                         activeStep={currentStep}
                                         stepKey="validating"
@@ -259,8 +283,8 @@ const UploadProgressModal = ({ visible, uploadState, onRetry, onClose, onFinish 
                             </Box>
                         </VStack>
                     )}
-                </Modal.Body>
-            </Modal.Content>
+                </ModalBody>
+            </ModalContent>
         </Modal>
     );
 };

@@ -6,11 +6,11 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {WebView} from 'react-native-webview';
-import { Box, HStack, Button, useColorModeValue } from 'native-base';
+import { Box, HStack, Button, ButtonText } from '@gluestack-ui/themed';
 
 const Help = () => {
   const webViewRef = useRef(null);
-  const bgMain = useColorModeValue('coolGray.100', 'gray.900');
+  const bgMain = '$backgroundLight100';
 
   const onNavigationStateChange = state => {
     // Handle navigation state changes here if needed
@@ -35,9 +35,9 @@ const Help = () => {
           }}
         />
       </View>
-      <HStack h="12" justifyContent="flex-end" alignItems="center" px="4" space={2}>
-        <Button size="sm" variant="outline" onPress={onPrev}>Vorige</Button>
-        <Button size="sm" variant="outline" onPress={onNext}>Volgende</Button>
+      <HStack h="$12" justifyContent="flex-end" alignItems="center" px="$4" space="sm">
+        <Button size="sm" variant="outline" onPress={onPrev}><ButtonText>Vorige</ButtonText></Button>
+        <Button size="sm" variant="outline" onPress={onNext}><ButtonText>Volgende</ButtonText></Button>
       </HStack>
     </Box>
   );

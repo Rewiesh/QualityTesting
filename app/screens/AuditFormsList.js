@@ -2,23 +2,28 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import {
-  Box,
-  HStack,
-  Text,
-  Pressable,
-  FlatList,
-  VStack,
-  useColorModeValue,
-  Icon,
-  Center,
-  Input,
-} from 'native-base';
+import { Box, HStack, Text, Pressable, VStack, Center, Input, InputField, InputSlot } from '@gluestack-ui/themed';
+import { FlatList } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { log, logError } from '../services/Logger';
 import { FLATLIST_CONFIG } from '../constants/theme';
 import EmptyState from '../components/EmptyState';
 import * as database from '../services/database/database1';
+
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
+
+// Color mapping
+const colorMap = {
+  blue: { bg: '$blue100', icon: '#2563eb' },
+  purple: { bg: '$purple100', icon: '#9333ea' },
+  green: { bg: '$green100', icon: '#16a34a' },
+  orange: { bg: '$orange100', icon: '#ea580c' },
+  teal: { bg: '$teal100', icon: '#0d9488' },
+  red: { bg: '$red100', icon: '#dc2626' },
+};
 
 const AuditFormsList = ({ route, navigation }) => {
   const { AuditId, auditCode } = route.params;
@@ -31,12 +36,12 @@ const AuditFormsList = ({ route, navigation }) => {
   const [searchText, setSearchText] = useState('');
 
   // Colors
-  const bgMain = useColorModeValue('coolGray.100', 'gray.900');
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const inputBg = useColorModeValue('white', 'gray.800');
-  const textColor = useColorModeValue('coolGray.800', 'white');
-  const subtextColor = useColorModeValue('gray.500', 'gray.400');
-  const borderColor = useColorModeValue('gray.100', 'gray.700');
+  const bgMain = '$backgroundLight100';
+  const cardBg = '$white';
+  const inputBg = '$white';
+  const textColor = '$textDark800';
+  const subtextColor = '$textLight500';
+  const borderColor = '$borderLight100';
 
   useFocusEffect(
     useCallback(() => {
@@ -102,52 +107,58 @@ const AuditFormsList = ({ route, navigation }) => {
 
     return (
       <Pressable onPress={() => onFormClick(item)}>
-        {({ isPressed }) => (
+        {({ pressed }) => (
           <Box
             bg={cardBg}
-            mx="4"
-            my="1.5"
-            rounded="xl"
-            shadow={1}
+            mx="$4"
+            my="$1.5"
+            borderRadius="$xl"
+            shadowColor="$black"
+            shadowOffset={{ width: 0, height: 1 }}
+            shadowOpacity={0.1}
+            shadowRadius={2}
             overflow="hidden"
-            style={{ transform: [{ scale: isPressed ? 0.98 : 1 }] }}
+            style={{ transform: [{ scale: pressed ? 0.98 : 1 }] }}
           >
             {/* Header */}
-            <HStack px="3" py="2" alignItems="center" space={2} borderBottomWidth={1} borderColor={borderColor}>
-              <Center bg="fdis.100" size="6" rounded="md">
-                <Icon as={MaterialIcons} name="description" size="xs" color="fdis.600" />
+            <HStack px="$3" py="$2" alignItems="center" space="sm" borderBottomWidth={1} borderColor={borderColor}>
+              <Center bg="$amber100" w="$6" h="$6" borderRadius="$md">
+                <MIcon name="description" size={12} color="#f59e0b" />
               </Center>
-              <Text fontSize="sm" fontWeight="bold" color={textColor} flex={1}>
+              <Text fontSize="$sm" fontWeight="$bold" color={textColor} flex={1}>
                 Formulier Informatie
               </Text>
-              <Center bg="gray.100" size="6" rounded="md">
-                <Icon as={MaterialIcons} name="chevron-right" size="xs" color="gray.400" />
+              <Center bg="$backgroundLight100" w="$6" h="$6" borderRadius="$md">
+                <MIcon name="chevron-right" size={12} color="#9ca3af" />
               </Center>
             </HStack>
             
             {/* Info Items */}
             <VStack>
-              {items.map((info, idx) => (
-                <HStack
-                  key={idx}
-                  px="3"
-                  py="2"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  borderBottomWidth={idx < items.length - 1 ? 1 : 0}
-                  borderColor="gray.50"
-                >
-                  <HStack alignItems="center" space={2}>
-                    <Center bg={`${info.color}.100`} size="6" rounded="md">
-                      <Icon as={MaterialIcons} name={info.icon} size="2xs" color={`${info.color}.600`} />
-                    </Center>
-                    <Text fontSize="xs" color={subtextColor}>{info.label}</Text>
+              {items.map((info, idx) => {
+                const colors = colorMap[info.color] || colorMap.blue;
+                return (
+                  <HStack
+                    key={idx}
+                    px="$3"
+                    py="$2"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    borderBottomWidth={idx < items.length - 1 ? 1 : 0}
+                    borderColor="$borderLight50"
+                  >
+                    <HStack alignItems="center" space="sm">
+                      <Center bg={colors.bg} w="$6" h="$6" borderRadius="$md">
+                        <MIcon name={info.icon} size={10} color={colors.icon} />
+                      </Center>
+                      <Text fontSize="$xs" color={subtextColor}>{info.label}</Text>
+                    </HStack>
+                    <Text fontSize="$xs" fontWeight="$semibold" color={textColor}>
+                      {info.value || '-'}
+                    </Text>
                   </HStack>
-                  <Text fontSize="xs" fontWeight="semibold" color={textColor}>
-                    {info.value || '-'}
-                  </Text>
-                </HStack>
-              ))}
+                );
+              })}
             </VStack>
           </Box>
         )}
@@ -156,46 +167,46 @@ const AuditFormsList = ({ route, navigation }) => {
   }, [cardBg, onFormClick, infoItems, textColor, subtextColor, borderColor]);
 
   const renderHeader = useCallback(() => (
-    <VStack px="4" py="3" space={2}>
+    <VStack px="$4" py="$3" space="sm">
       {/* Stats Row */}
-      <HStack space={2}>
-        <Box flex={1} bg={cardBg} rounded="lg" p="3" shadow={1}>
-          <HStack alignItems="center" space={2}>
-            <Center bg="blue.100" size="8" rounded="md">
-              <Icon as={MaterialIcons} name="description" size="xs" color="blue.600" />
+      <HStack space="sm">
+        <Box flex={1} bg={cardBg} borderRadius="$lg" p="$3" shadowColor="$black" shadowOffset={{ width: 0, height: 1 }} shadowOpacity={0.1} shadowRadius={2}>
+          <HStack alignItems="center" space="sm">
+            <Center bg="$blue100" w="$8" h="$8" borderRadius="$md">
+              <MIcon name="description" size={12} color="#2563eb" />
             </Center>
             <VStack>
-              <Text fontSize="lg" fontWeight="bold" color={textColor}>{stats.total}</Text>
-              <Text fontSize="2xs" color={subtextColor}>Formulieren</Text>
+              <Text fontSize="$lg" fontWeight="$bold" color={textColor}>{stats.total}</Text>
+              <Text fontSize="$2xs" color={subtextColor}>Formulieren</Text>
             </VStack>
           </HStack>
         </Box>
-        <Box flex={1} bg={cardBg} rounded="lg" p="3" shadow={1}>
-          <HStack alignItems="center" space={2}>
-            <Center bg="green.100" size="8" rounded="md">
-              <Icon as={MaterialIcons} name="check-circle" size="xs" color="green.600" />
+        <Box flex={1} bg={cardBg} borderRadius="$lg" p="$3" shadowColor="$black" shadowOffset={{ width: 0, height: 1 }} shadowOpacity={0.1} shadowRadius={2}>
+          <HStack alignItems="center" space="sm">
+            <Center bg="$green100" w="$8" h="$8" borderRadius="$md">
+              <MIcon name="check-circle" size={12} color="#16a34a" />
             </Center>
             <VStack>
-              <Text fontSize="lg" fontWeight="bold" color={textColor}>{stats.completed}</Text>
-              <Text fontSize="2xs" color={subtextColor}>Voltooid</Text>
+              <Text fontSize="$lg" fontWeight="$bold" color={textColor}>{stats.completed}</Text>
+              <Text fontSize="$2xs" color={subtextColor}>Voltooid</Text>
             </VStack>
           </HStack>
         </Box>
-        <Box flex={1} bg={cardBg} rounded="lg" p="3" shadow={1}>
-          <HStack alignItems="center" space={2}>
-            <Center bg="red.100" size="8" rounded="md">
-              <Icon as={MaterialIcons} name="error-outline" size="xs" color="red.600" />
+        <Box flex={1} bg={cardBg} borderRadius="$lg" p="$3" shadowColor="$black" shadowOffset={{ width: 0, height: 1 }} shadowOpacity={0.1} shadowRadius={2}>
+          <HStack alignItems="center" space="sm">
+            <Center bg="$red100" w="$8" h="$8" borderRadius="$md">
+              <MIcon name="error-outline" size={12} color="#dc2626" />
             </Center>
             <VStack>
-              <Text fontSize="lg" fontWeight="bold" color={textColor}>{stats.totalErrors}</Text>
-              <Text fontSize="2xs" color={subtextColor}>Fouten</Text>
+              <Text fontSize="$lg" fontWeight="$bold" color={textColor}>{stats.totalErrors}</Text>
+              <Text fontSize="$2xs" color={subtextColor}>Fouten</Text>
             </VStack>
           </HStack>
         </Box>
       </HStack>
 
       {/* Section Title */}
-      <Text fontSize="xs" fontWeight="bold" color="gray.500" letterSpacing="lg" mt="2">
+      <Text fontSize="$xs" fontWeight="$bold" color="$textLight500" letterSpacing="$lg" mt="$2">
         ALLE FORMULIEREN
       </Text>
     </VStack>
@@ -217,30 +228,36 @@ const AuditFormsList = ({ route, navigation }) => {
     <Box flex={1} bg={bgMain}>
       {/* Search Bar */}
       {forms.length > 0 && (
-        <Box px="4" pt="3" pb="1" bg={bgMain}>
+        <Box px="$4" pt="$3" pb="$1" bg={bgMain}>
           <Input
-            placeholder="Zoek formulier..."
-            value={searchText}
-            onChangeText={setSearchText}
             bg={inputBg}
-            rounded="xl"
-            px="4"
-            py="2"
-            shadow={1}
+            borderRadius="$xl"
+            px="$4"
+            py="$2"
+            shadowColor="$black"
+            shadowOffset={{ width: 0, height: 1 }}
+            shadowOpacity={0.1}
+            shadowRadius={2}
             borderWidth={0}
-            fontSize="sm"
-            placeholderTextColor="gray.400"
-            InputLeftElement={
-              <Icon as={MaterialIcons} name="search" size="sm" color="gray.400" ml="3" />
-            }
-            InputRightElement={
-              searchText.length > 0 ? (
-                <Pressable onPress={() => setSearchText('')} mr="3" p="1">
-                  <Icon as={MaterialIcons} name="close" size="sm" color="gray.400" />
+          >
+            <InputSlot pl="$3">
+              <MIcon name="search" size={16} color="#9ca3af" />
+            </InputSlot>
+            <InputField
+              placeholder="Zoek formulier..."
+              value={searchText}
+              onChangeText={setSearchText}
+              fontSize="$sm"
+              placeholderTextColor="$textLight400"
+            />
+            {searchText.length > 0 && (
+              <InputSlot pr="$3">
+                <Pressable onPress={() => setSearchText('')} p="$1">
+                  <MIcon name="close" size={16} color="#9ca3af" />
                 </Pressable>
-              ) : null
-            }
-          />
+              </InputSlot>
+            )}
+          </Input>
         </Box>
       )}
 

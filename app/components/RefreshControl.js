@@ -4,7 +4,9 @@
  */
 import React from 'react';
 import { RefreshControl as RNRefreshControl } from 'react-native';
-import { useColorModeValue, useTheme } from 'native-base';
+
+// FDIS amber color
+const FDIS_COLOR = '#f59e0b';
 
 const RefreshControl = ({ 
   refreshing, 
@@ -12,10 +14,9 @@ const RefreshControl = ({
   title = 'Aan het vernieuwen...',
   ...props 
 }) => {
-  const theme = useTheme();
-  const tintColor = theme.colors.fdis[500];
-  const titleColor = useColorModeValue('#666', '#aaa');
-  const backgroundColor = useColorModeValue('#f5f5f5', '#1a1a1a');
+  const tintColor = FDIS_COLOR;
+  const titleColor = '#666';
+  const backgroundColor = '#f5f5f5';
 
   return (
     <RNRefreshControl

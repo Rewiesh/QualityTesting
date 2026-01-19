@@ -1,5 +1,4 @@
 import React from 'react';
-import { useColorModeValue, useTheme } from 'native-base';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -24,14 +23,13 @@ import StatisticsDashboard from './screens/StatisticsDashboard';
 const AuditsStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-function AuditsStackScreen() {
-  const theme = useTheme();
-  const headerBackground = useColorModeValue(
-    theme.colors.fdis[400], // Darker shade for light mode
-    theme.colors.fdis[900], // Dark background for dark mode
-  );
+// FDIS theme colors - Blue like original
+const FDIS_HEADER_BG = '#2563eb'; // blue-600
+const FDIS_HEADER_TINT = '#ffffff';
 
-  const headerTintColor = 'white';
+function AuditsStackScreen() {
+  const headerBackground = FDIS_HEADER_BG;
+  const headerTintColor = FDIS_HEADER_TINT;
 
   return (
     <AuditsStack.Navigator
@@ -68,13 +66,8 @@ function AuditsStackScreen() {
 }
 
 function MyTabs() {
-  const theme = useTheme();
-  const headerBackground = useColorModeValue(
-    theme.colors.fdis[400], // Darker shade for light mode
-    theme.colors.fdis[900], // Dark background for dark mode
-  );
-
-  const headerTintColor = 'white';
+  const headerBackground = FDIS_HEADER_BG;
+  const headerTintColor = FDIS_HEADER_TINT;
 
   const commonHeaderOptions = {
     animation: 'slide_from_right',

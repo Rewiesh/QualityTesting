@@ -5,25 +5,23 @@
 /* eslint-disable prettier/prettier */
 import React, { useState, useEffect } from "react";
 import {
-  useTheme,
   Box,
   Center,
   Heading,
   VStack,
-  FormControl,
   Input,
+  InputField,
+  InputSlot,
   Button,
+  ButtonText,
+  ButtonSpinner,
   Image,
-  useColorModeValue,
   Text,
-  Icon,
   Pressable,
-  KeyboardAvoidingView,
   HStack,
-  StatusBar,
-} from "native-base";
+} from "@gluestack-ui/themed";
 import { ShowToast } from "../services/Util";
-import { StyleSheet, Platform, Dimensions } from "react-native";
+import { StyleSheet, Platform, Dimensions, StatusBar, KeyboardAvoidingView, TextInput } from "react-native";
 import userManager from "../services/UserManager";
 import { fetchAuditData } from "../services/api/newAPI";
 import * as database from "../services/database/database1";
@@ -31,22 +29,20 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
 const { width } = Dimensions.get("window");
 
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
+
 const Login = ({ navigation }) => {
-  const theme = useTheme();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Colors
-  const primaryColor = theme.colors.fdis[500]; // Brand Blue
-  const primaryDark = theme.colors.fdis[700];
-  const bgColor = useColorModeValue("coolGray.50", "gray.900");
-  const cardBg = useColorModeValue("white", "gray.800");
-  const textColor = useColorModeValue("coolGray.800", "white");
-  const mutedText = useColorModeValue("coolGray.500", "gray.400");
-  const inputBg = useColorModeValue("coolGray.50", "gray.700");
-  const borderColor = useColorModeValue("coolGray.200", "gray.600");
+  // Colors - Blue theme like original
+  const primaryColor = "#2563eb"; // Brand blue
+  const primaryDark = "#1d4ed8";
 
   useEffect(() => {
     const redirectUser = async () => {
@@ -112,167 +108,159 @@ const Login = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      flex={1}
+      style={{ flex: 1 }}
     >
       <StatusBar barStyle="light-content" backgroundColor={primaryColor} />
-      <Box flex={1} bg={bgColor}>
-        {/* Top Blue Background with Curve */}
+      <Box flex={1} bg="$backgroundLight50">
+        {/* Top Background with Curve */}
         <Box
           bg={primaryColor}
-          height="35%"
-          width="100%"
-          borderBottomLeftRadius="3xl"
-          borderBottomRightRadius="3xl"
+          h="35%"
+          w="$full"
+          borderBottomLeftRadius="$3xl"
+          borderBottomRightRadius="$3xl"
           position="absolute"
           top={0}
-          shadow={5}
+          shadowColor="$black"
+          shadowOffset={{ width: 0, height: 5 }}
+          shadowOpacity={0.2}
+          shadowRadius={10}
           zIndex={1}
         >
-          <Center flex={1} pb={10}>
-            {/* Optional: Add Logo here later if needed, or keep clean */}
-            <Heading color="white" fontSize="3xl" fontWeight="bold">
+          <Center flex={1} pb="$10">
+            <Heading color="$white" fontSize="$3xl" fontWeight="$bold">
               Quality Check
             </Heading>
-            <Text color="white" fontSize="md" opacity={0.9}>
+            <Text color="$white" fontSize="$md" opacity={0.9}>
               Audits
             </Text>
           </Center>
         </Box>
 
         {/* Floating Login Card */}
-        <Center flex={1} px={6} pt="20%" zIndex={2}>
+        <Center flex={1} px="$6" pt="20%" zIndex={2}>
           <Box
-            bg={cardBg}
-            width="100%"
-            rounded="2xl"
-            shadow={7} // Deep shadow for premium feel
+            bg="$white"
+            w="$full"
+            borderRadius="$2xl"
+            shadowColor="$black"
+            shadowOffset={{ width: 0, height: 7 }}
+            shadowOpacity={0.15}
+            shadowRadius={20}
             zIndex={2}
           >
             {/* Image Header */}
             <Image
               source={require("../assets/images/image_login.jpg")}
               alt="Login Header"
-              height={140}
-              width="100%"
-              borderTopLeftRadius="2xl"
-              borderTopRightRadius="2xl"
+              h={140}
+              w="$full"
+              borderTopLeftRadius="$2xl"
+              borderTopRightRadius="$2xl"
               resizeMode="cover"
             />
 
             {/* Content Container */}
-            <Box p={8}>
-              <VStack space={6}>
+            <Box p="$8">
+              <VStack space="lg">
                 <Box alignItems="center">
-                  <Text fontSize="2xl" fontWeight="bold" color={textColor}>
+                  <Text fontSize="$2xl" fontWeight="$bold" color="$textDark800">
                     Welkom Terug
                   </Text>
-                  <Text fontSize="sm" color={mutedText} mt={1}>
+                  <Text fontSize="$sm" color="$textLight500" mt="$1">
                     Log in om toegang te krijgen tot uw audits
                   </Text>
                 </Box>
 
-                <VStack space={4}>
-                  <FormControl>
-                    <FormControl.Label _text={{ color: mutedText, fontSize: "xs", fontWeight: "bold", letterSpacing: 1 }}>
+                <VStack space="md">
+                  {/* Username Input */}
+                  <VStack space="xs">
+                    <Text color="$textLight500" fontSize="$xs" fontWeight="$bold" letterSpacing="$lg">
                       GEBRUIKERSNAAM
-                    </FormControl.Label>
-                    <Input
-                      InputLeftElement={
-                        <Icon
-                          as={<MaterialIcons name="person-outline" />}
-                          size={5}
-                          ml="3"
-                          color="coolGray.400"
-                        />
-                      }
-                      bg={useColorModeValue("white", "gray.700")}
-                      variant="outline"
-                      borderColor={borderColor}
+                    </Text>
+                    <HStack
+                      bg="$white"
+                      borderColor="$borderLight200"
                       borderWidth={1}
-                      placeholder="Voer uw gebruikersnaam in"
-                      placeholderTextColor="coolGray.400"
-                      value={username}
-                      onChangeText={setUsername}
-                      color={textColor}
-                      py="3"
-                      fontSize="sm"
-                      rounded="lg"
-                      _focus={{
-                        borderColor: primaryColor,
-                        bg: useColorModeValue("white", "gray.700"),
-                        _android: { selectionColor: primaryColor },
-                        _ios: { selectionColor: primaryColor }
-                      }}
-                    />
-                  </FormControl>
+                      borderRadius="$lg"
+                      py="$2"
+                      px="$3"
+                      alignItems="center"
+                      space="sm"
+                    >
+                      <MIcon name="person-outline" size={20} color="#9ca3af" />
+                      <TextInput
+                        style={{ flex: 1, color: '#1f2937', fontSize: 14, paddingVertical: 8 }}
+                        placeholder="Voer uw gebruikersnaam in"
+                        placeholderTextColor="#9ca3af"
+                        value={username}
+                        onChangeText={setUsername}
+                        autoCapitalize="none"
+                      />
+                    </HStack>
+                  </VStack>
 
-                  <FormControl>
-                    <FormControl.Label _text={{ color: mutedText, fontSize: "xs", fontWeight: "bold", letterSpacing: 1 }}>
+                  {/* Password Input */}
+                  <VStack space="xs">
+                    <Text color="$textLight500" fontSize="$xs" fontWeight="$bold" letterSpacing="$lg">
                       WACHTWOORD
-                    </FormControl.Label>
-                    <Input
-                      InputLeftElement={
-                        <Icon
-                          as={<MaterialIcons name="lock-outline" />}
-                          size={5}
-                          ml="3"
-                          color="coolGray.400"
-                        />
-                      }
-                      InputRightElement={
-                        <Pressable onPress={() => setShowPassword(!showPassword)} p={2}>
-                          <Icon
-                            as={<MaterialIcons name={showPassword ? "visibility" : "visibility-off"} />}
-                            size={5}
-                            mr="2"
-                            color="coolGray.400"
-                          />
-                        </Pressable>
-                      }
-                      bg={useColorModeValue("white", "gray.700")}
-                      variant="outline"
-                      borderColor={borderColor}
+                    </Text>
+                    <HStack
+                      bg="$white"
+                      borderColor="$borderLight200"
                       borderWidth={1}
-                      placeholder="Voer uw wachtwoord in"
-                      placeholderTextColor="coolGray.400"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChangeText={setPassword}
-                      color={textColor}
-                      py="3"
-                      fontSize="sm"
-                      rounded="lg"
-                      _focus={{
-                        borderColor: primaryColor,
-                        bg: useColorModeValue("white", "gray.700"),
-                        _android: { selectionColor: primaryColor },
-                        _ios: { selectionColor: primaryColor }
-                      }}
-                    />
-                  </FormControl>
+                      borderRadius="$lg"
+                      py="$2"
+                      px="$3"
+                      alignItems="center"
+                      space="sm"
+                    >
+                      <MIcon name="lock-outline" size={20} color="#9ca3af" />
+                      <TextInput
+                        style={{ flex: 1, color: '#1f2937', fontSize: 14, paddingVertical: 8 }}
+                        placeholder="Voer uw wachtwoord in"
+                        placeholderTextColor="#9ca3af"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry={!showPassword}
+                        autoCapitalize="none"
+                      />
+                      <Pressable onPress={() => setShowPassword(!showPassword)} p="$1">
+                        <MIcon
+                          name={showPassword ? "visibility" : "visibility-off"}
+                          size={20}
+                          color="#9ca3af"
+                        />
+                      </Pressable>
+                    </HStack>
+                  </VStack>
 
+                  {/* Login Button */}
                   <Button
-                    mt="2"
+                    mt="$2"
                     onPress={loginUser}
-                    isLoading={isLoading}
-                    isLoadingText="Bezig met inloggen..."
+                    isDisabled={isLoading}
                     bg={primaryColor}
-                    rounded="full" // Pill shape
-                    shadow={4}
-                    py="3"
-                    _pressed={{
-                      bg: primaryDark,
-                      transform: [{ scale: 0.98 }]
-                    }}
-                    _text={{
-                      color: "white",
-                      fontWeight: "bold",
-                      fontSize: "md",
-                      textTransform: "uppercase",
-                      letterSpacing: 1
-                    }}
+                    borderRadius="$full"
+                    py="$3"
+                    shadowColor="$black"
+                    shadowOffset={{ width: 0, height: 4 }}
+                    shadowOpacity={0.2}
+                    shadowRadius={8}
+                    sx={{ ":active": { bg: primaryDark, transform: [{ scale: 0.98 }] } }}
                   >
-                    Inloggen
+                    {isLoading ? (
+                      <>
+                        <ButtonSpinner color="$white" mr="$2" />
+                        <ButtonText color="$white" fontWeight="$bold" fontSize="$md" letterSpacing="$lg">
+                          BEZIG MET INLOGGEN...
+                        </ButtonText>
+                      </>
+                    ) : (
+                      <ButtonText color="$white" fontWeight="$bold" fontSize="$md" letterSpacing="$lg">
+                        INLOGGEN
+                      </ButtonText>
+                    )}
                   </Button>
                 </VStack>
               </VStack>
@@ -285,7 +273,7 @@ const Login = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  // Kept for backward compatibility if needed, but styling moved to NativeBase props
+  // Kept for backward compatibility if needed
 });
 
 export default Login;

@@ -1,24 +1,27 @@
 /* eslint-disable prettier/prettier */
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import {
-  Box,
-  HStack,
-  Text,
-  Pressable,
-  FlatList,
-  VStack,
-  useColorModeValue,
-  Button,
-  Icon,
-  Center,
-  Input,
-} from 'native-base';
+import { Box, HStack, Text, Pressable, VStack, Button, ButtonText, Center, Input, InputField, InputSlot } from '@gluestack-ui/themed';
+import { FlatList } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { log, logError } from '../services/Logger';
 import { FLATLIST_CONFIG } from '../constants/theme';
 import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
+
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
+
+// Color mapping
+const colorMap = {
+  'blue.100': '$blue100', 'blue.600': '#2563eb', 'blue.700': '#1d4ed8',
+  'green.100': '$green100', 'green.600': '#16a34a', 'green.700': '#15803d',
+  'orange.100': '$orange100', 'orange.600': '#ea580c', 'orange.700': '#c2410c',
+  'red.100': '$red100', 'red.600': '#dc2626', 'red.700': '#b91c1c',
+  'gray.200': '$backgroundLight200', 'gray.600': '#4b5563',
+};
 
 const Audits = ({ route, navigation }) => {
   const [auditsList, setAuditsList] = useState([]);
@@ -28,11 +31,11 @@ const Audits = ({ route, navigation }) => {
   const { clientName } = route.params;
 
   // Modern UI Colors
-  const bgMain = useColorModeValue('coolGray.100', 'gray.900');
-  const inputBg = useColorModeValue('white', 'gray.800');
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const textColor = useColorModeValue('coolGray.800', 'white');
-  const subtextColor = useColorModeValue('coolGray.500', 'gray.400');
+  const bgMain = '$backgroundLight100';
+  const inputBg = '$white';
+  const cardBg = '$white';
+  const textColor = '$textDark800';
+  const subtextColor = '$textLight500';
 
   useFocusEffect(
     useCallback(() => {
@@ -70,23 +73,13 @@ const Audits = ({ route, navigation }) => {
     navigation.setOptions({
       headerRight: () =>
         failedCount >= 0 ? (
-          <Button
+          <Pressable
             onPress={() => navigation.navigate('Mislukte Uploads')}
-            startIcon={
-              <Icon
-                as={MaterialIcons}
-                name="error-outline"
-                size="lg"
-                color="red.500"
-              />
-            }
-            variant="ghost"
-            _text={{ color: "red.500", fontWeight: "bold" }}
-            px="3"
-            py="2"
-            mr="2">
-            {failedCount}
-          </Button>
+            style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, marginRight: 8 }}
+          >
+            <MIcon name="error-outline" size={20} color="#ef4444" />
+            <Text style={{ color: '#ef4444', fontWeight: 'bold', marginLeft: 4 }}>{failedCount}</Text>
+          </Pressable>
         ) : null,
     });
   }, [navigation, failedCount]);
@@ -103,46 +96,46 @@ const Audits = ({ route, navigation }) => {
     // Completed = has signature
     if (audit.hasSignature === 1) {
       if (audit.upload_status === 'uploaded') {
-        return { label: 'Geüpload', bg: 'blue.100', color: 'blue.700' };
+        return { label: 'Geüpload', bg: '$blue100', color: '#1d4ed8' };
       }
       if (audit.upload_status === 'failed') {
-        return { label: 'Upload mislukt', bg: 'red.100', color: 'red.700' };
+        return { label: 'Upload mislukt', bg: '$red100', color: '#b91c1c' };
       }
-      return { label: 'Klaar voor upload', bg: 'green.100', color: 'green.700' };
+      return { label: 'Klaar voor upload', bg: '$green100', color: '#15803d' };
     }
     // In Progress = has forms filled but no signature
     if (audit.hasProgress === 1) {
-      return { label: 'In uitvoering', bg: 'orange.100', color: 'orange.700' };
+      return { label: 'In uitvoering', bg: '$orange100', color: '#c2410c' };
     }
     // Draft = nothing filled yet
-    return { label: 'Concept', bg: 'gray.200', color: 'gray.600' };
+    return { label: 'Concept', bg: '$backgroundLight200', color: '#4b5563' };
   }, []);
 
   // Get icon and color based on status
   const getAuditIcon = useCallback((audit) => {
     if (audit.hasSignature === 1) {
       if (audit.upload_status === 'uploaded') {
-        return { name: 'cloud-done', bg: 'blue.100', color: 'blue.600' };
+        return { name: 'cloud-done', bg: '$blue100', color: '#2563eb' };
       }
       if (audit.upload_status === 'failed') {
-        return { name: 'error', bg: 'red.100', color: 'red.600' };
+        return { name: 'error', bg: '$red100', color: '#dc2626' };
       }
-      return { name: 'check-circle', bg: 'green.100', color: 'green.600' };
+      return { name: 'check-circle', bg: '$green100', color: '#16a34a' };
     }
     if (audit.hasProgress === 1) {
-      return { name: 'edit', bg: 'orange.100', color: 'orange.600' };
+      return { name: 'edit', bg: '$orange100', color: '#ea580c' };
     }
-    return { name: 'description', bg: 'blue.100', color: 'blue.600' };
+    return { name: 'description', bg: '$blue100', color: '#2563eb' };
   }, []);
 
   // Section Header
   const renderSectionHeader = () => (
-    <Box px="4" pt="2">
+    <Box px="$4" pt="$2">
       <HStack justifyContent="space-between" alignItems="center">
-        <Text mt="4" mb="2" fontSize="xs" fontWeight="bold" color="gray.500" letterSpacing="lg">
+        <Text mt="$4" mb="$2" fontSize="$xs" fontWeight="$bold" color="$textLight500" letterSpacing="$lg">
           RECENT AUDITS
         </Text>
-        <Text mt="4" mb="2" fontSize="xs" fontWeight="semibold" color="fdis.500">
+        <Text mt="$4" mb="$2" fontSize="$xs" fontWeight="$semibold" color="$amber500">
           {filteredAudits.length} items
         </Text>
       </HStack>
@@ -155,58 +148,51 @@ const Audits = ({ route, navigation }) => {
 
     return (
       <Pressable onPress={() => onAuditClick(item)}>
-        {({ isPressed }) => (
+        {({ pressed }) => (
           <Box
             bg={cardBg}
-            mx="4"
-            my="2"
-            p="4"
-            rounded="2xl"
-            shadow={2}
+            mx="$4"
+            my="$2"
+            p="$4"
+            borderRadius="$2xl"
+            shadowColor="$black"
+            shadowOffset={{ width: 0, height: 2 }}
+            shadowOpacity={0.15}
+            shadowRadius={3}
             style={{
-              transform: [{ scale: isPressed ? 0.98 : 1 }],
+              transform: [{ scale: pressed ? 0.98 : 1 }],
             }}
           >
-            <HStack alignItems="center" space={4}>
+            <HStack alignItems="center" space="md">
               {/* Icon */}
-              <Center bg={iconInfo.bg} size="12" rounded="xl">
-                <Icon
-                  as={MaterialIcons}
-                  name={iconInfo.name}
-                  size="md"
-                  color={iconInfo.color}
-                />
+              <Center bg={iconInfo.bg} w="$12" h="$12" borderRadius="$xl">
+                <MIcon name={iconInfo.name} size={20} color={iconInfo.color} />
               </Center>
 
               {/* Content */}
-              <VStack flex={1} space={1}>
-                <Text fontSize="md" fontWeight="bold" color={textColor}>
+              <VStack flex={1} space="xs">
+                <Text fontSize="$md" fontWeight="$bold" color={textColor}>
                   {item.isUnSaved === '*' ? '* ' : ''}{String(item.AuditCode)}
                 </Text>
-                <Text fontSize="sm" color={subtextColor} numberOfLines={1}>
+                <Text fontSize="$sm" color={subtextColor} numberOfLines={1}>
                   {item.LocationClient}
                 </Text>
-                <HStack alignItems="center" space={2} mt="1">
+                <HStack alignItems="center" space="sm" mt="$1">
                   {/* Status Badge */}
-                  <Box bg={status.bg} px="2" py="0.5" rounded="md">
-                    <Text fontSize="2xs" fontWeight="bold" color={status.color}>
+                  <Box bg={status.bg} px="$2" py="$0.5" borderRadius="$md">
+                    <Text fontSize="$2xs" fontWeight="$bold" color={status.color}>
                       {status.label}
                     </Text>
                   </Box>
                   {/* Time indicator */}
-                  <Text fontSize="2xs" color="coolGray.400">
+                  <Text fontSize="$2xs" color="$textLight400">
                     • Tik om te openen
                   </Text>
                 </HStack>
               </VStack>
 
               {/* Chevron */}
-              <Icon
-                as={MaterialIcons}
-                name="chevron-right"
-                size="sm"
-                color="coolGray.300"
-              />
+              <MIcon name="chevron-right" size={16} color="#d1d5db" />
             </HStack>
           </Box>
         )}
@@ -216,10 +202,10 @@ const Audits = ({ route, navigation }) => {
 
   // Empty state
   const renderEmpty = () => (
-    <Center flex={1} mt="10">
-      <VStack alignItems="center" space={2}>
-        <Icon as={MaterialIcons} name="assignment" size="4xl" color="gray.300" />
-        <Text color="gray.400" fontSize="md">Geen audits gevonden</Text>
+    <Center flex={1} mt="$10">
+      <VStack alignItems="center" space="sm">
+        <MIcon name="assignment" size={48} color="#d1d5db" />
+        <Text color="$textLight400" fontSize="$md">Geen audits gevonden</Text>
       </VStack>
     </Center>
   );
@@ -227,35 +213,36 @@ const Audits = ({ route, navigation }) => {
   return (
     <Box flex={1} bg={bgMain}>
       {/* Search Bar */}
-      <Box px="4" pt="4" pb="2" bg={bgMain}>
+      <Box px="$4" pt="$4" pb="$2" bg={bgMain}>
         <Input
-          placeholder="Zoek audit..."
-          value={searchText}
-          onChangeText={setSearchText}
           bg={inputBg}
-          rounded="xl"
-          px="4"
-          py="3"
-          shadow={1}
+          borderRadius="$xl"
+          px="$4"
+          py="$3"
+          shadowColor="$black"
+          shadowOffset={{ width: 0, height: 1 }}
+          shadowOpacity={0.1}
+          shadowRadius={2}
           borderWidth={0}
-          fontSize="md"
-          placeholderTextColor="gray.400"
-          InputLeftElement={
-            <Icon as={MaterialIcons} name="search" size="sm" color="gray.400" ml="3" />
-          }
-          InputRightElement={
-            searchText.length > 0 ? (
-              <Pressable onPress={() => setSearchText('')} mr="3" p="1">
-                <Icon as={MaterialIcons} name="close" size="sm" color="gray.400" />
+        >
+          <InputSlot pl="$3">
+            <MIcon name="search" size={16} color="#9ca3af" />
+          </InputSlot>
+          <InputField
+            placeholder="Zoek audit..."
+            value={searchText}
+            onChangeText={setSearchText}
+            fontSize="$md"
+            placeholderTextColor="$textLight400"
+          />
+          {searchText.length > 0 && (
+            <InputSlot pr="$3">
+              <Pressable onPress={() => setSearchText('')} p="$1">
+                <MIcon name="close" size={16} color="#9ca3af" />
               </Pressable>
-            ) : null
-          }
-          _focus={{
-            bg: inputBg,
-            borderColor: 'fdis.500',
-            borderWidth: 1,
-          }}
-        />
+            </InputSlot>
+          )}
+        </Input>
       </Box>
 
       <FlatList

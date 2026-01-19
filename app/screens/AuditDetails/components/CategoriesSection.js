@@ -1,7 +1,11 @@
 /* eslint-disable prettier/prettier */
 import React from "react";
-import { Box, VStack, Text, HStack, Center, Icon } from "native-base";
+import { Box, VStack, Text, HStack, Center } from "@gluestack-ui/themed";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
 
 const CategoryRow = ({ category, isLast }) => {
   const count = category.CounterElements || 0;
@@ -10,41 +14,40 @@ const CategoryRow = ({ category, isLast }) => {
 
   return (
     <HStack
-      px="4"
-      py="3"
+      px="$4"
+      py="$3"
       alignItems="center"
       borderBottomWidth={isLast ? 0 : 1}
-      borderColor="gray.100"
+      borderColor="$borderLight100"
     >
       <VStack flex={1}>
         <Text 
-          fontSize="sm" 
-          fontWeight="medium" 
-          color={isComplete ? "green.600" : "red.600"}
+          fontSize="$sm" 
+          fontWeight="$medium" 
+          color={isComplete ? "#16a34a" : "#dc2626"}
         >
           {category.CategoryValue}
         </Text>
       </VStack>
-      <HStack alignItems="center" space={2}>
+      <HStack alignItems="center" space="sm">
         <Box
-          bg={isComplete ? "green.100" : "red.100"}
-          px="3"
-          py="1"
-          rounded="full"
+          bg={isComplete ? "$green100" : "$red100"}
+          px="$3"
+          py="$1"
+          borderRadius="$full"
         >
           <Text
-            fontSize="sm"
-            fontWeight="bold"
-            color={isComplete ? "green.600" : "red.600"}
+            fontSize="$sm"
+            fontWeight="$bold"
+            color={isComplete ? "#16a34a" : "#dc2626"}
           >
             {count}/{min}
           </Text>
         </Box>
-        <Icon
-          as={MaterialIcons}
+        <MIcon
           name={isComplete ? "check-circle" : "error"}
-          size="sm"
-          color={isComplete ? "green.500" : "red.500"}
+          size={16}
+          color={isComplete ? "#22c55e" : "#ef4444"}
         />
       </HStack>
     </HStack>
@@ -53,16 +56,16 @@ const CategoryRow = ({ category, isLast }) => {
 
 const CategoriesSection = ({ categories, cardBg, headingTextColor }) => {
   return (
-    <Box bg={cardBg} rounded="2xl" shadow={2} mt={4} overflow="hidden">
-      <Box px="4" py="3" borderBottomWidth={1} borderColor="gray.100">
-        <HStack alignItems="center" space={2}>
-          <Center bg="blue.100" size="8" rounded="lg">
-            <Icon as={MaterialIcons} name="category" size="sm" color="blue.600" />
+    <Box bg={cardBg} borderRadius="$2xl" shadowColor="$black" shadowOffset={{ width: 0, height: 2 }} shadowOpacity={0.15} shadowRadius={3} mt="$4" overflow="hidden">
+      <Box px="$4" py="$3" borderBottomWidth={1} borderColor="$borderLight100">
+        <HStack alignItems="center" space="sm">
+          <Center bg="$blue100" w="$8" h="$8" borderRadius="$lg">
+            <MIcon name="category" size={16} color="#2563eb" />
           </Center>
-          <Text fontSize="md" fontWeight="bold" color={headingTextColor}>
+          <Text fontSize="$md" fontWeight="$bold" color={headingTextColor}>
             Categories
           </Text>
-          <Text fontSize="xs" color="gray.400">(Geteld/Minimum)</Text>
+          <Text fontSize="$xs" color="$textLight400">(Geteld/Minimum)</Text>
         </HStack>
       </Box>
       <VStack>

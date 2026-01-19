@@ -1,7 +1,11 @@
 /* eslint-disable prettier/prettier */
 import React from "react";
-import { Box, VStack, Text, HStack, Center, Icon } from "native-base";
+import { Box, VStack, Text, HStack, Center } from "@gluestack-ui/themed";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
 
 const AuditInfoSection = ({ audit, cardBg, headingTextColor, textColor }) => {
   const infoItems = [
@@ -12,14 +16,14 @@ const AuditInfoSection = ({ audit, cardBg, headingTextColor, textColor }) => {
   ];
 
   return (
-    <Box bg={cardBg} rounded="2xl" shadow={2} overflow="hidden">
+    <Box bg={cardBg} borderRadius="$2xl" shadowColor="$black" shadowOffset={{ width: 0, height: 2 }} shadowOpacity={0.15} shadowRadius={3} overflow="hidden">
       {/* Header */}
-      <Box px="4" py="3" borderBottomWidth={1} borderColor="gray.100">
-        <HStack alignItems="center" space={2}>
-          <Center bg="blue.100" size="8" rounded="full">
-            <Icon as={MaterialIcons} name="info" size="sm" color="blue.600" />
+      <Box px="$4" py="$3" borderBottomWidth={1} borderColor="$borderLight100">
+        <HStack alignItems="center" space="sm">
+          <Center bg="$blue100" w="$8" h="$8" borderRadius="$full">
+            <MIcon name="info" size={16} color="#2563eb" />
           </Center>
-          <Text fontSize="md" fontWeight="bold" color={headingTextColor}>
+          <Text fontSize="$md" fontWeight="$bold" color={headingTextColor}>
             Informatie
           </Text>
         </HStack>
@@ -30,25 +34,25 @@ const AuditInfoSection = ({ audit, cardBg, headingTextColor, textColor }) => {
         {infoItems.map((item, index) => (
           <HStack
             key={index}
-            px="4"
-            py="3"
+            px="$4"
+            py="$3"
             alignItems="center"
             justifyContent="space-between"
             borderBottomWidth={index < infoItems.length - 1 ? 1 : 0}
-            borderColor="gray.100"
-            bg={index % 2 === 0 ? "white" : "gray.50"}
+            borderColor="$borderLight100"
+            bg={index % 2 === 0 ? "$white" : "$backgroundLight50"}
           >
-            <Text fontSize="sm" color="gray.500">
+            <Text fontSize="$sm" color="$textLight500">
               {item.label}
             </Text>
             {item.isBadge ? (
-              <Box bg="blue.100" px="3" py="1" rounded="lg">
-                <Text fontSize="sm" fontWeight="bold" color="blue.600">
+              <Box bg="$blue100" px="$3" py="$1" borderRadius="$lg">
+                <Text fontSize="$sm" fontWeight="$bold" color="#2563eb">
                   {item.value || "-"}
                 </Text>
               </Box>
             ) : (
-              <Text fontSize="sm" fontWeight="semibold" color={textColor}>
+              <Text fontSize="$sm" fontWeight="$semibold" color={textColor}>
                 {item.value || "-"}
               </Text>
             )}

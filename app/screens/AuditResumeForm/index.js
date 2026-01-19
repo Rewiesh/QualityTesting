@@ -1,25 +1,22 @@
 /* eslint-disable prettier/prettier */
 import React, { useState, useEffect, useCallback } from 'react';
 import { Platform, KeyboardAvoidingView } from 'react-native';
-import {
-  Box,
-  ScrollView,
-  Button,
-  Icon,
-  HStack,
-  useColorModeValue,
-  useTheme,
-} from 'native-base';
+import { Box, Button, ButtonText, HStack } from '@gluestack-ui/themed';
+import { ScrollView } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useIsFocused } from '@react-navigation/native';
 import * as database from '../../services/database/database1';
 
 import { InfoCard, SelectCard, InputCard } from './components';
 
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
+
 const AuditResumeForm = ({ route, navigation }) => {
   const { audit } = route.params;
   const isFocused = useIsFocused();
-  const theme = useTheme();
 
   const [form, setForm] = useState({});
   const [categories, setCategories] = useState([]);
@@ -27,8 +24,8 @@ const AuditResumeForm = ({ route, navigation }) => {
   const [areas, setAreas] = useState([]);
 
   // Colors
-  const bgMain = useColorModeValue('coolGray.100', 'gray.900');
-  const cardBg = useColorModeValue('white', 'gray.800');
+  const bgMain = '$backgroundLight100';
+  const cardBg = '$white';
 
   useEffect(() => {
     if (isFocused) {
@@ -138,8 +135,8 @@ const AuditResumeForm = ({ route, navigation }) => {
     >
       <Box flex={1} bg={bgMain}>
         <ScrollView
-          flex={1}
-          _contentContainerStyle={{ p: '3', pb: '3' }}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: 12, paddingBottom: 12 }}
           nestedScrollEnabled={true}
         >
           {/* Info Cards */}
@@ -222,18 +219,17 @@ const AuditResumeForm = ({ route, navigation }) => {
         </ScrollView>
 
         {/* Sticky Footer Button */}
-        <Box px="3" py="3" pb="6" bg={bgMain} shadow={3}>
+        <Box px="$3" py="$3" pb="$6" bg={bgMain} shadowColor="$black" shadowOffset={{ width: 0, height: -2 }} shadowOpacity={0.1} shadowRadius={3}>
           <Button
             size="md"
-            bg={isFormCompleted() ? 'fdis.500' : 'gray.300'}
-            _pressed={{ bg: isFormCompleted() ? 'fdis.600' : 'gray.300' }}
-            _text={{ color: 'white', fontWeight: 'bold' }}
-            rounded="xl"
-            leftIcon={<Icon as={MaterialIcons} name="play-arrow" size="sm" color="white" />}
+            bg={isFormCompleted() ? '$amber500' : '$backgroundLight300'}
+            sx={{ ':active': { bg: isFormCompleted() ? '$amber600' : '$backgroundLight300' } }}
+            borderRadius="$xl"
             isDisabled={!isFormCompleted()}
             onPress={onSaveForm}
           >
-            Audit Formulieren
+            <MIcon name="play-arrow" size={18} color="#fff" />
+            <ButtonText color="$white" fontWeight="$bold" ml="$1">Audit Formulieren</ButtonText>
           </Button>
         </Box>
       </Box>

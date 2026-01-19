@@ -1,10 +1,9 @@
-import React, {useState, useEffect} from 'react';
-import {NativeBaseProvider, Box} from 'native-base';
-import {View, StatusBar} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View } from 'react-native';
+import { GluestackUIProvider } from '@gluestack-ui/themed';
+import { config } from '@gluestack-ui/config';
 import FdisQuality from './app/FdisQuality';
 import SplashScreen from './app/screens/SplashScreen';
-import FdisTheme from './app/assets/colors/FdisTheme';
-// import FdisTheme from './app/assets/colors/FdisTheme';
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -17,18 +16,18 @@ const App = () => {
 
   if (isLoading) {
     return (
-      <NativeBaseProvider theme={FdisTheme}>
+      <GluestackUIProvider config={config}>
         <SplashScreen />
-      </NativeBaseProvider>
+      </GluestackUIProvider>
     );
   }
 
   return (
-    <NativeBaseProvider theme={FdisTheme}>
-      <View style={{flex: 1}}>
+    <GluestackUIProvider config={config}>
+      <View style={{ flex: 1 }}>
         <FdisQuality />
       </View>
-    </NativeBaseProvider>
+    </GluestackUIProvider>
   );
 };
 

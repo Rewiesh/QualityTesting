@@ -10,17 +10,34 @@ import {
   Box,
   VStack,
   Text,
-  ScrollView,
   Center,
   Spinner,
   Button,
+  ButtonText,
   HStack,
   Modal,
+  ModalBackdrop,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
   FormControl,
+  FormControlLabel,
+  FormControlLabelText,
+  Pressable,
+  CloseIcon,
   Icon,
-  useTheme,
-  useColorModeValue,
-} from "native-base";
+} from "@gluestack-ui/themed";
+import { ScrollView } from "react-native";
+
+// Custom Icon wrapper
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
+
+// FDIS theme color
+const FDIS_COLOR = '#f59e0b';
 import { StyleSheet, TextInput } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import RNFS from "react-native-fs";
@@ -41,7 +58,6 @@ import {
 } from "./components";
 
 const AuditDetails = ({ route, navigation }) => {
-  const theme = useTheme();
   const scrollViewRef = useRef();
   const signatureRef = useRef(null);
   const isFocused = useIsFocused();
@@ -79,12 +95,12 @@ const AuditDetails = ({ route, navigation }) => {
   });
 
   // Modern UI Colors
-  const bgMain = useColorModeValue("coolGray.100", "gray.900");
-  const cardBg = useColorModeValue("white", "gray.800");
-  const headingTextColor = useColorModeValue("coolGray.800", "white");
-  const textColor = useColorModeValue("coolGray.800", "white");
-  const refreshingIndicatorColor = useColorModeValue(theme.colors.fdis[400], "white");
-  const btnColor = useColorModeValue(theme.colors.fdis[400], theme.colors.fdis[600]);
+  const bgMain = '$backgroundLight100';
+  const cardBg = '$white';
+  const headingTextColor = '$textDark800';
+  const textColor = '$textDark800';
+  const refreshingIndicatorColor = FDIS_COLOR;
+  const btnColor = FDIS_COLOR;
 
   // Fetch data on focus
   useEffect(() => {
@@ -428,14 +444,12 @@ const AuditDetails = ({ route, navigation }) => {
   const renderAddPersonButton = useCallback(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Button
+        <Pressable
           onPress={() => navigation.navigate("Aanwezig bij Audit", { AuditId })}
-          startIcon={<Icon as={MaterialIcons} name="person-add" size="xl" color="white" />}
-          variant="ghost"
-          _pressed={{ bg: "white:alpha.20" }}
-          px="3"
-          py="2"
-        />
+          style={{ paddingHorizontal: 12, paddingVertical: 8 }}
+        >
+          <MIcon name="person-add" size={24} color="white" />
+        </Pressable>
       ),
     });
   }, [navigation, AuditId]);
@@ -457,9 +471,9 @@ const AuditDetails = ({ route, navigation }) => {
   if (loading) {
     return (
       <Center flex={1} bg={bgMain}>
-        <VStack space={4} alignItems="center" px="8">
-          <Spinner size="lg" color={refreshingIndicatorColor} />
-          <Text color={textColor} fontSize="md" textAlign="center">{loadingText}</Text>
+        <VStack space="md" alignItems="center" px="$8">
+          <Spinner size="large" color="$amber500" />
+          <Text color={textColor} fontSize="$md" textAlign="center">{loadingText}</Text>
         </VStack>
       </Center>
     );
@@ -469,8 +483,8 @@ const AuditDetails = ({ route, navigation }) => {
     <Box flex={1} bg={bgMain}>
       <ScrollView
         ref={scrollViewRef}
-        flex={1}
-        _contentContainerStyle={{ p: "4", pb: "4" }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 16 }}
         nestedScrollEnabled={true}
       >
         <AuditInfoSection
@@ -509,45 +523,45 @@ const AuditDetails = ({ route, navigation }) => {
       </ScrollView>
 
       {/* Sticky Footer Buttons */}
-      <Box px="4" py="3" pb="6" bg={bgMain} shadow={3}>
-        <HStack space={2}>
+      <Box px="$4" py="$3" pb="$6" bg={bgMain} shadowColor="$black" shadowOffset={{ width: 0, height: -2 }} shadowOpacity={0.1} shadowRadius={3}>
+        <HStack space="sm">
           <Button
             flex={1}
             size="md"
-            bg={formsCount > 0 ? "purple.500" : "gray.300"}
-            _pressed={{ bg: formsCount > 0 ? "purple.600" : "gray.300" }}
-            _text={{ color: "white", fontWeight: "bold", fontSize: "sm" }}
-            rounded="xl"
-            leftIcon={<Icon as={MaterialIcons} name="list-alt" size="sm" color="white" />}
+            bg={formsCount > 0 ? "$purple500" : "$backgroundLight300"}
+            borderRadius="$xl"
             isDisabled={formsCount === 0}
             onPress={() => navigation.navigate("Formulieren Overzicht", { AuditId, auditCode: audit.AuditCode })}
           >
-            Formulieren
+            <HStack alignItems="center" space="xs">
+              <MIcon name="list-alt" size={16} color="#fff" />
+              <ButtonText color="$white" fontWeight="$bold" fontSize="$sm">Formulieren</ButtonText>
+            </HStack>
           </Button>
           <Button
             flex={1}
             size="md"
-            bg={isUploadReady ? "green.500" : "gray.300"}
-            _pressed={{ bg: isUploadReady ? "green.600" : "gray.300" }}
-            _text={{ color: "white", fontWeight: "bold", fontSize: "sm" }}
-            rounded="xl"
-            leftIcon={<Icon as={MaterialIcons} name="cloud-upload" size="sm" color="white" />}
+            bg={isUploadReady ? "$green500" : "$backgroundLight300"}
+            borderRadius="$xl"
             isDisabled={!isUploadReady}
             onPress={handleUpload}
           >
-            Upload
+            <HStack alignItems="center" space="xs">
+              <MIcon name="cloud-upload" size={16} color="#fff" />
+              <ButtonText color="$white" fontWeight="$bold" fontSize="$sm">Upload</ButtonText>
+            </HStack>
           </Button>
           <Button
             flex={1}
             size="md"
-            bg="fdis.500"
-            _pressed={{ bg: "fdis.600" }}
-            _text={{ color: "white", fontWeight: "bold", fontSize: "sm" }}
-            rounded="xl"
-            leftIcon={<Icon as={MaterialIcons} name="play-arrow" size="sm" color="white" />}
+            bg="$amber500"
+            borderRadius="$xl"
             onPress={onStartResume}
           >
-            Starten
+            <HStack alignItems="center" space="xs">
+              <MIcon name="play-arrow" size={16} color="#fff" />
+              <ButtonText color="$white" fontWeight="$bold" fontSize="$sm">Starten</ButtonText>
+            </HStack>
           </Button>
         </HStack>
       </Box>
@@ -615,25 +629,25 @@ const RemarkModal2 = React.memo(({ isOpen, onClose, currentKPI, saveRemark, btnC
   if (!isOpen) return null;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      avoidKeyboard
-      _overlay={{ useRNModal: true }}
-    >
-      <Modal.Content maxWidth="400px" rounded="2xl">
-        <Modal.CloseButton />
-        <Modal.Header borderBottomWidth={0}>
-          <HStack alignItems="center" space={2}>
-            <Center bg="orange.100" size="8" rounded="lg">
-              <Icon as={MaterialIcons} name="edit-note" size="sm" color="orange.600" />
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalBackdrop />
+      <ModalContent maxWidth={400} borderRadius="$2xl">
+        <ModalHeader borderBottomWidth={0}>
+          <HStack alignItems="center" space="sm">
+            <Center bg="$orange100" w="$8" h="$8" borderRadius="$lg">
+              <MIcon name="edit-note" size={16} color="#ea580c" />
             </Center>
-            <Text fontSize="md" fontWeight="bold">Opmerkingen</Text>
+            <Text fontSize="$md" fontWeight="$bold">Opmerkingen</Text>
           </HStack>
-        </Modal.Header>
-        <Modal.Body>
+          <ModalCloseButton>
+            <Icon as={CloseIcon} />
+          </ModalCloseButton>
+        </ModalHeader>
+        <ModalBody>
           <FormControl>
-            <FormControl.Label>{currentKPI?.ElementLabel}</FormControl.Label>
+            <FormControlLabel>
+              <FormControlLabelText>{currentKPI?.ElementLabel}</FormControlLabelText>
+            </FormControlLabel>
             <TextInput
               ref={inputRef}
               placeholder="Type hier uw opmerking..."
@@ -646,23 +660,18 @@ const RemarkModal2 = React.memo(({ isOpen, onClose, currentKPI, saveRemark, btnC
               returnKeyType="default"
             />
           </FormControl>
-        </Modal.Body>
-        <Modal.Footer borderTopWidth={0}>
-          <Button.Group space={2}>
-            <Button variant="ghost" onPress={onClose} rounded="xl" _text={{ color: "gray.600" }}>
-              Annuleren
+        </ModalBody>
+        <ModalFooter borderTopWidth={0}>
+          <HStack space="sm">
+            <Button variant="outline" onPress={onClose} borderRadius="$xl">
+              <ButtonText color="$textLight600">Annuleren</ButtonText>
             </Button>
-            <Button
-              onPress={handleSave}
-              bg="fdis.500"
-              _pressed={{ bg: "fdis.600" }}
-              rounded="xl"
-            >
-              Opslaan
+            <Button onPress={handleSave} bg="$amber500" borderRadius="$xl">
+              <ButtonText color="$white">Opslaan</ButtonText>
             </Button>
-          </Button.Group>
-        </Modal.Footer>
-      </Modal.Content>
+          </HStack>
+        </ModalFooter>
+      </ModalContent>
     </Modal>
   );
 });
@@ -673,47 +682,50 @@ const UploadErrorDialogComponent = ({ visible, info, onRetry, onClose }) => {
 
   return (
     <Modal isOpen={visible} onClose={onClose}>
-      <Modal.Content rounded="2xl">
-        <Modal.CloseButton />
-        <Modal.Header borderBottomWidth={0}>
-          <HStack alignItems="center" space={2}>
-            <Center bg="red.100" size="8" rounded="lg">
-              <Icon as={MaterialIcons} name="error" size="sm" color="red.600" />
+      <ModalBackdrop />
+      <ModalContent borderRadius="$2xl">
+        <ModalHeader borderBottomWidth={0}>
+          <HStack alignItems="center" space="sm">
+            <Center bg="$red100" w="$8" h="$8" borderRadius="$lg">
+              <MIcon name="error" size={16} color="#dc2626" />
             </Center>
-            <Text fontSize="md" fontWeight="bold">Upload Mislukt</Text>
+            <Text fontSize="$md" fontWeight="$bold">Upload Mislukt</Text>
           </HStack>
-        </Modal.Header>
-        <Modal.Body>
-          <VStack space={3}>
-            <Text fontWeight="bold">{failures.length} Audit(s) niet geupload</Text>
-            <ScrollView maxH="200">
-              <VStack space={2}>
+          <ModalCloseButton>
+            <Icon as={CloseIcon} />
+          </ModalCloseButton>
+        </ModalHeader>
+        <ModalBody>
+          <VStack space="md">
+            <Text fontWeight="$bold">{failures.length} Audit(s) niet geupload</Text>
+            <ScrollView style={{ maxHeight: 200 }}>
+              <VStack space="sm">
                 {failures.map((fail, idx) => (
-                  <Box key={idx} bg="red.50" p={3} rounded="xl">
-                    <Text fontWeight="bold" color="red.700">Audit: {fail.auditCode}</Text>
-                    <Text fontSize="xs" color="red.600">{fail.errorMessage}</Text>
+                  <Box key={idx} bg="$red50" p="$3" borderRadius="$xl">
+                    <Text fontWeight="$bold" color="#b91c1c">Audit: {fail.auditCode}</Text>
+                    <Text fontSize="$xs" color="#dc2626">{fail.errorMessage}</Text>
                   </Box>
                 ))}
               </VStack>
             </ScrollView>
-            <Box bg="green.50" p={3} rounded="xl">
-              <Text fontSize="xs" color="green.700">
+            <Box bg="$green50" p="$3" borderRadius="$xl">
+              <Text fontSize="$xs" color="#15803d">
                 Succesvolle audits zijn verwijderd. Mislukte audits zijn veilig opgeslagen.
               </Text>
             </Box>
           </VStack>
-        </Modal.Body>
-        <Modal.Footer borderTopWidth={0}>
-          <Button.Group space={2} flexDirection="column" width="100%">
-            <Button onPress={onRetry} bg="fdis.500" _pressed={{ bg: "fdis.600" }} rounded="xl" width="100%">
-              Opnieuw Proberen
+        </ModalBody>
+        <ModalFooter borderTopWidth={0}>
+          <VStack space="sm" width="100%">
+            <Button onPress={onRetry} bg="$amber500" borderRadius="$xl" width="100%">
+              <ButtonText color="$white">Opnieuw Proberen</ButtonText>
             </Button>
-            <Button onPress={onClose} variant="ghost" rounded="xl" width="100%">
-              Later
+            <Button onPress={onClose} variant="outline" borderRadius="$xl" width="100%">
+              <ButtonText color="$textLight600">Later</ButtonText>
             </Button>
-          </Button.Group>
-        </Modal.Footer>
-      </Modal.Content>
+          </VStack>
+        </ModalFooter>
+      </ModalContent>
     </Modal>
   );
 };

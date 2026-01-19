@@ -3,8 +3,37 @@
  * ConfirmDialog - Reusable confirmation dialog for destructive actions
  */
 import React from 'react';
-import { AlertDialog, Button, Text, HStack, Center, Icon, VStack } from 'native-base';
+import {
+  AlertDialog,
+  AlertDialogBackdrop,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogCloseButton,
+  AlertDialogBody,
+  AlertDialogFooter,
+  Button,
+  ButtonText,
+  ButtonSpinner,
+  Text,
+  HStack,
+  Center,
+  Icon,
+  CloseIcon,
+} from '@gluestack-ui/themed';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
+
+// Color mapping
+const colorMap = {
+  red: { bg: '$red100', icon: '#dc2626', btn: '$red500', btnPressed: '$red600' },
+  orange: { bg: '$orange100', icon: '#ea580c', btn: '$orange500', btnPressed: '$orange600' },
+  blue: { bg: '$blue100', icon: '#2563eb', btn: '$blue500', btnPressed: '$blue600' },
+  green: { bg: '$green100', icon: '#16a34a', btn: '$green500', btnPressed: '$green600' },
+};
 
 // Preset configurations for common actions
 const PRESETS = {
@@ -73,8 +102,6 @@ const ConfirmDialog = ({
   confirmColor,
   isLoading = false,
 }) => {
-  const cancelRef = React.useRef(null);
-
   // Get preset config or use custom props
   const config = preset ? PRESETS[preset] : {};
   const finalIcon = icon || config.icon || 'help';
@@ -84,59 +111,54 @@ const ConfirmDialog = ({
   const finalConfirmText = confirmText || config.confirmText || 'Bevestigen';
   const finalConfirmColor = confirmColor || config.confirmColor || 'blue';
 
+  const colors = colorMap[finalConfirmColor] || colorMap.blue;
+
   return (
-    <AlertDialog
-      leastDestructiveRef={cancelRef}
-      isOpen={isOpen}
-      onClose={onClose}
-    >
-      <AlertDialog.Content rounded="2xl">
-        <AlertDialog.CloseButton />
-        <AlertDialog.Header borderBottomWidth={0}>
-          <HStack alignItems="center" space={2}>
-            <Center bg={`${finalIconColor}.100`} size="10" rounded="lg">
-              <Icon 
-                as={MaterialIcons} 
-                name={finalIcon} 
-                size="md" 
-                color={`${finalIconColor}.600`} 
-              />
+    <AlertDialog isOpen={isOpen} onClose={onClose}>
+      <AlertDialogBackdrop />
+      <AlertDialogContent borderRadius="$2xl">
+        <AlertDialogCloseButton>
+          <Icon as={CloseIcon} />
+        </AlertDialogCloseButton>
+        <AlertDialogHeader borderBottomWidth={0}>
+          <HStack alignItems="center" space="sm">
+            <Center bg={colors.bg} w="$10" h="$10" borderRadius="$lg">
+              <MIcon name={finalIcon} size={20} color={colors.icon} />
             </Center>
-            <Text fontSize="lg" fontWeight="bold">{finalTitle}</Text>
+            <Text fontSize="$lg" fontWeight="$bold">{finalTitle}</Text>
           </HStack>
-        </AlertDialog.Header>
-        <AlertDialog.Body>
-          <Text color="gray.600">{finalMessage}</Text>
-        </AlertDialog.Body>
-        <AlertDialog.Footer borderTopWidth={0}>
-          <Button.Group space={2}>
-            <Button
-              variant="ghost"
-              onPress={onClose}
-              ref={cancelRef}
-              rounded="xl"
-              _text={{ color: 'gray.600' }}
-              isDisabled={isLoading}
-            >
-              {cancelText}
-            </Button>
-            <Button
-              bg={`${finalConfirmColor}.500`}
-              _pressed={{ bg: `${finalConfirmColor}.600` }}
-              onPress={onConfirm}
-              rounded="xl"
-              isLoading={isLoading}
-              leftIcon={
-                !isLoading && (
-                  <Icon as={MaterialIcons} name={finalIcon} size="sm" color="white" />
-                )
-              }
-            >
-              {finalConfirmText}
-            </Button>
-          </Button.Group>
-        </AlertDialog.Footer>
-      </AlertDialog.Content>
+        </AlertDialogHeader>
+        <AlertDialogBody>
+          <Text color="$textLight600">{finalMessage}</Text>
+        </AlertDialogBody>
+        <AlertDialogFooter borderTopWidth={0} gap="$2">
+          <Button
+            variant="outline"
+            action="secondary"
+            onPress={onClose}
+            borderRadius="$xl"
+            isDisabled={isLoading}
+          >
+            <ButtonText color="$textLight600">{cancelText}</ButtonText>
+          </Button>
+          <Button
+            bg={colors.btn}
+            onPress={onConfirm}
+            borderRadius="$xl"
+            isDisabled={isLoading}
+            sx={{ ":active": { bg: colors.btnPressed } }}
+          >
+            {isLoading ? (
+              <ButtonSpinner color="$white" />
+            ) : (
+              <>
+                <MIcon name={finalIcon} size={16} color="#fff" />
+                <ButtonText color="$white" ml="$1">{finalConfirmText}</ButtonText>
+              </>
+            )}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
     </AlertDialog>
   );
 };

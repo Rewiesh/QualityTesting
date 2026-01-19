@@ -1,23 +1,28 @@
 /* eslint-disable prettier/prettier */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import { FlatList as RNFlatList } from 'react-native';
 import {
   Modal,
+  ModalBackdrop,
+  ModalContent,
+  ModalBody,
+  ModalFooter,
   Text,
   Spinner,
   Button,
-  FlatList,
+  ButtonText,
   Box,
   VStack,
   HStack,
   Heading,
   Center,
   Pressable,
-  useTheme,
-  useColorModeValue,
-  Icon,
-  Input
-} from 'native-base';
+  Input,
+  InputField,
+  InputIcon,
+  InputSlot,
+} from '@gluestack-ui/themed';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { ShowToast } from '../services/Util';
 import { log, logError } from '../services/Logger';
@@ -26,19 +31,18 @@ import { fetchAuditData } from '../services/api/newAPI';
 import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
 
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
+
 const Clients = ({ route, navigation }) => {
-  const theme = useTheme();
   const [unsavedData, setUnsavedData] = useState(false);
   const [loaded, setLoaded] = useState(true);
   const [clients, setClients] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [failedCount, setFailedCount] = useState(0);
-  const [searchText, setSearchText] = useState(""); // Add search state
-
-  // Modern UI Colors
-  const bgMain = useColorModeValue("coolGray.100", "gray.900"); // Light gray background for the screen
-  const textTitle = useColorModeValue("coolGray.800", "white");
-  const inputBg = useColorModeValue("white", "gray.800");
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
     loadClients();
@@ -63,24 +67,13 @@ const Clients = ({ route, navigation }) => {
     navigation.setOptions({
       headerRight: () =>
         failedCount > 0 ? (
-          <Button
+          <Pressable
             onPress={() => navigation.navigate('Mislukte Uploads')}
-            startIcon={
-              <Icon
-                as={MaterialIcons}
-                name="error-outline"
-                size="lg"
-                color="red.500"
-              />
-            }
-            variant="ghost"
-            _pressed={{ bg: "red.100" }}
-            _text={{ color: "red.500", fontWeight: "bold" }}
-            px="3"
-            py="2"
-            mr="2">
-            {failedCount}
-          </Button>
+            style={{ flexDirection: 'row', alignItems: 'center', marginRight: 12, paddingHorizontal: 12, paddingVertical: 8 }}
+          >
+            <MIcon name="error-outline" size={20} color="#ef4444" />
+            <Text color="$red500" fontWeight="$bold" ml="$1">{failedCount}</Text>
+          </Pressable>
         ) : null,
     });
   }, [navigation, failedCount]);
@@ -144,7 +137,7 @@ const Clients = ({ route, navigation }) => {
   }, [loadClients]);
 
   // Filter clients based on search text - memoized
-  const filteredClients = useMemo(() => 
+  const filteredClients = useMemo(() =>
     clients.filter(client =>
       client.NameClient.toLowerCase().includes(searchText.toLowerCase())
     ), [clients, searchText]);
@@ -156,10 +149,10 @@ const Clients = ({ route, navigation }) => {
 
   if (!loaded) {
     return (
-      <Center flex={1} bg={bgMain}>
-        <VStack space={4} alignItems="center">
-          <Spinner size="lg" color={theme.colors.fdis[500]} />
-          <Heading color={textTitle} fontSize="md" fontWeight="medium">
+      <Center flex={1} bg="$backgroundLight100">
+        <VStack space="md" alignItems="center">
+          <Spinner size="large" color="$amber500" />
+          <Heading color="$textDark800" fontSize="$md" fontWeight="$medium">
             Klanten worden opgehaald...
           </Heading>
         </VStack>
@@ -169,48 +162,49 @@ const Clients = ({ route, navigation }) => {
 
   // Section Header (no hooks, static)
   const renderSectionHeader = () => (
-    <Box px="4" pt="2">
-      <Text mt="4" mb="2" fontSize="xs" fontWeight="bold" color="gray.500" letterSpacing="lg">
+    <Box px="$4" pt="$2">
+      <Text mt="$4" mb="$2" fontSize="$xs" fontWeight="$bold" color="$textLight500" letterSpacing="$lg">
         ACTIEVE OPDRACHTEN
       </Text>
     </Box>
   );
 
   return (
-    <Box flex={1} bg={bgMain}>
+    <Box flex={1} bg="$backgroundLight100">
       {/* Search Bar - Outside FlatList to prevent keyboard issues */}
-      <Box px="4" pt="4" pb="2" bg={bgMain}>
+      <Box px="$4" pt="$4" pb="$2" bg="$backgroundLight100">
         <Input
-          placeholder="Zoek opdrachtgever..."
-          value={searchText}
-          onChangeText={setSearchText}
-          bg={inputBg}
-          rounded="xl"
-          px="4"
-          py="3"
-          shadow={1}
+          bg="$white"
+          borderRadius="$xl"
           borderWidth={0}
-          fontSize="md"
-          placeholderTextColor="gray.400"
-          InputLeftElement={
-            <Icon as={MaterialIcons} name="search" size="sm" color="gray.400" ml="3" />
-          }
-          InputRightElement={
-            searchText.length > 0 ? (
-              <Pressable onPress={() => setSearchText("")} mr="3" p="1">
-                <Icon as={MaterialIcons} name="close" size="sm" color="gray.400" />
+          shadowColor="$black"
+          shadowOffset={{ width: 0, height: 1 }}
+          shadowOpacity={0.1}
+          shadowRadius={2}
+        >
+          <InputSlot pl="$3">
+            <MIcon name="search" size={16} color="#9ca3af" />
+          </InputSlot>
+          <InputField
+            placeholder="Zoek opdrachtgever..."
+            value={searchText}
+            onChangeText={setSearchText}
+            px="$4"
+            py="$3"
+            fontSize="$md"
+            placeholderTextColor="$textLight400"
+          />
+          {searchText.length > 0 && (
+            <InputSlot pr="$3">
+              <Pressable onPress={() => setSearchText("")} p="$1">
+                <MIcon name="close" size={16} color="#9ca3af" />
               </Pressable>
-            ) : null
-          }
-          _focus={{
-            bg: inputBg,
-            borderColor: "fdis.500",
-            borderWidth: 1,
-          }}
-        />
+            </InputSlot>
+          )}
+        </Input>
       </Box>
 
-      <FlatList
+      <RNFlatList
         data={filteredClients}
         renderItem={renderItem}
         keyExtractor={item => item.Id.toString()}
@@ -236,10 +230,10 @@ const Clients = ({ route, navigation }) => {
 
 const RenderEmpty = () => {
   return (
-    <Center flex={1} mt="10">
-      <VStack alignItems="center" space={2}>
-        <Icon as={MaterialIcons} name="folder-open" size="4xl" color="gray.300" />
-        <Text color="gray.400" fontSize="md">Geen opdrachten gevonden</Text>
+    <Center flex={1} mt="$10">
+      <VStack alignItems="center" space="sm">
+        <MIcon name="folder-open" size={48} color="#d1d5db" />
+        <Text color="$textLight400" fontSize="$md">Geen opdrachten gevonden</Text>
       </VStack>
     </Center>
   );
@@ -247,8 +241,8 @@ const RenderEmpty = () => {
 
 // Helper to get initials and color
 const getClientVisuals = (name, index) => {
-  const colors = ["blue.100", "purple.100", "green.100", "orange.100", "red.100"];
-  const textColors = ["blue.600", "purple.600", "green.600", "orange.600", "red.600"];
+  const colors = ["$blue100", "$purple100", "$green100", "$orange100", "$red100"];
+  const textColors = ["#2563eb", "#9333ea", "#16a34a", "#ea580c", "#dc2626"];
 
   const colorIndex = index % colors.length;
 
@@ -263,57 +257,56 @@ const getClientVisuals = (name, index) => {
 };
 
 const RenderClientRow = React.memo(({ item, index, onListItemClick }) => {
-  const cardBg = useColorModeValue("white", "gray.800");
-  const textColor = useColorModeValue("coolGray.800", "white");
-  const subtextColor = useColorModeValue("coolGray.400", "gray.500");
+  const [isPressed, setIsPressed] = useState(false);
   const { bg, text, initials } = getClientVisuals(item.NameClient, index || 0);
 
   return (
-    <Pressable onPress={() => onListItemClick(item)}>
-      {({ isPressed }) => (
-        <Box
-          bg={cardBg}
-          mx="4"
-          my="2"
-          p="4"
-          rounded="2xl"
-          shadow={2}
-          style={{
-            transform: [{ scale: isPressed ? 0.98 : 1 }],
-          }}
-        >
-          <HStack alignItems="center" space={4}>
-            {/* Initials Icon */}
-            <Center
-              bg={bg}
-              size="12"
-              rounded="full"
-            >
-              <Text color={text} fontWeight="bold" fontSize="md">
-                {initials}
-              </Text>
-            </Center>
+    <Pressable
+      onPress={() => onListItemClick(item)}
+      onPressIn={() => setIsPressed(true)}
+      onPressOut={() => setIsPressed(false)}
+    >
+      <Box
+        bg="$white"
+        mx="$4"
+        my="$2"
+        p="$4"
+        borderRadius="$2xl"
+        shadowColor="$black"
+        shadowOffset={{ width: 0, height: 2 }}
+        shadowOpacity={0.1}
+        shadowRadius={4}
+        style={{
+          transform: [{ scale: isPressed ? 0.98 : 1 }],
+        }}
+      >
+        <HStack alignItems="center" space="md">
+          {/* Initials Icon */}
+          <Center
+            bg={bg}
+            w="$12"
+            h="$12"
+            borderRadius="$full"
+          >
+            <Text color={text} fontWeight="$bold" fontSize="$md">
+              {initials}
+            </Text>
+          </Center>
 
-            {/* Content */}
-            <VStack flex={1}>
-              <Text fontSize="md" fontWeight="bold" color={textColor}>
-                {item.NameClient}
-              </Text>
-              <Text fontSize="xs" color={subtextColor}>
-                Tik om te openen
-              </Text>
-            </VStack>
+          {/* Content */}
+          <VStack flex={1}>
+            <Text fontSize="$md" fontWeight="$bold" color="$textDark800">
+              {item.NameClient}
+            </Text>
+            <Text fontSize="$xs" color="$textLight400">
+              Tik om te openen
+            </Text>
+          </VStack>
 
-            {/* Chevron */}
-            <Icon
-              as={MaterialIcons}
-              name="chevron-right"
-              size="sm"
-              color="coolGray.300"
-            />
-          </HStack>
-        </Box>
-      )}
+          {/* Chevron */}
+          <MIcon name="chevron-right" size={16} color="#d1d5db" />
+        </HStack>
+      </Box>
     </Pressable>
   );
 });
@@ -323,43 +316,42 @@ const RenderModal = ({ unsavedData, setUnsavedData, reloadData }) => {
     <Modal
       isOpen={unsavedData}
       onClose={() => setUnsavedData(false)}
-      _backdrop={{ bg: "black", opacity: 0.5 }}
     >
-      <Modal.Content maxWidth="400px" rounded="xl">
-        <Modal.Body pt="6">
-          <VStack space={3} alignItems="center">
-            <Icon as={MaterialIcons} name="warning" size="4xl" color="orange.400" />
-            <Text fontWeight="bold" fontSize="lg">Niet opgeslagen wijzigingen</Text>
-            <Text textAlign="center" color="gray.500">
+      <ModalBackdrop bg="$black" opacity={0.5} />
+      <ModalContent maxWidth={400} borderRadius="$xl">
+        <ModalBody pt="$6">
+          <VStack space="md" alignItems="center">
+            <MIcon name="warning" size={48} color="#fb923c" />
+            <Text fontWeight="$bold" fontSize="$lg">Niet opgeslagen wijzigingen</Text>
+            <Text textAlign="center" color="$textLight500">
               Sommige gegevens zijn niet opgeslagen. Als u doorgaat, gaan deze verloren.
             </Text>
           </VStack>
-        </Modal.Body>
-        <Modal.Footer bg="transparent" borderTopWidth={0} justifyContent="center" pb="6">
-          <Button.Group space={3}>
-            <Button
-              variant="subtle"
-              colorScheme="coolGray"
-              onPress={() => setUnsavedData(false)}
-              rounded="full"
-              px="6"
-            >
-              Annuleer
-            </Button>
-            <Button
-              onPress={() => {
-                setUnsavedData(false);
-                reloadData();
-              }}
-              colorScheme="danger"
-              rounded="full"
-              px="6"
-            >
-              Doorgaan
-            </Button>
-          </Button.Group>
-        </Modal.Footer>
-      </Modal.Content>
+        </ModalBody>
+        <ModalFooter bg="transparent" borderTopWidth={0} justifyContent="center" pb="$6" gap="$3">
+          <Button
+            variant="outline"
+            action="secondary"
+            onPress={() => setUnsavedData(false)}
+            borderRadius="$full"
+            px="$6"
+          >
+            <ButtonText color="$textLight600">Annuleer</ButtonText>
+          </Button>
+          <Button
+            onPress={() => {
+              setUnsavedData(false);
+              reloadData();
+            }}
+            bg="$red500"
+            borderRadius="$full"
+            px="$6"
+            sx={{ ":active": { bg: "$red600" } }}
+          >
+            <ButtonText color="$white">Doorgaan</ButtonText>
+          </Button>
+        </ModalFooter>
+      </ModalContent>
     </Modal>
   );
 };

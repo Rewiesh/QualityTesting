@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Text,
-  VStack,
-  HStack,
-  Center,
-  Pressable,
-  useColorModeValue,
-  useTheme,
-} from 'native-base';
+import { Box, Text, VStack, HStack, Center, Pressable } from '@gluestack-ui/themed';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Keyboard, Platform } from 'react-native';
 
+// FDIS amber color
+const FDIS_COLOR = '#f59e0b';
+
 const AppFooter = ({ navigation }) => {
-  const theme = useTheme();
   const [selected, setSelected] = useState(0);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -25,9 +18,9 @@ const AppFooter = ({ navigation }) => {
   };
 
   // Modern Floating Bar Colors
-  const footerBg = useColorModeValue('white', 'gray.800');
-  const activeColor = theme.colors.fdis[500]; // Brand Blue for active
-  const inactiveColor = useColorModeValue('gray.400', 'gray.500');
+  const footerBg = '$white';
+  const activeColor = FDIS_COLOR;
+  const inactiveColor = '#9ca3af';
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -63,12 +56,15 @@ const AppFooter = ({ navigation }) => {
     <Box
       bg={footerBg}
       width="100%"
-      safeAreaBottom
-      shadow={3} // Subtle shadow for separation from content
+      pb="$6"
+      shadowColor="$black"
+      shadowOffset={{ width: 0, height: -2 }}
+      shadowOpacity={0.1}
+      shadowRadius={3}
       borderTopWidth={1}
-      borderColor={useColorModeValue('gray.100', 'gray.200')}
+      borderColor="$borderLight100"
     >
-      <HStack alignItems="center" justifyContent="space-around" pt={0} pb={2}>
+      <HStack alignItems="center" justifyContent="space-around" pt="$0" pb="$2">
         {Object.keys(iconMap).map((tab, index) => {
           const isSelected = selected === index;
           return (
@@ -76,25 +72,24 @@ const AppFooter = ({ navigation }) => {
               <Center>
                 {/* Active Indicator Line */}
                 <Box
-                  height="3px"
-                  width="50%" // Width of the indicator line
+                  height={3}
+                  width="50%"
                   bg={isSelected ? activeColor : 'transparent'}
-                  roundedBottom="full"
-                  mb={3} // Spacing between line and icon
+                  borderBottomLeftRadius="$full"
+                  borderBottomRightRadius="$full"
+                  mb="$3"
                 />
 
-                <VStack space={1} alignItems="center">
+                <VStack space="xs" alignItems="center">
                   <MaterialIcons
                     name={iconMap[tab]}
                     size={26}
                     color={isSelected ? activeColor : inactiveColor}
                   />
                   <Text
-                    fontSize="10px"
-                    color={
-                      isSelected ? activeColor : inactiveColor
-                    }
-                    fontWeight={isSelected ? 'bold' : 'medium'}>
+                    fontSize={10}
+                    color={isSelected ? activeColor : inactiveColor}
+                    fontWeight={isSelected ? '$bold' : '$medium'}>
                     {tab}
                   </Text>
                 </VStack>

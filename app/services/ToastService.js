@@ -2,8 +2,11 @@
 /**
  * ToastService - Centralized toast notification service
  * Provides consistent, user-friendly messages throughout the app
+ * 
+ * Note: This service uses a simple Alert-based approach for now.
+ * For full toast support, integrate with gluestack-ui's useToast hook in components.
  */
-import { Toast } from 'native-base';
+import { Alert } from 'react-native';
 
 // Toast types with corresponding colors and icons
 const TOAST_CONFIG = {
@@ -151,6 +154,17 @@ const MESSAGES = {
   },
 };
 
+// Store reference to toast show function (set by ToastProvider)
+let toastRef = null;
+
+/**
+ * Set the toast reference from a component that has access to useToast
+ * @param {Function} showFn - The toast show function
+ */
+export const setToastRef = (showFn) => {
+  toastRef = showFn;
+};
+
 /**
  * Show a toast notification
  * @param {Object} options - Toast options
@@ -168,16 +182,20 @@ const show = ({
   placement = 'top',
 }) => {
   const config = TOAST_CONFIG[type] || TOAST_CONFIG.info;
+  const displayTitle = title || config.defaultTitle;
 
-  Toast.show({
-    title: title || config.defaultTitle,
-    description: message,
-    duration,
-    placement,
-    bg: config.bg,
-    _title: { color: 'white', fontWeight: 'bold' },
-    _description: { color: 'white' },
-  });
+  // If toast ref is available, use it
+  if (toastRef) {
+    toastRef({
+      title: displayTitle,
+      description: message,
+      duration,
+      placement,
+    });
+  } else {
+    // Fallback to console log for now
+    console.log(`[Toast ${type}] ${displayTitle}: ${message}`);
+  }
 };
 
 /**
@@ -207,8 +225,10 @@ const error = (message, title) => show({ type: 'error', title, message });
 const warning = (message, title) => show({ type: 'warning', title, message });
 const info = (message, title) => show({ type: 'info', title, message });
 
-// Close all toasts
-const closeAll = () => Toast.closeAll();
+// Close all toasts (no-op for now, implement when needed)
+const closeAll = () => {
+  // Placeholder - implement if gluestack-ui supports this
+};
 
 export const ToastService = {
   show,

@@ -1,14 +1,8 @@
 /* eslint-disable prettier/prettier */
 import React, { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
-import {
-  Box,
-  ScrollView,
-  Button,
-  Icon,
-  useColorModeValue,
-  useTheme,
-} from 'native-base';
+import { Box, Button, ButtonText } from '@gluestack-ui/themed';
+import { ScrollView } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import * as database from '../../services/database/database1';
 
@@ -21,8 +15,12 @@ import {
   ImagePickerModal,
 } from './components';
 
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
+
 const AuditErrorForm = ({ navigation, route }) => {
-  const theme = useTheme();
   const [error, setError] = useState(route.params?.error || {});
   const [errorTypes, setErrorTypes] = useState([]);
   const [elements, setElements] = useState([]);
@@ -31,9 +29,8 @@ const AuditErrorForm = ({ navigation, route }) => {
   const [modalTechVisible, setModalTechVisible] = useState(false);
 
   // Colors
-  const bgMain = useColorModeValue('coolGray.100', 'gray.900');
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const btnColor = useColorModeValue(theme.colors.fdis[400], theme.colors.fdis[600]);
+  const bgMain = '$backgroundLight100';
+  const cardBg = '$white';
 
   useEffect(() => {
     fetchData();
@@ -132,8 +129,8 @@ const AuditErrorForm = ({ navigation, route }) => {
   return (
     <Box flex={1} bg={bgMain}>
       <ScrollView
-        flex={1}
-        _contentContainerStyle={{ p: '4', pb: '4' }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 16 }}
         nestedScrollEnabled={true}
       >
         <ElementPicker
@@ -179,17 +176,16 @@ const AuditErrorForm = ({ navigation, route }) => {
 
       {/* Sticky Footer Button */}
       {countError > 0 && (
-        <Box px="4" py="3" pb="6" bg={bgMain} shadow={3}>
+        <Box px="$4" py="$3" pb="$6" bg={bgMain} shadowColor="$black" shadowOffset={{ width: 0, height: -2 }} shadowOpacity={0.1} shadowRadius={3}>
           <Button
             size="lg"
-            bg="fdis.500"
-            _pressed={{ bg: 'fdis.600' }}
-            _text={{ color: 'white', fontWeight: 'bold' }}
-            rounded="xl"
-            leftIcon={<Icon as={MaterialIcons} name="save" size="md" color="white" />}
+            bg="$amber500"
+            sx={{ ':active': { bg: '$amber600' } }}
+            borderRadius="$xl"
             onPress={saveError}
           >
-            Opmerking opslaan
+            <MIcon name="save" size={20} color="#fff" />
+            <ButtonText color="$white" fontWeight="$bold" ml="$2">Opmerking opslaan</ButtonText>
           </Button>
         </Box>
       )}

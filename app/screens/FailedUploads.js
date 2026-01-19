@@ -3,35 +3,43 @@
 /* eslint-disable prettier/prettier */
 import React, { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { Alert, Platform } from 'react-native';
+import { Alert, Platform, ScrollView as RNScrollView } from 'react-native';
 import Share from 'react-native-share';
 import {
+    Modal,
+    ModalBackdrop,
+    ModalContent,
+    ModalHeader,
+    ModalCloseButton,
+    ModalBody,
+    ModalFooter,
     Box,
     VStack,
     Text,
     Button,
+    ButtonText,
+    ButtonSpinner,
     HStack,
-    ScrollView,
-    useColorModeValue,
     Center,
-    Icon,
     Pressable,
-    Modal,
-} from 'native-base';
+    Icon,
+    CloseIcon,
+} from '@gluestack-ui/themed';
 import RNFS from 'react-native-fs';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import * as database from '../services/database/database1';
 import userManager from '../services/UserManager';
 import { uploadAuditData, uploadAuditImage } from '../services/api/newAPI';
 
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+    <MaterialIcons name={name} size={size} color={color} />
+);
+
 const FailedUploads = ({ navigation }) => {
     const [failedAudits, setFailedAudits] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showInfo, setShowInfo] = useState(false);
-
-    // Modern UI Colors
-    const bgMain = useColorModeValue('coolGray.100', 'gray.900');
-    const cardBg = useColorModeValue('white', 'gray.800');
 
     useFocusEffect(
         useCallback(() => {
@@ -43,13 +51,8 @@ const FailedUploads = ({ navigation }) => {
     React.useLayoutEffect(() => {
         navigation.setOptions({
             headerRight: () => (
-                <Pressable onPress={() => setShowInfo(prev => !prev)} p="2" mr="2">
-                    <Icon
-                        as={MaterialIcons}
-                        name="help-outline"
-                        size="md"
-                        color="white"
-                    />
+                <Pressable onPress={() => setShowInfo(prev => !prev)} p="$2" mr="$2">
+                    <MIcon name="help-outline" size={20} color="#fff" />
                 </Pressable>
             ),
         });
@@ -102,7 +105,7 @@ const FailedUploads = ({ navigation }) => {
             const exportData = {
                 meta: {
                     exportDate: new Date().toISOString(),
-                    appVersion: '0.0.2',
+                    appVersion: '1.4.0',
                     exportReason: 'Upload failed',
                 },
                 user: {
@@ -120,10 +123,9 @@ const FailedUploads = ({ navigation }) => {
 
             // Schrijf naar file
             const filename = `audit_${audit.AuditCode}_export.json`;
-            // const path = `${RNFS.DocumentDirectoryPath}/${filename}`;
             const path = Platform.select({
                 ios: `${RNFS.DocumentDirectoryPath}/${filename}`,
-                android: `${RNFS.CachesDirectoryPath}/${filename}`, // Android werkt beter met CachesDirectory
+                android: `${RNFS.CachesDirectoryPath}/${filename}`,
             });
             await RNFS.writeFile(path, JSON.stringify(exportData, null, 2), 'utf8');
 
@@ -307,51 +309,54 @@ const FailedUploads = ({ navigation }) => {
     // Help Modal
     const renderHelpModal = () => (
         <Modal isOpen={showInfo} onClose={() => setShowInfo(false)} size="lg">
-            <Modal.Content maxWidth="400px" rounded="2xl">
-                <Modal.CloseButton />
-                <Modal.Header borderBottomWidth={0} _text={{ fontWeight: 'bold', fontSize: 'md' }}>
-                    Handleiding Mislukte Uploads
-                </Modal.Header>
-                <Modal.Body pt={0}>
-                    <VStack space={4}>
-                        <Text fontSize="sm" color="coolGray.600">
+            <ModalBackdrop />
+            <ModalContent maxWidth={400} borderRadius="$2xl">
+                <ModalCloseButton>
+                    <Icon as={CloseIcon} />
+                </ModalCloseButton>
+                <ModalHeader borderBottomWidth={0}>
+                    <Text fontWeight="$bold" fontSize="$md">Handleiding Mislukte Uploads</Text>
+                </ModalHeader>
+                <ModalBody pt="$0">
+                    <VStack space="md">
+                        <Text fontSize="$sm" color="$textLight600">
                             In dit overzicht ziet u de audits die nog niet naar de data server zijn verzonden. Dit gebeurt meestal door een tijdelijke of slechte internetverbinding.
                         </Text>
 
-                        <Box bg="blue.50" p="3" rounded="xl">
-                            <Text fontWeight="bold" color="blue.700" mb="2">Betekenis van de knoppen</Text>
+                        <Box bg="$blue50" p="$3" borderRadius="$xl">
+                            <Text fontWeight="$bold" color="$blue700" mb="$2">Betekenis van de knoppen</Text>
 
-                            <HStack space={3} mb="3" alignItems="flex-start">
-                                <Center bg="fdis.500" size="6" rounded="full" mt="1">
-                                    <Icon as={MaterialIcons} name="refresh" size="xs" color="white" />
+                            <HStack space="md" mb="$3" alignItems="flex-start">
+                                <Center bg="$amber500" w="$6" h="$6" borderRadius="$full" mt="$1">
+                                    <MIcon name="refresh" size={12} color="#fff" />
                                 </Center>
                                 <VStack flex={1}>
-                                    <Text fontSize="sm" fontWeight="bold">Opnieuw</Text>
-                                    <Text fontSize="xs" color="coolGray.600">
+                                    <Text fontSize="$sm" fontWeight="$bold">Opnieuw</Text>
+                                    <Text fontSize="$xs" color="$textLight600">
                                         Probeer de audit opnieuw te uploaden. Zorg ervoor dat u beschikt over een stabiele internetverbinding (bij voorkeur wifi of 4G/5G).
                                     </Text>
                                 </VStack>
                             </HStack>
 
-                            <HStack space={3} mb="3" alignItems="flex-start">
-                                <Center bg="orange.100" size="6" rounded="full" mt="1">
-                                    <Icon as={MaterialIcons} name="share" size="xs" color="orange.500" />
+                            <HStack space="md" mb="$3" alignItems="flex-start">
+                                <Center bg="$orange100" w="$6" h="$6" borderRadius="$full" mt="$1">
+                                    <MIcon name="share" size={12} color="#f97316" />
                                 </Center>
                                 <VStack flex={1}>
-                                    <Text fontSize="sm" fontWeight="bold">Exporteren</Text>
-                                    <Text fontSize="xs" color="coolGray.600">
+                                    <Text fontSize="$sm" fontWeight="$bold">Exporteren</Text>
+                                    <Text fontSize="$xs" color="$textLight600">
                                         Maak een bestand aan om de audit handmatig te delen, bijvoorbeeld via e-mail of WhatsApp. Gebruik deze optie wanneer uploaden niet mogelijk is.
                                     </Text>
                                 </VStack>
                             </HStack>
 
-                            <HStack space={3} alignItems="flex-start">
-                                <Center bg="red.100" size="6" rounded="full" mt="1">
-                                    <Icon as={MaterialIcons} name="delete-outline" size="xs" color="red.500" />
+                            <HStack space="md" alignItems="flex-start">
+                                <Center bg="$red100" w="$6" h="$6" borderRadius="$full" mt="$1">
+                                    <MIcon name="delete-outline" size={12} color="#ef4444" />
                                 </Center>
                                 <VStack flex={1}>
-                                    <Text fontSize="sm" fontWeight="bold">Verwijderen</Text>
-                                    <Text fontSize="xs" color="coolGray.600">
+                                    <Text fontSize="$sm" fontWeight="$bold">Verwijderen</Text>
+                                    <Text fontSize="$xs" color="$textLight600">
                                         Verwijder de audit van dit apparaat. Let op: deze actie is definitief en kan niet ongedaan worden gemaakt.
                                     </Text>
                                 </VStack>
@@ -359,40 +364,40 @@ const FailedUploads = ({ navigation }) => {
                         </Box>
 
                         <Box>
-                            <Text fontSize="sm" fontWeight="bold" color="coolGray.700" mb="1">Advies:</Text>
-                            <Text fontSize="xs" color="coolGray.500" mb="2">
-                                Probeer altijd eerst de optie ‘Opnieuw’ met een goede internetverbinding. Gebruik ‘Exporteren’ alleen als noodoplossing wanneer uploaden niet lukt.
+                            <Text fontSize="$sm" fontWeight="$bold" color="$textDark700" mb="$1">Advies:</Text>
+                            <Text fontSize="$xs" color="$textLight500" mb="$2">
+                                Probeer altijd eerst de optie 'Opnieuw' met een goede internetverbinding. Gebruik 'Exporteren' alleen als noodoplossing wanneer uploaden niet lukt.
                             </Text>
-                            <Text fontSize="xs" color="coolGray.500">
+                            <Text fontSize="$xs" color="$textLight500">
                                 Heeft u de audit geëxporteerd en is deze succesvol geïmporteerd in de data-applicatie? Verwijder de audit daarna van dit apparaat om opslagruimte vrij te houden.
                             </Text>
                         </Box>
                     </VStack>
-                </Modal.Body>
-                <Modal.Footer bg="coolGray.50" borderTopWidth={0}>
+                </ModalBody>
+                <ModalFooter bg="$backgroundLight100" borderTopWidth={0}>
                     <Button
                         flex={1}
                         onPress={() => setShowInfo(false)}
-                        bg="fdis.500"
-                        rounded="xl"
-                        _text={{ fontWeight: 'bold' }}
+                        bg="$amber500"
+                        borderRadius="$xl"
+                        sx={{ ":active": { bg: "$amber600" } }}
                     >
-                        Begrepen
+                        <ButtonText fontWeight="$bold" color="$white">Begrepen</ButtonText>
                     </Button>
-                </Modal.Footer>
-            </Modal.Content>
+                </ModalFooter>
+            </ModalContent>
         </Modal>
     );
 
     // Section Header
     const renderHeader = () => (
-        <Box px="4" pt="4" pb="2">
+        <Box px="$4" pt="$4" pb="$2">
             <HStack justifyContent="space-between" alignItems="center">
-                <Text fontSize="xs" fontWeight="bold" color="gray.500" letterSpacing="lg">
+                <Text fontSize="$xs" fontWeight="$bold" color="$textLight500" letterSpacing="$lg">
                     MISLUKTE UPLOADS
                 </Text>
-                <Box bg={failedAudits.length > 0 ? "red.100" : "green.100"} px="3" py="1" rounded="full">
-                    <Text fontSize="xs" fontWeight="bold" color={failedAudits.length > 0 ? "red.600" : "green.600"}>
+                <Box bg={failedAudits.length > 0 ? "$red100" : "$green100"} px="$3" py="$1" borderRadius="$full">
+                    <Text fontSize="$xs" fontWeight="$bold" color={failedAudits.length > 0 ? "$red600" : "$green600"}>
                         {failedAudits.length} items
                     </Text>
                 </Box>
@@ -402,16 +407,16 @@ const FailedUploads = ({ navigation }) => {
 
     // Empty State
     const renderEmptyState = () => (
-        <Center flex={1} py="20">
-            <VStack alignItems="center" space={4}>
-                <Center bg="green.100" size="20" rounded="full">
-                    <Icon as={MaterialIcons} name="check-circle" size="4xl" color="green.500" />
+        <Center flex={1} py="$20">
+            <VStack alignItems="center" space="md">
+                <Center bg="$green100" w="$20" h="$20" borderRadius="$full">
+                    <MIcon name="check-circle" size={48} color="#22c55e" />
                 </Center>
-                <VStack alignItems="center" space={1}>
-                    <Text fontSize="lg" fontWeight="bold" color="coolGray.800">
+                <VStack alignItems="center" space="xs">
+                    <Text fontSize="$lg" fontWeight="$bold" color="$textDark800">
                         Alles Gesynchroniseerd!
                     </Text>
-                    <Text fontSize="sm" color="coolGray.500" textAlign="center" px="8">
+                    <Text fontSize="$sm" color="$textLight500" textAlign="center" px="$8">
                         Alle audits zijn succesvol geupload naar de server.
                     </Text>
                 </VStack>
@@ -420,105 +425,118 @@ const FailedUploads = ({ navigation }) => {
     );
 
     // Failed Audit Card
-    const renderAuditCard = (audit) => (
-        <Box
-            key={audit.Id}
-            bg={cardBg}
-            mx="4"
-            my="2"
-            rounded="2xl"
-            shadow={2}
-            overflow="hidden"
-        >
-            {/* Card Header with Error Icon */}
-            <HStack bg="red.50" px="4" py="3" alignItems="center" justifyContent="space-between">
-                <HStack alignItems="center" space={3}>
-                    <Center bg="red.100" size="10" rounded="full">
-                        <Icon as={MaterialIcons} name="error-outline" size="md" color="red.600" />
-                    </Center>
-                    <VStack>
-                        <Text fontSize="md" fontWeight="bold" color="coolGray.800">
-                            {audit.AuditCode}
-                        </Text>
-                        <Text fontSize="xs" color="coolGray.500">
-                            {audit.NameClient}
-                        </Text>
-                    </VStack>
-                </HStack>
-                <Icon as={MaterialIcons} name="chevron-right" size="sm" color="coolGray.300" />
-            </HStack>
+    const renderAuditCard = (audit) => {
+        const [delPressed, setDelPressed] = useState(false);
 
-            {/* Error Message */}
-            <Box px="4" py="3">
-                <Box bg="red.50" p="3" rounded="xl">
-                    <HStack space={2} alignItems="flex-start">
-                        <Icon as={MaterialIcons} name="info" size="xs" color="red.500" mt="0.5" />
-                        <Text fontSize="xs" color="red.700" flex={1}>
-                            {audit.upload_error}
+        return (
+            <Box
+                key={audit.Id}
+                bg="$white"
+                mx="$4"
+                my="$2"
+                borderRadius="$2xl"
+                shadowColor="$black"
+                shadowOffset={{ width: 0, height: 2 }}
+                shadowOpacity={0.1}
+                shadowRadius={4}
+                overflow="hidden"
+            >
+                {/* Card Header with Error Icon */}
+                <HStack bg="$red50" px="$4" py="$3" alignItems="center" justifyContent="space-between">
+                    <HStack alignItems="center" space="md">
+                        <Center bg="$red100" w="$10" h="$10" borderRadius="$full">
+                            <MIcon name="error-outline" size={20} color="#dc2626" />
+                        </Center>
+                        <VStack>
+                            <Text fontSize="$md" fontWeight="$bold" color="$textDark800">
+                                {audit.AuditCode}
+                            </Text>
+                            <Text fontSize="$xs" color="$textLight500">
+                                {audit.NameClient}
+                            </Text>
+                        </VStack>
+                    </HStack>
+                    <MIcon name="chevron-right" size={16} color="#d1d5db" />
+                </HStack>
+
+                {/* Error Message */}
+                <Box px="$4" py="$3">
+                    <Box bg="$red50" p="$3" borderRadius="$xl">
+                        <HStack space="sm" alignItems="flex-start">
+                            <MIcon name="info" size={12} color="#ef4444" style={{ marginTop: 2 }} />
+                            <Text fontSize="$xs" color="$red700" flex={1}>
+                                {audit.upload_error}
+                            </Text>
+                        </HStack>
+                    </Box>
+
+                    {/* Timestamp */}
+                    <HStack alignItems="center" space="xs" mt="$3">
+                        <MIcon name="schedule" size={12} color="#9ca3af" />
+                        <Text fontSize="$xs" color="$textLight400">
+                            Laatste poging: {new Date(audit.last_upload_attempt).toLocaleString('nl-NL')}
                         </Text>
                     </HStack>
                 </Box>
 
-                {/* Timestamp */}
-                <HStack alignItems="center" space={1} mt="3">
-                    <Icon as={MaterialIcons} name="schedule" size="xs" color="coolGray.400" />
-                    <Text fontSize="xs" color="coolGray.400">
-                        Laatste poging: {new Date(audit.last_upload_attempt).toLocaleString('nl-NL')}
-                    </Text>
+                {/* Action Buttons */}
+                <HStack px="$4" pb="$4" space="sm">
+                    <Button
+                        flex={1}
+                        size="sm"
+                        bg="$amber500"
+                        borderRadius="$xl"
+                        sx={{ ":active": { bg: "$amber600" } }}
+                        onPress={() => retryUpload(audit)}
+                        isDisabled={loading}
+                    >
+                        {loading ? (
+                            <ButtonSpinner color="$white" />
+                        ) : (
+                            <>
+                                <MIcon name="refresh" size={16} color="#fff" />
+                                <ButtonText color="$white" ml="$1">Opnieuw</ButtonText>
+                            </>
+                        )}
+                    </Button>
+
+                    <Button
+                        flex={1}
+                        size="sm"
+                        variant="outline"
+                        borderColor="$orange400"
+                        borderRadius="$xl"
+                        onPress={() => exportToJSON(audit)}
+                        isDisabled={loading}
+                    >
+                        <MIcon name="share" size={16} color="#f97316" />
+                        <ButtonText color="$orange500" ml="$1">Export</ButtonText>
+                    </Button>
+
+                    <Pressable
+                        onPress={() => handleDelete(audit)}
+                        onPressIn={() => setDelPressed(true)}
+                        onPressOut={() => setDelPressed(false)}
+                    >
+                        <Center
+                            bg={delPressed ? "$red100" : "$red50"}
+                            w="$10"
+                            h="$10"
+                            borderRadius="$xl"
+                            style={{ transform: [{ scale: delPressed ? 0.95 : 1 }] }}
+                        >
+                            <MIcon name="delete-outline" size={20} color="#ef4444" />
+                        </Center>
+                    </Pressable>
                 </HStack>
             </Box>
-
-            {/* Action Buttons */}
-            <HStack px="4" pb="4" space={2}>
-                <Button
-                    flex={1}
-                    size="sm"
-                    bg="fdis.500"
-                    _pressed={{ bg: "fdis.600" }}
-                    rounded="xl"
-                    onPress={() => retryUpload(audit)}
-                    isLoading={loading}
-                    leftIcon={<Icon as={MaterialIcons} name="refresh" size="sm" color="white" />}
-                >
-                    Opnieuw
-                </Button>
-
-                <Button
-                    flex={1}
-                    size="sm"
-                    variant="outline"
-                    borderColor="orange.400"
-                    _text={{ color: "orange.500" }}
-                    _pressed={{ bg: "orange.50" }}
-                    rounded="xl"
-                    onPress={() => exportToJSON(audit)}
-                    isLoading={loading}
-                    leftIcon={<Icon as={MaterialIcons} name="share" size="sm" color="orange.500" />}
-                >
-                    Export
-                </Button>
-
-                <Pressable onPress={() => handleDelete(audit)}>
-                    {({ isPressed }) => (
-                        <Center
-                            bg={isPressed ? "red.100" : "red.50"}
-                            size="10"
-                            rounded="xl"
-                            style={{ transform: [{ scale: isPressed ? 0.95 : 1 }] }}
-                        >
-                            <Icon as={MaterialIcons} name="delete-outline" size="md" color="red.500" />
-                        </Center>
-                    )}
-                </Pressable>
-            </HStack>
-        </Box>
-    );
+        );
+    };
 
     return (
-        <ScrollView
-            flex={1}
-            bg={bgMain}
-            _contentContainerStyle={{
+        <RNScrollView
+            style={{ flex: 1, backgroundColor: '#f3f4f6' }}
+            contentContainerStyle={{
                 flexGrow: 1,
                 paddingBottom: 120
             }}
@@ -533,7 +551,7 @@ const FailedUploads = ({ navigation }) => {
                     {failedAudits.map(audit => renderAuditCard(audit))}
                 </VStack>
             )}
-        </ScrollView>
+        </RNScrollView>
     );
 };
 

@@ -1,46 +1,48 @@
 /* eslint-disable prettier/prettier */
 import React from 'react';
-import { Center, Text, Icon, Button, VStack, useColorModeValue } from 'native-base';
+import { Center, Text, Button, ButtonText, VStack } from '@gluestack-ui/themed';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
 
 /**
  * Reusable Empty State component
  */
 const EmptyState = ({
   icon = 'inbox',
-  iconColor = 'gray.400',
-  iconBg = 'gray.100',
+  iconColor = '#9ca3af',
+  iconBg = '$backgroundLight200',
   title = 'Geen gegevens',
   description,
   actionLabel,
   onAction,
   ...props
 }) => {
-  const textColor = useColorModeValue('coolGray.700', 'white');
-  const subtextColor = useColorModeValue('gray.500', 'gray.400');
-
   return (
-    <Center flex={1} py="16" {...props}>
-      <Center bg={iconBg} size="20" rounded="full" mb="4">
-        <Icon as={MaterialIcons} name={icon} size="4xl" color={iconColor} />
+    <Center flex={1} py="$16" {...props}>
+      <Center bg={iconBg} w="$20" h="$20" borderRadius="$full" mb="$4">
+        <MIcon name={icon} size={48} color={iconColor} />
       </Center>
-      <Text fontSize="lg" fontWeight="bold" color={textColor} mb="1">
+      <Text fontSize="$lg" fontWeight="$bold" color="$textDark700" mb="$1">
         {title}
       </Text>
       {description && (
-        <Text fontSize="sm" color={subtextColor} textAlign="center" px="8" mb="4">
+        <Text fontSize="$sm" color="$textLight500" textAlign="center" px="$8" mb="$4">
           {description}
         </Text>
       )}
       {actionLabel && onAction && (
         <Button
-          bg="fdis.500"
-          _pressed={{ bg: 'fdis.600' }}
-          rounded="xl"
-          leftIcon={<Icon as={MaterialIcons} name="add" size="sm" color="white" />}
+          bg="$amber500"
+          borderRadius="$xl"
+          sx={{ ":active": { bg: "$amber600" } }}
           onPress={onAction}
         >
-          {actionLabel}
+          <MIcon name="add" size={16} color="#fff" />
+          <ButtonText color="$white" ml="$1">{actionLabel}</ButtonText>
         </Button>
       )}
     </Center>

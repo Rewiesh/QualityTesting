@@ -1,7 +1,13 @@
 /* eslint-disable prettier/prettier */
 import React from 'react';
-import { Box, Text, HStack, Center, Icon, TextArea, Image, Pressable, VStack } from 'native-base';
+import { Box, Text, HStack, Center, Textarea, TextareaInput, Pressable, VStack } from '@gluestack-ui/themed';
+import { Image } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
 
 const TechnicalAspectsSection = ({
   error,
@@ -11,65 +17,67 @@ const TechnicalAspectsSection = ({
   cardBg,
 }) => {
   return (
-    <Box bg={cardBg} rounded="2xl" shadow={1} p="4" mb="3">
-      <HStack alignItems="center" justifyContent="space-between" mb="3">
-        <HStack alignItems="center" space={2}>
-          <Center bg="teal.100" size="8" rounded="lg">
-            <Icon as={MaterialIcons} name="build" size="sm" color="teal.600" />
+    <Box bg={cardBg} borderRadius="$2xl" shadowColor="$black" shadowOffset={{ width: 0, height: 1 }} shadowOpacity={0.1} shadowRadius={2} p="$4" mb="$3">
+      <HStack alignItems="center" justifyContent="space-between" mb="$3">
+        <HStack alignItems="center" space="sm">
+          <Center bg="$teal100" w="$8" h="$8" borderRadius="$lg">
+            <MIcon name="build" size={16} color="#0d9488" />
           </Center>
-          <Text fontSize="md" fontWeight="bold" color="coolGray.800">
+          <Text fontSize="$md" fontWeight="$bold" color="$textDark800">
             Technische Aspecten
           </Text>
         </HStack>
         <Pressable onPress={onOpenImagePicker}>
-          {({ isPressed }) => (
+          {({ pressed }) => (
             <Center
-              bg={isPressed ? 'teal.200' : 'teal.100'}
-              size="10"
-              rounded="lg"
-              style={{ transform: [{ scale: isPressed ? 0.95 : 1 }] }}
+              bg={pressed ? '$teal200' : '$teal100'}
+              w="$10"
+              h="$10"
+              borderRadius="$lg"
+              style={{ transform: [{ scale: pressed ? 0.95 : 1 }] }}
             >
-              <Icon as={MaterialIcons} name="add-a-photo" size="sm" color="teal.600" />
+              <MIcon name="add-a-photo" size={16} color="#0d9488" />
             </Center>
           )}
         </Pressable>
       </HStack>
 
-      <TextArea
-        placeholder="Plaats hier uw opmerking..."
-        value={error.TechnicalAspects}
-        onChangeText={onTechnicalAspectsChange}
-        bg="gray.50"
+      <Textarea
+        bg="$backgroundLight50"
         borderWidth={0}
-        rounded="xl"
-        fontSize="sm"
-        h="20"
-        mb="2"
-      />
+        borderRadius="$xl"
+        h={80}
+        mb="$2"
+      >
+        <TextareaInput
+          placeholder="Plaats hier uw opmerking..."
+          value={error.TechnicalAspects}
+          onChangeText={onTechnicalAspectsChange}
+          fontSize="$sm"
+        />
+      </Textarea>
 
       {error.TechnicalAspectsImg && (
-        <VStack space={2} mt="2">
-          <Box rounded="xl" overflow="hidden" borderWidth={1} borderColor="gray.200">
+        <VStack space="sm" mt="$2">
+          <Box borderRadius="$xl" overflow="hidden" borderWidth={1} borderColor="$borderLight200">
             <Image
               source={{ uri: error.TechnicalAspectsImg }}
-              alt="Technische aspecten afbeelding"
-              h="40"
-              w="100%"
+              style={{ height: 160, width: '100%' }}
               resizeMode="cover"
             />
           </Box>
           <Pressable onPress={onDeleteImage}>
-            {({ isPressed }) => (
+            {({ pressed }) => (
               <HStack
                 alignItems="center"
                 justifyContent="center"
-                space={2}
-                bg={isPressed ? 'red.100' : 'red.50'}
-                py="2"
-                rounded="xl"
+                space="sm"
+                bg={pressed ? '$red100' : '$red50'}
+                py="$2"
+                borderRadius="$xl"
               >
-                <Icon as={MaterialIcons} name="delete" size="sm" color="red.500" />
-                <Text fontSize="sm" color="red.500">Verwijder afbeelding</Text>
+                <MIcon name="delete" size={16} color="#ef4444" />
+                <Text fontSize="$sm" color="$red500">Verwijder afbeelding</Text>
               </HStack>
             )}
           </Pressable>

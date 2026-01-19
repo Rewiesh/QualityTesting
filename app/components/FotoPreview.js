@@ -4,12 +4,17 @@
  */
 import React, { useState } from 'react';
 import { Image, TouchableOpacity, Modal as RNModal, Dimensions } from 'react-native';
-import { Box, Center, Icon, Text, HStack, Pressable, VStack } from 'native-base';
+import { Box, Center, Text, HStack, Pressable, VStack } from '@gluestack-ui/themed';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Thumbnail component
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
+
 export const FotoThumbnail = ({ 
   source, 
   size = 60, 
@@ -23,17 +28,18 @@ export const FotoThumbnail = ({
   if (!hasImage) {
     return (
       <Pressable onPress={onPress}>
-        {({ isPressed }) => (
+        {({ pressed }) => (
           <Center
-            bg={isPressed ? 'gray.200' : 'gray.100'}
-            size={size}
-            rounded="lg"
+            bg={pressed ? '$backgroundLight300' : '$backgroundLight200'}
+            w={size}
+            h={size}
+            borderRadius="$lg"
             borderWidth={2}
-            borderColor="gray.200"
+            borderColor="$borderLight200"
             borderStyle="dashed"
-            style={{ transform: [{ scale: isPressed ? 0.95 : 1 }] }}
+            style={{ transform: [{ scale: pressed ? 0.95 : 1 }] }}
           >
-            <Icon as={MaterialIcons} name={placeholder} size="md" color="gray.400" />
+            <MIcon name={placeholder} size={20} color="#9ca3af" />
           </Center>
         )}
       </Pressable>
@@ -43,13 +49,17 @@ export const FotoThumbnail = ({
   return (
     <Box position="relative">
       <Pressable onPress={onPress}>
-        {({ isPressed }) => (
+        {({ pressed }) => (
           <Box
-            size={size}
-            rounded="lg"
+            w={size}
+            h={size}
+            borderRadius="$lg"
             overflow="hidden"
-            shadow={2}
-            style={{ transform: [{ scale: isPressed ? 0.95 : 1 }] }}
+            shadowColor="$black"
+            shadowOffset={{ width: 0, height: 2 }}
+            shadowOpacity={0.15}
+            shadowRadius={3}
+            style={{ transform: [{ scale: pressed ? 0.95 : 1 }] }}
           >
             <Image
               source={source}
@@ -66,8 +76,8 @@ export const FotoThumbnail = ({
           right={-6}
           onPress={onDelete}
         >
-          <Center bg="red.500" size="5" rounded="full" shadow={2}>
-            <Icon as={MaterialIcons} name="close" size="2xs" color="white" />
+          <Center bg="$red500" w="$5" h="$5" borderRadius="$full" shadowColor="$black" shadowOffset={{ width: 0, height: 1 }} shadowOpacity={0.2} shadowRadius={2}>
+            <MIcon name="close" size={10} color="#fff" />
           </Center>
         </Pressable>
       )}
@@ -98,15 +108,15 @@ export const FotoPreviewModal = ({
           top={0} 
           left={0} 
           right={0} 
-          px="4" 
-          py="4"
-          safeAreaTop
+          px="$4" 
+          py="$4"
+          pt="$12"
           justifyContent="space-between"
           alignItems="center"
         >
-          <Text color="white" fontSize="lg" fontWeight="bold">{title}</Text>
-          <Pressable onPress={onClose} p="2">
-            <Icon as={MaterialIcons} name="close" size="lg" color="white" />
+          <Text color="$white" fontSize="$lg" fontWeight="$bold">{title}</Text>
+          <Pressable onPress={onClose} p="$2">
+            <MIcon name="close" size={24} color="#fff" />
           </Pressable>
         </HStack>
 

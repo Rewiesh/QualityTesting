@@ -1,9 +1,9 @@
-"/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier */
 /**
  * SkeletonLoader - Shimmer loading placeholders
  */
 import React, { useEffect } from 'react';
-import { Box, VStack, HStack, useColorModeValue } from 'native-base';
+import { Box, VStack, HStack } from '@gluestack-ui/themed';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -15,13 +15,23 @@ import { Dimensions } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const AnimatedBox = Animated.createAnimatedComponent(Box);
+import { View } from 'react-native';
+
+const AnimatedView = Animated.createAnimatedComponent(View);
+
+// Border radius mapping
+const radiusMap = {
+  sm: 4,
+  md: 8,
+  lg: 12,
+  xl: 16,
+  full: 9999,
+};
 
 // Base skeleton component with shimmer effect
 const SkeletonBase = ({ width, height, rounded = 'md', style }) => {
   const shimmer = useSharedValue(0);
-  const bgColor = useColorModeValue('gray.200', 'gray.700');
-  const shimmerColor = useColorModeValue('gray.100', 'gray.600');
+  const bgColor = '#e5e7eb'; // gray.200
 
   useEffect(() => {
     shimmer.value = withRepeat(
@@ -32,64 +42,56 @@ const SkeletonBase = ({ width, height, rounded = 'md', style }) => {
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(
+    const opacity = interpolate(
       shimmer.value,
-      [0, 1],
-      [-SCREEN_WIDTH, SCREEN_WIDTH]
+      [0, 0.5, 1],
+      [0.5, 1, 0.5]
     );
-    return {
-      transform: [{ translateX }],
-    };
+    return { opacity };
   });
 
+  const borderRadius = radiusMap[rounded] || 8;
+
   return (
-    <Box
-      width={width}
-      height={height}
-      rounded={rounded}
-      bg={bgColor}
-      overflow="hidden"
-      style={style}
+    <AnimatedView
+      style={[animatedStyle, {
+        width: typeof width === 'string' && width.includes('%') ? width : undefined,
+        height: typeof height === 'number' ? height : undefined,
+        borderRadius,
+        backgroundColor: bgColor,
+        overflow: 'hidden',
+      }, style]}
     >
-      <AnimatedBox
-        style={animatedStyle}
-        position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
-        bg={{
-          linearGradient: {
-            colors: ['transparent', shimmerColor, 'transparent'],
-            start: [0, 0],
-            end: [1, 0],
-          },
-        }}
+      <Box
+        w={width}
+        h={height}
+        borderRadius={`$${rounded}`}
+        bg="$backgroundLight200"
       />
-    </Box>
+    </AnimatedView>
   );
 };
 
 // Card skeleton
 export const SkeletonCard = ({ lines = 3 }) => {
-  const cardBg = useColorModeValue('white', 'gray.800');
+  const cardBg = '$white';
 
   return (
-    <Box bg={cardBg} rounded="xl" shadow={1} p="4" mx="4" my="2">
-      <HStack space={3} alignItems="center">
-        <SkeletonBase width="10" height="10" rounded="lg" />
-        <VStack flex={1} space={2}>
-          <SkeletonBase width="70%" height="4" />
-          <SkeletonBase width="50%" height="3" />
+    <Box bg={cardBg} borderRadius="$xl" shadowColor="$black" shadowOffset={{ width: 0, height: 1 }} shadowOpacity={0.1} shadowRadius={2} p="$4" mx="$4" my="$2">
+      <HStack space="md" alignItems="center">
+        <SkeletonBase width={40} height={40} rounded="lg" />
+        <VStack flex={1} space="sm">
+          <SkeletonBase width="70%" height={16} />
+          <SkeletonBase width="50%" height={12} />
         </VStack>
       </HStack>
       {lines > 0 && (
-        <VStack mt="3" space={2}>
+        <VStack mt="$3" space="sm">
           {Array.from({ length: lines }).map((_, i) => (
             <SkeletonBase 
               key={i} 
               width={`${100 - i * 15}%`} 
-              height="3" 
+              height={12} 
             />
           ))}
         </VStack>
@@ -101,7 +103,7 @@ export const SkeletonCard = ({ lines = 3 }) => {
 // List skeleton
 export const SkeletonList = ({ count = 5, lines = 2 }) => {
   return (
-    <VStack space={0}>
+    <VStack>
       {Array.from({ length: count }).map((_, i) => (
         <SkeletonCard key={i} lines={lines} />
       ))}
@@ -111,20 +113,20 @@ export const SkeletonList = ({ count = 5, lines = 2 }) => {
 
 // Audit card skeleton
 export const SkeletonAuditCard = () => {
-  const cardBg = useColorModeValue('white', 'gray.800');
+  const cardBg = '$white';
 
   return (
-    <Box bg={cardBg} rounded="2xl" shadow={2} p="4" mx="4" my="2">
-      <HStack space={4} alignItems="center">
-        <SkeletonBase width="12" height="12" rounded="xl" />
-        <VStack flex={1} space={2}>
-          <SkeletonBase width="60%" height="4" />
-          <HStack space={2}>
-            <SkeletonBase width="20%" height="3" />
-            <SkeletonBase width="30%" height="3" />
+    <Box bg={cardBg} borderRadius="$2xl" shadowColor="$black" shadowOffset={{ width: 0, height: 2 }} shadowOpacity={0.15} shadowRadius={3} p="$4" mx="$4" my="$2">
+      <HStack space="md" alignItems="center">
+        <SkeletonBase width={48} height={48} rounded="xl" />
+        <VStack flex={1} space="sm">
+          <SkeletonBase width="60%" height={16} />
+          <HStack space="sm">
+            <SkeletonBase width="20%" height={12} />
+            <SkeletonBase width="30%" height={12} />
           </HStack>
         </VStack>
-        <SkeletonBase width="16" height="6" rounded="full" />
+        <SkeletonBase width={64} height={24} rounded="full" />
       </HStack>
     </Box>
   );
@@ -132,22 +134,22 @@ export const SkeletonAuditCard = () => {
 
 // Form card skeleton
 export const SkeletonFormCard = () => {
-  const cardBg = useColorModeValue('white', 'gray.800');
+  const cardBg = '$white';
 
   return (
-    <Box bg={cardBg} rounded="xl" shadow={1} mx="4" my="1.5" overflow="hidden">
-      <HStack px="3" py="2" alignItems="center" space={2} borderBottomWidth={1} borderColor="gray.100">
-        <SkeletonBase width="6" height="6" rounded="md" />
-        <SkeletonBase width="40%" height="4" />
+    <Box bg={cardBg} borderRadius="$xl" shadowColor="$black" shadowOffset={{ width: 0, height: 1 }} shadowOpacity={0.1} shadowRadius={2} mx="$4" my="$1.5" overflow="hidden">
+      <HStack px="$3" py="$2" alignItems="center" space="sm" borderBottomWidth={1} borderColor="$borderLight100">
+        <SkeletonBase width={24} height={24} rounded="md" />
+        <SkeletonBase width="40%" height={16} />
       </HStack>
-      <VStack p="3" space={2}>
+      <VStack p="$3" space="sm">
         {Array.from({ length: 5 }).map((_, i) => (
           <HStack key={i} justifyContent="space-between" alignItems="center">
-            <HStack space={2} alignItems="center">
-              <SkeletonBase width="6" height="6" rounded="md" />
-              <SkeletonBase width="24" height="3" />
+            <HStack space="sm" alignItems="center">
+              <SkeletonBase width={24} height={24} rounded="md" />
+              <SkeletonBase width={96} height={12} />
             </HStack>
-            <SkeletonBase width="20" height="3" />
+            <SkeletonBase width={80} height={12} />
           </HStack>
         ))}
       </VStack>
@@ -157,17 +159,17 @@ export const SkeletonFormCard = () => {
 
 // Stats skeleton
 export const SkeletonStats = () => {
-  const cardBg = useColorModeValue('white', 'gray.800');
+  const cardBg = '$white';
 
   return (
-    <HStack space={2} px="4" py="3">
+    <HStack space="sm" px="$4" py="$3">
       {Array.from({ length: 3 }).map((_, i) => (
-        <Box key={i} flex={1} bg={cardBg} rounded="lg" p="3" shadow={1}>
-          <HStack alignItems="center" space={2}>
-            <SkeletonBase width="8" height="8" rounded="md" />
-            <VStack space={1}>
-              <SkeletonBase width="8" height="5" />
-              <SkeletonBase width="16" height="2" />
+        <Box key={i} flex={1} bg={cardBg} borderRadius="$lg" p="$3" shadowColor="$black" shadowOffset={{ width: 0, height: 1 }} shadowOpacity={0.1} shadowRadius={2}>
+          <HStack alignItems="center" space="sm">
+            <SkeletonBase width={32} height={32} rounded="md" />
+            <VStack space="xs">
+              <SkeletonBase width={32} height={20} />
+              <SkeletonBase width={64} height={8} />
             </VStack>
           </HStack>
         </Box>
@@ -178,15 +180,15 @@ export const SkeletonStats = () => {
 
 // Progress bar skeleton
 export const SkeletonProgressBar = () => {
-  const cardBg = useColorModeValue('white', 'gray.800');
+  const cardBg = '$white';
 
   return (
-    <Box bg={cardBg} rounded="xl" shadow={1} p="3" mx="4" my="2">
-      <HStack justifyContent="space-between" mb="2">
-        <SkeletonBase width="24" height="3" />
-        <SkeletonBase width="12" height="3" />
+    <Box bg={cardBg} borderRadius="$xl" shadowColor="$black" shadowOffset={{ width: 0, height: 1 }} shadowOpacity={0.1} shadowRadius={2} p="$3" mx="$4" my="$2">
+      <HStack justifyContent="space-between" mb="$2">
+        <SkeletonBase width={96} height={12} />
+        <SkeletonBase width={48} height={12} />
       </HStack>
-      <SkeletonBase width="100%" height="2" rounded="full" />
+      <SkeletonBase width="100%" height={8} rounded="full" />
     </Box>
   );
 };

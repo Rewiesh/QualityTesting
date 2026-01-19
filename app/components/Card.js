@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import React from 'react';
-import { Box, useColorModeValue } from 'native-base';
+import { Box } from '@gluestack-ui/themed';
 import { RADIUS, SHADOW, SPACING } from '../constants/theme';
 
 /**
@@ -12,28 +12,31 @@ const Card = ({
   mb = SPACING.sm,
   ...props
 }) => {
-  const cardBg = useColorModeValue('white', 'gray.800');
-
   const variants = {
     default: {
-      px: SPACING.md,
-      py: SPACING.md,
-      rounded: RADIUS.card,
-      shadow: SHADOW.card,
+      px: `$${SPACING.md}`,
+      py: `$${SPACING.md}`,
+      borderRadius: '$xl',
+      shadowColor: '$black',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
     },
     compact: {
-      px: SPACING.md,
-      py: SPACING.sm,
-      rounded: RADIUS.md,
-      shadow: SHADOW.sm,
+      px: `$${SPACING.md}`,
+      py: `$${SPACING.sm}`,
+      borderRadius: '$md',
+      shadowColor: '$black',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
     },
     flat: {
-      px: SPACING.md,
-      py: SPACING.md,
-      rounded: RADIUS.card,
-      shadow: SHADOW.none,
+      px: `$${SPACING.md}`,
+      py: `$${SPACING.md}`,
+      borderRadius: '$xl',
       borderWidth: 1,
-      borderColor: 'gray.100',
+      borderColor: '$borderLight100',
     },
   };
 
@@ -41,8 +44,8 @@ const Card = ({
 
   return (
     <Box
-      bg={cardBg}
-      mb={mb}
+      bg="$white"
+      mb={`$${mb}`}
       {...variantStyles}
       {...props}
     >

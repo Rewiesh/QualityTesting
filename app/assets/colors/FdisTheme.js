@@ -1,35 +1,37 @@
-import {extendTheme} from 'native-base';
+/**
+ * FDIS Theme Configuration for Gluestack-UI
+ * Custom color definitions for the app theme.
+ */
 
-// Correctly formatted custom color definitions for the theme.
-const customColors = {
-  // Custom color palette
+// Custom FDIS color palette
+export const fdisColors = {
   fdis: {
     10: '#fff',
-    50: '#9adaff',
-    100: '#72cbff',
-    200: '#4abdff',
-    300: '#23aeff',
-    400: '#00a0fa',
-    500: '#078edc',
-    600: '#0c7dbf',
-    700: '#106da3',
-    800: '#135e89',
-    900: '#144e70',
-    1000: '#ffffff', // A lighter background for light mode
-    1100: '#333940', // A darker, blue-gray color suitable for dark mode
+    50: '#fef3c7',   // amber-100
+    100: '#fde68a',  // amber-200
+    200: '#fcd34d',  // amber-300
+    300: '#fbbf24',  // amber-400
+    400: '#f59e0b',  // amber-500 (primary)
+    500: '#f59e0b',  // amber-500 (primary)
+    600: '#d97706',  // amber-600
+    700: '#b45309',  // amber-700
+    800: '#92400e',  // amber-800
+    900: '#78350f',  // amber-900
   },
-  bgLight: '#ffffff', // A lighter background for light mode
-  bgDark: '#333940', // A darker, blue-gray color suitable for dark mode
+  bgLight: '#ffffff',
+  bgDark: '#1f2937',
 };
 
-const FdisTheme = extendTheme({
-  colors: {
-    ...customColors,
-  },
-  config: {
-    initialColorMode: 'light', // Set the initial color mode.
-    useSystemColorMode: false, // Use the system color mode settings.
-  },
-});
+// Theme configuration
+export const themeConfig = {
+  initialColorMode: 'light',
+  useSystemColorMode: false,
+};
+
+// Export for backward compatibility
+const FdisTheme = {
+  colors: fdisColors,
+  config: themeConfig,
+};
 
 export default FdisTheme;

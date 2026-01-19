@@ -1,26 +1,29 @@
 /* eslint-disable prettier/prettier */
 import React, { useState, useEffect, useCallback } from 'react';
 import { Platform, KeyboardAvoidingView } from 'react-native';
-import {
-  Button,
-  ScrollView,
-  Box,
-  VStack,
-  Text,
-  TextArea,
-  HStack,
-  Center,
-  Icon,
-  useColorModeValue,
-  useTheme,
-} from 'native-base';
+import { Button, ButtonText, Box, VStack, Text, Textarea, TextareaInput, HStack, Center } from '@gluestack-ui/themed';
+import { ScrollView } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import * as database from '../../services/database/database1';
 
+// Custom Icon wrapper for MaterialIcons
+const MIcon = ({ name, size = 16, color = "#000" }) => (
+  <MaterialIcons name={name} size={size} color={color} />
+);
+
+// Color mapping
+const colorMap = {
+  blue: { bg: '$blue100', icon: '#2563eb' },
+  purple: { bg: '$purple100', icon: '#9333ea' },
+  green: { bg: '$green100', icon: '#16a34a' },
+  orange: { bg: '$orange100', icon: '#ea580c' },
+  teal: { bg: '$teal100', icon: '#0d9488' },
+  red: { bg: '$red100', icon: '#dc2626' },
+};
+
 const AuditForm = ({ navigation, route }) => {
   const { form } = route.params;
-  const theme = useTheme();
   const isFocused = useIsFocused();
 
   const [opmerkingen, setOpmerkingen] = useState('');
@@ -30,9 +33,9 @@ const AuditForm = ({ navigation, route }) => {
   const [errorsCount, setErrorsCount] = useState(0);
 
   // Colors
-  const bgMain = useColorModeValue('coolGray.100', 'gray.900');
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const textColor = useColorModeValue('coolGray.800', 'white');
+  const bgMain = '$backgroundLight100';
+  const cardBg = '$white';
+  const textColor = '$textDark800';
 
   useEffect(() => {
     if (isFocused) {
@@ -103,97 +106,96 @@ const AuditForm = ({ navigation, route }) => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         <ScrollView
-          flex={1}
-          _contentContainerStyle={{ p: '3', pb: '20' }}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: 12, paddingBottom: 80 }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Info Card */}
-          <Box bg={cardBg} rounded="xl" shadow={1} overflow="hidden" mb="3">
-            <HStack px="3" py="2" alignItems="center" space={2} borderBottomWidth={1} borderColor="gray.100">
-              <Center bg="fdis.100" size="6" rounded="md">
-                <Icon as={MaterialIcons} name="info" size="xs" color="fdis.600" />
+          <Box bg={cardBg} borderRadius="$xl" shadowColor="$black" shadowOffset={{ width: 0, height: 1 }} shadowOpacity={0.1} shadowRadius={2} overflow="hidden" mb="$3">
+            <HStack px="$3" py="$2" alignItems="center" space="sm" borderBottomWidth={1} borderColor="$borderLight100">
+              <Center bg="$amber100" w="$6" h="$6" borderRadius="$md">
+                <MIcon name="info" size={12} color="#f59e0b" />
               </Center>
-              <Text fontSize="sm" fontWeight="bold" color={textColor}>
+              <Text fontSize="$sm" fontWeight="$bold" color={textColor}>
                 Formulier Informatie
               </Text>
             </HStack>
             <VStack>
-              {infoItems.map((item, index) => (
-                <HStack
-                  key={index}
-                  px="3"
-                  py="2"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  borderBottomWidth={index < infoItems.length - 1 ? 1 : 0}
-                  borderColor="gray.50"
-                >
-                  <HStack alignItems="center" space={2}>
-                    <Center bg={`${item.color}.100`} size="6" rounded="md">
-                      <Icon as={MaterialIcons} name={item.icon} size="2xs" color={`${item.color}.600`} />
-                    </Center>
-                    <Text fontSize="xs" color="gray.500">{item.label}</Text>
+              {infoItems.map((item, index) => {
+                const colors = colorMap[item.color] || colorMap.blue;
+                return (
+                  <HStack
+                    key={index}
+                    px="$3"
+                    py="$2"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    borderBottomWidth={index < infoItems.length - 1 ? 1 : 0}
+                    borderColor="$borderLight50"
+                  >
+                    <HStack alignItems="center" space="sm">
+                      <Center bg={colors.bg} w="$6" h="$6" borderRadius="$md">
+                        <MIcon name={item.icon} size={10} color={colors.icon} />
+                      </Center>
+                      <Text fontSize="$xs" color="$textLight500">{item.label}</Text>
+                    </HStack>
+                    <Text fontSize="$xs" fontWeight="$semibold" color={textColor}>
+                      {item.value || '-'}
+                    </Text>
                   </HStack>
-                  <Text fontSize="xs" fontWeight="semibold" color={textColor}>
-                    {item.value || '-'}
-                  </Text>
-                </HStack>
-              ))}
+                );
+              })}
             </VStack>
           </Box>
 
           {/* Opmerkingen Card */}
-          <Box bg={cardBg} rounded="xl" shadow={1} overflow="hidden">
-            <HStack px="3" py="2" alignItems="center" space={2} borderBottomWidth={1} borderColor="gray.100">
-              <Center bg="orange.100" size="6" rounded="md">
-                <Icon as={MaterialIcons} name="edit-note" size="xs" color="orange.600" />
+          <Box bg={cardBg} borderRadius="$xl" shadowColor="$black" shadowOffset={{ width: 0, height: 1 }} shadowOpacity={0.1} shadowRadius={2} overflow="hidden">
+            <HStack px="$3" py="$2" alignItems="center" space="sm" borderBottomWidth={1} borderColor="$borderLight100">
+              <Center bg="$orange100" w="$6" h="$6" borderRadius="$md">
+                <MIcon name="edit-note" size={12} color="#ea580c" />
               </Center>
-              <Text fontSize="sm" fontWeight="bold" color={textColor}>
+              <Text fontSize="$sm" fontWeight="$bold" color={textColor}>
                 Opmerkingen
               </Text>
             </HStack>
-            <Box p="3">
-              <TextArea
-                placeholder="Voeg opmerking toe..."
-                value={opmerkingen}
-                onChangeText={onChangeOpmerking}
-                bg="gray.50"
-                borderWidth={0}
-                rounded="lg"
-                fontSize="sm"
-                h="24"
-              />
+            <Box p="$3">
+              <Textarea bg="$backgroundLight50" borderWidth={0} borderRadius="$lg" h={96}>
+                <TextareaInput
+                  placeholder="Voeg opmerking toe..."
+                  value={opmerkingen}
+                  onChangeText={onChangeOpmerking}
+                  fontSize="$sm"
+                />
+              </Textarea>
             </Box>
           </Box>
         </ScrollView>
       </KeyboardAvoidingView>
 
       {/* Sticky Footer Buttons - Outside KeyboardAvoidingView */}
-      <Box px="3" py="3" pb="6" bg={cardBg} shadow={3}>
-        <HStack space={2}>
+      <Box px="$3" py="$3" pb="$6" bg={cardBg} shadowColor="$black" shadowOffset={{ width: 0, height: -2 }} shadowOpacity={0.1} shadowRadius={3}>
+        <HStack space="sm">
           <Button
             flex={1}
             size="md"
-            bg="fdis.500"
-            _pressed={{ bg: 'fdis.600' }}
-            _text={{ color: 'white', fontWeight: 'bold', fontSize: 'sm' }}
-            rounded="xl"
-            leftIcon={<Icon as={MaterialIcons} name="play-arrow" size="sm" color="white" />}
+            bg="$amber500"
+            sx={{ ':active': { bg: '$amber600' } }}
+            borderRadius="$xl"
             onPress={onStartAuditClick}
           >
-            Audit Starten
+            <MIcon name="play-arrow" size={16} color="#fff" />
+            <ButtonText color="$white" fontWeight="$bold" fontSize="$sm" ml="$1">Audit Starten</ButtonText>
           </Button>
           <Button
             flex={1}
             size="md"
-            bg="green.500"
-            _pressed={{ bg: 'green.600' }}
-            _text={{ color: 'white', fontWeight: 'bold', fontSize: 'sm' }}
-            rounded="xl"
-            leftIcon={<Icon as={MaterialIcons} name="save" size="sm" color="white" />}
+            bg="$green500"
+            sx={{ ':active': { bg: '$green600' } }}
+            borderRadius="$xl"
             onPress={onOpslaanClick}
           >
-            Opslaan
+            <MIcon name="save" size={16} color="#fff" />
+            <ButtonText color="$white" fontWeight="$bold" fontSize="$sm" ml="$1">Opslaan</ButtonText>
           </Button>
         </HStack>
       </Box>
