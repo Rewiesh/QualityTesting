@@ -209,11 +209,13 @@ const uploadAuditData = async (username, password, audit) => {
       body: JSON.stringify(audit),
     });
 
-    if (!response.ok) {
-      throw new Error("Upload failed with status " + response.status);
-    }
-
     const data = await response.json();
+
+    if (!response.ok) {
+      // Toon de specifieke error message van de API als beschikbaar
+      const errorMessage = data?.error || `Upload failed with status ${response.status}`;
+      throw new Error(errorMessage);
+    }
     console.log("JSON audit upload response ", data);
     return data;
 

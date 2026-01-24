@@ -116,7 +116,7 @@ const AuditErrorForm = ({ navigation, route }) => {
     const errorToSave = { ...error, CountError: countError };
 
     try {
-      if (errorToSave.ErrorTypeId || errorToSave.ElementTypeId) {
+      if (errorToSave.ErrorTypeId && errorToSave.ElementTypeId) {
         await database.saveError(errorToSave, route.params.form.FormId);
         await database.setAuditUnsaved(route.params.AuditId, true);
         navigation.goBack();
