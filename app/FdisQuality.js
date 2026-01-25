@@ -16,6 +16,7 @@ import AuditForm from './screens/AuditForm';
 import AuditResumeForm from './screens/AuditResumeForm';
 import AuditErrorList from './screens/AuditErrorList';
 import AuditErrorForm from './screens/AuditErrorForm';
+import AuditRemarkForm from './screens/AuditRemarkForm';
 import AuditFormsList from './screens/AuditFormsList';
 import AppFooter from './screens/AppFooter';
 import FailedUploads from './screens/FailedUploads';
@@ -60,6 +61,7 @@ function AuditsStackScreen() {
       />
       <AuditsStack.Screen name="Fouten Lijst" component={AuditErrorList} />
       <AuditsStack.Screen name="Opmerkingen" component={AuditErrorForm} />
+      <AuditsStack.Screen name="Opmerkingen Formulier" component={AuditRemarkForm} />
       <AuditsStack.Screen name="Aanwezig bij Audit" component={AuditPersonList} />
       <AuditsStack.Screen name="Formulieren Overzicht" component={AuditFormsList} />
       <AuditsStack.Screen name="Statistieken" component={StatisticsDashboard} />

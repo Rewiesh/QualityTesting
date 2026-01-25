@@ -95,6 +95,7 @@ const AuditFormsList = ({ route, navigation }) => {
     { label: 'Ruimtenummer', value: item.AreaNumber, icon: 'pin', color: 'orange' },
     { label: 'Tel-element', value: item.CounterElements, icon: 'calculate', color: 'teal' },
     { label: 'Fouten', value: item.ErrorCount || 0, icon: 'error-outline', color: 'red' },
+    { label: 'Opmerkingen', value: item.RemarkCount || 0, icon: 'comment', color: 'cyan' },
   ], []);
 
   const renderFormRow = useCallback(({ item, index }) => {

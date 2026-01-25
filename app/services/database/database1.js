@@ -301,6 +301,13 @@ const InitializeDatabase = async () => {
         RemarksImg TEXT,
         RemarksSent INTEGER
     );`,
+    `CREATE TABLE IF NOT EXISTS tb_remark (
+        RemarkId INTEGER PRIMARY KEY AUTOINCREMENT,
+        FormId VARCHAR NOT NULL,
+        RemarkText TEXT,
+        RemarkImg TEXT,
+        RemarkImgSent INTEGER DEFAULT 0
+    );`,
     `CREATE TABLE IF NOT EXISTS tb_errortype (
         Id VARCHAR PRIMARY KEY NOT NULL,
         ErrorTypeValue VARCHAR
@@ -856,7 +863,8 @@ const getFormsWithDetails = async auditId => {
       c.CategoryValue,
       fl.FloorValue,
       a.AreaValue,
-      (SELECT COALESCE(SUM(CountError), 0) FROM tb_error WHERE FormId = f.FormId) as ErrorCount
+      (SELECT COALESCE(SUM(CountError), 0) FROM tb_error WHERE FormId = f.FormId) as ErrorCount,
+      (SELECT COUNT(*) FROM tb_remark WHERE FormId = f.FormId) as RemarkCount
     FROM tb_form f
     LEFT JOIN tb_category c ON f.CategoryId = c.Id
     LEFT JOIN tb_floor fl ON f.FloorId = fl.Id
@@ -913,7 +921,7 @@ const getAllForms = async AuditId => {
     );
     const forms = results.map(formForServer);
 
-    const formsWithErrors = await Promise.all(
+    const formsWithErrorsAndRemarks = await Promise.all(
       forms.map(async form => {
         const errors = await executeSelect(
           `SELECT * FROM tb_error WHERE FormId = "${form.Id}"`,
@@ -929,11 +937,25 @@ const getAllForms = async AuditId => {
           Remark: error.Remarks === "undefined" ? "" : error.Remarks,
           Count: error.CountError,
         }));
+        
+        // Haal remarks op
+        const remarks = await executeSelect(
+          `SELECT * FROM tb_remark WHERE FormId = "${form.Id}"`,
+        );
+        
+        // Remarks (string) blijft behouden uit formForServer
+        // RemarksList (array) is de nieuwe opmerkingen array
+        form.RemarksList = remarks.map(remark => ({
+          RemarkId: remark.RemarkId,
+          RemarkText: remark.RemarkText || "",
+          RemarkImageId: null,
+        }));
+        
         return form;
       }),
     );
 
-    return formsWithErrors;
+    return formsWithErrorsAndRemarks;
   } catch (error) {
     console.error(error);
     throw error;
@@ -1009,6 +1031,44 @@ const getErrorsImages = async auditId => {
   } catch (error) {
     console.error("Failed to retrieve error images:", error);
     throw error; // Rethrow to ensure that calling code can handle the failure
+  }
+};
+
+const getRemarksImages = async auditId => {
+  const formQuery = "SELECT * FROM tb_form WHERE AuditId = ?";
+  const remarkQuery = "SELECT * FROM tb_remark WHERE FormId = ?";
+  const params = [auditId];
+
+  try {
+    const forms = await executeSelect(formQuery, params);
+    const images = [];
+
+    for (const form of forms) {
+      const remarks = await executeSelect(remarkQuery, [form.FormId]);
+
+      for (const remark of remarks) {
+        if (remark.RemarkImg && remark.RemarkImg !== "undefined") {
+          images.push({
+            imageRemark: {
+              MimeType: "image/png",
+              Image: remark.RemarkImg,
+            },
+            traceImageData: {
+              AuditId: auditId,
+              RemarkId: remark.RemarkId,
+              FormId: form.FormId,
+              Field: "remark",
+            },
+          });
+        }
+      }
+    }
+
+    console.log("Retrieved remark images successfully:", images);
+    return images;
+  } catch (error) {
+    console.error("Failed to retrieve remark images:", error);
+    throw error;
   }
 };
 
@@ -1914,6 +1974,68 @@ async function saveError(error, FormId) {
   return error.ErrorId;
 }
 
+// Remarks
+async function getAllRemarksByFormId(FormId) {
+  const query = "SELECT * FROM tb_remark WHERE FormId = ? ORDER BY RemarkId DESC";
+  const params = [FormId];
+  
+  try {
+    const remarks = await executeSelect(query, params);
+    console.log("Remarks for FormId", FormId, ":", remarks);
+    return remarks;
+  } catch (error) {
+    console.error("Error fetching remarks for FormId:", FormId, error);
+    throw error;
+  }
+}
+
+async function insertRemark(remark, FormId) {
+  const query = `INSERT INTO tb_remark (FormId, RemarkText, RemarkImg, RemarkImgSent)
+                 VALUES (?, ?, ?, 0)`;
+  const params = [FormId, remark.RemarkText || '', remark.RemarkImg || ''];
+  
+  await executeTransaction(async tx => {
+    const result = await tx.executeSql(query, params);
+    console.log('Remark inserted successfully:', result);
+  });
+}
+
+async function updateRemark(remark, FormId) {
+  const query = `UPDATE tb_remark 
+                 SET RemarkText = ?, RemarkImg = ?, RemarkImgSent = ?
+                 WHERE RemarkId = ?`;
+  const params = [
+    remark.RemarkText || '',
+    remark.RemarkImg || '',
+    0,
+    remark.RemarkId
+  ];
+  
+  await executeTransaction(async tx => {
+    await tx.executeSql(query, params);
+  });
+  console.log('Remark updated successfully');
+}
+
+async function saveFormRemark(remark, FormId) {
+  if (!remark.RemarkId) {
+    await insertRemark(remark, FormId);
+  } else {
+    await updateRemark(remark, FormId);
+  }
+  return remark.RemarkId;
+}
+
+async function deleteRemark(remark) {
+  const query = "DELETE FROM tb_remark WHERE RemarkId = ?";
+  const params = [remark.RemarkId];
+  
+  await executeTransaction(async tx => {
+    await tx.executeSql(query, params);
+  });
+  console.log('Remark deleted successfully');
+}
+
 // Signature
 const getAuditSignature = async auditCode => {
   const query = "SELECT Signature FROM tb_audit_signature WHERE AuditCode = ?";
@@ -2132,6 +2254,7 @@ export {
   saveAllData,
   saveForm,
   saveRemark,
+  saveFormRemark,
   saveError,
   //exists
   existUnSaveData,
@@ -2164,6 +2287,7 @@ export {
   getFormsByAuditId,
   getFormsWithDetails,
   getAllErrorByFormId,
+  getAllRemarksByFormId,
   getAllErrorType,
   getCompletedForms,
   getUncompletedForms,
@@ -2174,6 +2298,7 @@ export {
   getAuditSignature,
   getAuditDate,
   getErrorsImages,
+  getRemarksImages,
   getRemarks,
   //inserts
   savePresentClient,
@@ -2184,6 +2309,7 @@ export {
   updatePresentClient,
   //deletes
   deleteError,
+  deleteRemark,
   deletePresentClient,
   deleteAuditSignature,
   removeAllFromAudit,

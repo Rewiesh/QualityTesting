@@ -189,7 +189,7 @@ const AuditErrorForm = ({ navigation, route }) => {
             leftIcon={<Icon as={MaterialIcons} name="save" size="md" color="white" />}
             onPress={saveError}
           >
-            Opmerking opslaan
+            Fout opslaan
           </Button>
         </Box>
       )}

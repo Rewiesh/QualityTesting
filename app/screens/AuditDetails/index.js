@@ -320,9 +320,10 @@ const AuditDetails = ({ route, navigation }) => {
             forms: forms,
           };
 
-          // Add image IDs to errors
+          // Add image IDs to errors and remarks
           if (uploadResults) {
             forms.forEach(form => {
+              // Error images
               form.Errors?.forEach(error => {
                 const imgResults = uploadResults.filter(r =>
                   r.FormId === form.Id && r.ElementTypeId === error.ElementTypeId && r.ErrorTypeId === error.ErrorTypeId
@@ -332,6 +333,16 @@ const AuditDetails = ({ route, navigation }) => {
                   if (imgResult.logbookImageId) error.LogbookImageId = imgResult.logbookImageId;
                   if (imgResult.technicalAspectsImageId) error.TechnicalAspectsImageId = imgResult.technicalAspectsImageId;
                 });
+              });
+              
+              // Remark images
+              form.RemarksList?.forEach(remark => {
+                const imgResult = uploadResults.find(r =>
+                  r.FormId === form.Id && r.Field === 'remark' && r.RemarkId === remark.RemarkId
+                );
+                if (imgResult?.remarkImageId) {
+                  remark.RemarkImageId = imgResult.remarkImageId;
+                }
               });
             });
           }
@@ -385,37 +396,58 @@ const AuditDetails = ({ route, navigation }) => {
   const uploadImagesWithProgress = async (auditId, auditCode, onProgress) => {
     try {
       const currentUser = await userManager.getCurrentUser();
-      const errorImages = await database.getErrorsImages(auditId);
+      
+      // Haal error images + remark images op
+      const [errorImages, remarkImages] = await Promise.all([
+        database.getErrorsImages(auditId),
+        database.getRemarksImages(auditId)
+      ]);
+      
+      const allImages = [...errorImages, ...remarkImages];
       const results = [];
-      const total = errorImages.length;
+      const total = allImages.length;
 
       // Init progress
       onProgress(0, total);
 
       for (let i = 0; i < total; i++) {
-        const item = errorImages[i];
+        const item = allImages[i];
 
         // Update progress before start
         onProgress(i + 1, total);
 
+        const imageData = item.imageError || item.imageRemark;
         const response = await uploadAuditImage(
           currentUser.username,
           currentUser.password,
-          item.imageError.Image,
-          item.imageError.MimeType
+          imageData.Image,
+          imageData.MimeType
         );
 
         if (!response || response.error) {
           throw new Error(response?.error || `Image upload failed`);
         }
 
-        results.push({
+        const resultItem = {
           FormId: item.traceImageData.FormId,
-          ElementTypeId: item.traceImageData.ElementTypeId,
-          ErrorTypeId: item.traceImageData.ErrorTypeId,
-          logbookImageId: item.traceImageData.Field === "logbook" ? response : null,
-          technicalAspectsImageId: item.traceImageData.Field === "technicalaspects" ? response : null,
-        });
+          Field: item.traceImageData.Field,
+        };
+        
+        // Error images
+        if (item.traceImageData.ElementTypeId) {
+          resultItem.ElementTypeId = item.traceImageData.ElementTypeId;
+          resultItem.ErrorTypeId = item.traceImageData.ErrorTypeId;
+          resultItem.logbookImageId = item.traceImageData.Field === "logbook" ? response : null;
+          resultItem.technicalAspectsImageId = item.traceImageData.Field === "technicalaspects" ? response : null;
+        }
+        
+        // Remark images
+        if (item.traceImageData.RemarkId) {
+          resultItem.RemarkId = item.traceImageData.RemarkId;
+          resultItem.remarkImageId = response;
+        }
+        
+        results.push(resultItem);
       }
       return results;
     } catch (error) {

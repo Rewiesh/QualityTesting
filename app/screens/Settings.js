@@ -255,7 +255,7 @@ const Settings = ({ navigation }) => {
                   App Versie
                 </Text>
                 <Text fontSize="sm" color={subtextColor}>
-                  v1.3.1
+                  v1.3.2
                 </Text>
               </VStack>
             </HStack>
