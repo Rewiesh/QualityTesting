@@ -6,7 +6,6 @@
 /* eslint-disable prettier/prettier */
 import {
   loginAPI,
-  tokenAPI,
   getAuditDataAPI,
   getUserActivity,
   postAuditDataAPI,
@@ -43,7 +42,9 @@ const isLoginValid = async (username, password) => {
     // Controleer of de login valid is
     if (parsedResult.status === 'VALID') {
       console.log('Login Valid!');
-      return { success: true };
+      return { success: true, accessToken: parsedResult.accessToken };
+    } else if (parsedResult.status === 'ERROR') {
+      return { error: parsedResult.message || 'Authentication error on server' };
     } else {
       console.log('Login Invalid!');
       return { success: false };
@@ -62,34 +63,11 @@ const fetchToken = async (username, password) => {
     if (response.success === false) {
       return { error: 'Authentication failed: Invalid credentials' };
     }
-
-    const clientId = 'vlp-2lhHEggSF1U-DRpjaA..'; // Vervang met jouw client_id
-    const clientSecret = 'd8oAU_Sil3qCRDsbc7qnJQ..'; // Vervang met jouw client_secret
-    const credentials = btoa(`${clientId}:${clientSecret}`);
-    console.log('errsss');
-    const responseToken = await fetch(tokenAPI, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${credentials}`,
-      },
-      body: 'grant_type=client_credentials',
-    });
-
-    const data = await responseToken.json();
-    console.log(responseToken);
-    console.log(data);
-
-    if (!responseToken.ok) {
-      const errorMessage =
-        data.error === 'invalid_grant'
-          ? 'Authentication failed: Invalid credentials'
-          : 'Failed to fetch token';
-
-      // Return an error object instead of throwing
-      return { error: errorMessage };
+    if (response.error) {
+      return { error: response.error };
     }
-    return { accessToken: data.access_token }; // Return the token wrapped in an object
+
+    return { accessToken: response.accessToken }; // Return the token wrapped in an object
   }
   catch (error) {
     console.error('Error fetching token:', error);

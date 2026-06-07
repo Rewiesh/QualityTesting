@@ -11,9 +11,16 @@
 // export const postImageAPI       = 'https://gb2149609998bbd-iccacdb1.adb.eu-amsterdam-1.oraclecloudapps.com/ords/icca/api/postImage/';
 
 
-export const tokenAPI           = 'https://icca-dashboard.maxapex.net/ords/icca/oauth/token';
-export const loginAPI           = 'https://icca-dashboard.maxapex.net/ords/icca/auth/login/';
-export const getAuditDataAPI    = 'https://icca-dashboard.maxapex.net/ords/icca/api/getAudits/';
-export const getUserActivity    = 'https://icca-dashboard.maxapex.net/ords/icca/api/getUserActivity/';
-export const postAuditDataAPI   = 'https://icca-dashboard.maxapex.net/ords/icca/api/postAudits/';
-export const postImageAPI       = 'https://icca-dashboard.maxapex.net/ords/icca/api/postImage/';
+// export const tokenAPI           = 'https://icca-dashboard.maxapex.net/ords/icca/oauth/token';
+// export const loginAPI           = 'https://icca-dashboard.maxapex.net/ords/icca/auth/login/';
+// export const getAuditDataAPI    = 'https://icca-dashboard.maxapex.net/ords/icca/api/getAudits/';
+// export const getUserActivity    = 'https://icca-dashboard.maxapex.net/ords/icca/api/getUserActivity/';
+// export const postAuditDataAPI   = 'https://icca-dashboard.maxapex.net/ords/icca/api/postAudits/';
+// export const postImageAPI       = 'https://icca-dashboard.maxapex.net/ords/icca/api/postImage/';
+
+export const tokenAPI           = 'https://icca-dashboard-26ai.maxapex.net/ords/icca/oauth/token';
+export const loginAPI           = 'https://icca-dashboard-26ai.maxapex.net/ords/icca/auth/login/';
+export const getAuditDataAPI    = 'https://icca-dashboard-26ai.maxapex.net/ords/icca/api/getAudits/';
+export const getUserActivity    = 'https://icca-dashboard-26ai.maxapex.net/ords/icca/api/getUserActivity/';
+export const postAuditDataAPI   = 'https://icca-dashboard-26ai.maxapex.net/ords/icca/api/postAudits/';
+export const postImageAPI       = 'https://icca-dashboard-26ai.maxapex.net/ords/icca/api/postImage/';
