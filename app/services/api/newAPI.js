@@ -6,6 +6,8 @@
 /* eslint-disable prettier/prettier */
 import {
   loginAPI,
+  tokenAPI,
+  getCredentialsAPI,
   getAuditDataAPI,
   getUserActivity,
   postAuditDataAPI,
@@ -44,7 +46,9 @@ const isLoginValid = async (username, password) => {
       console.log('Login Valid!');
       return { success: true, accessToken: parsedResult.accessToken };
     } else if (parsedResult.status === 'ERROR') {
-      return { error: parsedResult.message || 'Authentication error on server' };
+      // gebruiker is geldig maar backend kon geen token genereren -> fallback activeren
+      console.warn('Backend token generatie mislukt:', parsedResult.message);
+      return { success: true, accessToken: null };
     } else {
       console.log('Login Invalid!');
       return { success: false };
@@ -55,21 +59,97 @@ const isLoginValid = async (username, password) => {
   }
 };
 
+// Fallback: als de backend geen token meestuurt, haal client_id + client_secret op
+// van de backend en genereer het token zelf via de OAuth client_credentials flow.
+const fetchTokenViaOAuth = async (username, password) => {
+  try {
+    // Stap 1: haal de OAuth credentials op van de backend
+    const credResponse = await fetch(getCredentialsAPI, {
+      method: 'GET',
+      headers: {
+        'X-Username': username,
+        'X-Password': password,
+      },
+    });
+
+    if (!credResponse.ok) {
+      console.error('Fallback: credentials endpoint gaf HTTP', credResponse.status);
+      return { error: 'Fallback: kon geen OAuth credentials ophalen van de backend' };
+    }
+
+    const credData = await credResponse.json();
+
+    // credentials zitten genest in het result veld als JSON-string (zelfde patroon als login endpoint)
+    let parsedCreds;
+    try {
+      parsedCreds = JSON.parse(credData.result);
+    } catch (e) {
+      console.error('Fallback: kon credentials response niet parsen', credData);
+      return { error: 'Fallback: kon credentials response niet parsen' };
+    }
+
+    if (!parsedCreds.client_id || !parsedCreds.client_secret) {
+      console.error('Fallback: backend response bevat geen client_id/client_secret', parsedCreds);
+      return { error: 'Fallback: backend gaf geen geldige OAuth credentials terug' };
+    }
+
+    // Stap 2: gebruik de credentials om een token op te halen via OAuth
+    const encoded = btoa(`${parsedCreds.client_id}:${parsedCreds.client_secret}`);
+    const tokenResponse = await fetch(tokenAPI, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${encoded}`,
+      },
+      body: 'grant_type=client_credentials',
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    if (!tokenResponse.ok || !tokenData.access_token) {
+      console.error('Fallback: OAuth token endpoint mislukt', tokenData);
+      return { error: 'Fallback: token ophalen via OAuth mislukt' };
+    }
+
+    console.log('Fallback token flow geslaagd');
+    return { accessToken: tokenData.access_token };
+
+  } catch (error) {
+    console.error('Fallback token fout:', error);
+    return { error: 'Fallback: netwerk- of serverfout bij token ophalen' };
+  }
+};
+
 const fetchToken = async (username, password) => {
   try {
-    // voor het generen van een token kijk als de user een valid account heeft.
+    // Primaire flow: backend stuurt token mee in de login response
     const response = await isLoginValid(username, password);
 
     if (response.success === false) {
       return { error: 'Authentication failed: Invalid credentials' };
     }
+
+    // Als de JSON van de backend kapot was, probeer alsnog de fallback
+    if (response.error === 'Invalid JSON format in server response') {
+      console.warn('Login response JSON was ongeldig — fallback OAuth flow wordt geactiveerd');
+      return await fetchTokenViaOAuth(username, password);
+    }
+
     if (response.error) {
       return { error: response.error };
     }
 
-    return { accessToken: response.accessToken }; // Return the token wrapped in an object
-  }
-  catch (error) {
+    // Controleer of de backend een token heeft meegestuurd (primaire flow v26)
+    if (response.accessToken) {
+      return { accessToken: response.accessToken };
+    }
+
+    // Fallback: login is geldig maar backend stuurde geen token mee
+    // Haal client_id + client_secret op en genereer het token zelf
+    console.warn('Primaire token ontbreekt in login response — fallback OAuth flow wordt geactiveerd');
+    return await fetchTokenViaOAuth(username, password);
+
+  } catch (error) {
     console.error('Error fetching token:', error);
     return { error: 'Network error or invalid server response' };
   }
