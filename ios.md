@@ -8,7 +8,7 @@ rm .xcode.env.local
 pod install
 
 rm ~/Library/MobileDevice/Provisioning\ Profiles/64c9a4cb-80b4-480b-9e0d-74e306af0ced.mobileprovision
-
+rm ~/Library/Developer/Xcode/UserData/ProvisioningProfiles/64c9a4cb-80b4-480b-9e0d-74e306af0ced.mobileprovision
 rm -rf ~/Library/Developer/Xcode/DerivedData
 grep -r "64c9a4cb-80b4-480b-9e0d-74e306af0ced" ~/QualityTesting/ios/
 Dear Support,
